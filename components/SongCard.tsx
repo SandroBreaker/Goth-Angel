@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Song } from '../types.ts';
+import { FileText, Calendar } from 'lucide-react';
 
 interface SongCardProps {
   song: Song;
@@ -13,39 +14,45 @@ export const SongCard: React.FC<SongCardProps> = ({ song, onClick }) => {
 
   return (
     <MotionDiv
-      whileHover={{ y: -4 }}
-      className="relative group cursor-pointer overflow-hidden border border-neutral-900/50 aspect-[4/5] bg-[#080808] transition-all duration-700 hover:border-[#FF007F]/30"
+      whileHover={{ scale: 0.98 }}
+      className="relative group cursor-pointer overflow-hidden border border-neutral-900 bg-neutral-950 aspect-square transition-all duration-500 hover:border-[#FF007F]/50"
       onClick={() => onClick(song)}
     >
+      {/* Pulse Neon Border Effect on Hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div className="absolute inset-0 border border-[#FF007F]/30 animate-pulse"></div>
+      </div>
+
       <img
-        src={song.image_url || `https://picsum.photos/seed/${song.id}/600/800`}
+        src={song.image_url || `https://picsum.photos/seed/${song.id}/400/400`}
         alt={song.title}
-        className="absolute inset-0 w-full h-full object-cover transition-all duration-1000 grayscale-[40%] group-hover:grayscale-0 opacity-40 group-hover:opacity-60 scale-100 group-hover:scale-105"
+        className="absolute inset-0 w-full h-full object-cover transition-all duration-700 grayscale-[30%] group-hover:grayscale-0 group-hover:scale-110 opacity-60 group-hover:opacity-30"
         loading="lazy"
       />
 
-      {/* Ethereal Glow Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-1000"></div>
-      <div className="absolute inset-0 bg-[#FF007F]/0 group-hover:bg-[#FF007F]/5 transition-colors duration-1000"></div>
-
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 opacity-0 group-hover:opacity-100 transition-all duration-1000 translate-y-4 group-hover:translate-y-0">
-        <p className="font-mono text-[8px] text-white/40 mb-4 uppercase tracking-[0.4em]">Lyric Resonance</p>
-        <p className="text-center font-light text-neutral-300 text-xs leading-relaxed italic line-clamp-3 px-2">
-          "{song.lyrics?.split('\n')[0]}..."
-        </p>
-      </div>
-
-      <div className="absolute bottom-0 left-0 w-full p-6">
-        <h3 className="font-serif-classic text-xs font-bold tracking-[0.2em] text-neutral-400 group-hover:text-white transition-colors duration-700">
+      {/* Normal State: Minimalist Title */}
+      <div className="absolute bottom-0 left-0 w-full p-4 z-10 group-hover:opacity-0 transition-opacity duration-300">
+        <h3 className="font-serif-classic text-[10px] tracking-[0.2em] text-neutral-400 uppercase truncate">
           {song.title}
         </h3>
-        <p className="font-mono text-[8px] text-neutral-700 group-hover:text-[#FF007F]/60 uppercase tracking-widest mt-2 transition-colors duration-700">
-          {song.album}
-        </p>
       </div>
-      
-      {/* Museum Frame Effect */}
-      <div className="absolute inset-0 border border-white/0 group-hover:border-white/5 transition-all duration-1000 pointer-events-none"></div>
+
+      {/* Hover State: Metadata & Action */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
+        <div className="flex items-center gap-2 mb-2">
+          <Calendar size={10} className="text-[#FF007F]" />
+          <span className="font-mono text-[9px] text-white tracking-[0.2em]">
+            {song.release_date?.split('-')[0] || 'ARCHIVED'}
+          </span>
+        </div>
+        <h3 className="font-serif-classic text-sm text-center font-bold tracking-[0.1em] text-white mb-4 px-2">
+          {song.title}
+        </h3>
+        <div className="flex items-center gap-2 px-3 py-1.5 border border-[#FF007F]/30 bg-[#FF007F]/10">
+          <FileText size={10} className="text-[#FF007F]" />
+          <span className="font-mono text-[8px] text-[#FF007F] uppercase tracking-widest">Read Lyrics</span>
+        </div>
+      </div>
     </MotionDiv>
   );
 };

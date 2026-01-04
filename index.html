@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -76,6 +77,14 @@
       ::-webkit-scrollbar-track { background: var(--pure-black); }
       ::-webkit-scrollbar-thumb { background: #333; }
       ::-webkit-scrollbar-thumb:hover { background: var(--neon-pink); }
+
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
     </style>
     <script type="importmap">
 {
