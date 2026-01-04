@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient.ts';
 import { Song } from '../types.ts';
@@ -10,14 +9,19 @@ export const useSongs = (query: string, filter: string | null) => {
 
   const fetchSongs = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       let request = supabase
         .from('songs')
         .select('*');
 
-      if (query) {
-        // Using full-text search column as requested
-        request = request.textSearch('search_vector', query);
+      const trimmedQuery = query.trim();
+      if (trimmedQuery) {
+        // Using 'plain' search type for safer user input handling
+        request = request.textSearch('search_vector', trimmedQuery, {
+          type: 'plain',
+          config: 'english'
+        });
       }
 
       if (filter) {
@@ -27,11 +31,16 @@ export const useSongs = (query: string, filter: string | null) => {
 
       const { data, error: supabaseError } = await request.order('release_date', { ascending: false });
 
-      if (supabaseError) throw supabaseError;
+      if (supabaseError) {
+        throw supabaseError;
+      }
+      
       setSongs(data as Song[] || []);
     } catch (err: any) {
-      console.error('Fetch error:', err);
-      setError(err.message);
+      console.error('Archive Fetch error:', err);
+      // Improve error display by ensuring we stringify objects or show the message
+      const message = err.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -40,7 +49,7 @@ export const useSongs = (query: string, filter: string | null) => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchSongs();
-    }, 300); // 300ms debounce as requested
+    }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
   }, [fetchSongs]);
