@@ -4,7 +4,10 @@ import { Header } from './components/Header.tsx';
 import { SongCard } from './components/SongCard.tsx';
 import { SkeletonCard } from './components/SkeletonCard.tsx';
 import { LyricView } from './components/LyricView.tsx';
-import { DevSpace } from './components/DevSpace.tsx';
+import { Timeline } from './components/Timeline.tsx';
+import { Theater } from './components/Theater.tsx';
+import { TheVault } from './components/TheVault.tsx';
+import { Footer } from './components/Footer.tsx';
 import { useSongs } from './hooks/useSongs.ts';
 import { Song, ViewState } from './types.ts';
 import { AlertCircle, Filter } from 'lucide-react';
@@ -24,13 +27,16 @@ const App: React.FC = () => {
 
   const navigateTo = (view: ViewState) => {
     setCurrentView(view);
-    if (view === 'archive') setSelectedSong(null);
+    // When navigating away from lyrics, clear selection
+    if (view !== 'lyrics') {
+      window.scrollTo(0, 0);
+    }
   };
 
   const sentiments = ['Melancholy', 'Energetic', 'Sad', 'Dark', 'Hopeful'];
 
   return (
-    <div className="min-h-screen relative z-10">
+    <div className="min-h-screen relative z-10 flex flex-col">
       <Header 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
@@ -38,46 +44,52 @@ const App: React.FC = () => {
         onNavigate={navigateTo}
       />
 
-      <main>
+      <main className="flex-grow">
         {currentView === 'archive' && (
-          <div className="px-6 py-8">
-            {/* Filter Section */}
-            <div className="mb-8 flex items-center gap-4 overflow-x-auto pb-4 scrollbar-hide">
-              <div className="flex items-center gap-2 text-neutral-600 px-2">
-                <Filter size={14} />
-                <span className="text-[10px] font-mono uppercase tracking-widest">Vibe</span>
-              </div>
-              <button
-                onClick={() => setSentimentFilter(null)}
-                className={`px-4 py-1.5 text-[10px] font-mono border transition-all ${
-                  !sentimentFilter ? 'border-[#FF007F] text-[#FF007F] bg-[#FF007F]/5' : 'border-neutral-800 text-neutral-500 hover:border-neutral-600'
-                }`}
-              >
-                ALL_VOID
-              </button>
-              {sentiments.map((s) => (
+          <div className="px-6 py-12">
+            <div className="mb-12 flex flex-col md:flex-row items-center justify-between gap-8 border-b border-neutral-900 pb-8">
+               <div>
+                 <h2 className="font-serif-classic text-2xl tracking-[0.2em] text-white">THE ARCHIVE</h2>
+                 <p className="font-mono text-[9px] text-neutral-600 uppercase tracking-[0.4em] mt-1">Cataloging the frequency of emotion</p>
+               </div>
+
+              <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide max-w-full">
+                <div className="flex items-center gap-2 text-neutral-700 px-2 shrink-0">
+                  <Filter size={12} />
+                  <span className="text-[9px] font-mono uppercase tracking-widest">Resonance</span>
+                </div>
                 <button
-                  key={s}
-                  onClick={() => setSentimentFilter(s)}
-                  className={`px-4 py-1.5 text-[10px] font-mono border transition-all uppercase ${
-                    sentimentFilter === s ? 'border-[#7000FF] text-[#7000FF] bg-[#7000FF]/5' : 'border-neutral-800 text-neutral-500 hover:border-neutral-600'
+                  onClick={() => setSentimentFilter(null)}
+                  className={`px-4 py-1.5 text-[9px] font-mono border transition-all shrink-0 ${
+                    !sentimentFilter ? 'border-[#FF007F]/40 text-[#FF007F] bg-[#FF007F]/5' : 'border-neutral-900 text-neutral-600 hover:border-neutral-700'
                   }`}
                 >
-                  {s}
+                  ALL_VOID
                 </button>
-              ))}
+                {sentiments.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSentimentFilter(s)}
+                    className={`px-4 py-1.5 text-[9px] font-mono border transition-all uppercase shrink-0 ${
+                      sentimentFilter === s ? 'border-[#7000FF]/40 text-[#7000FF] bg-[#7000FF]/5' : 'border-neutral-900 text-neutral-600 hover:border-neutral-700'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {error && (
-              <div className="flex flex-col items-center justify-center py-20 text-neutral-500">
-                <AlertCircle className="w-12 h-12 mb-4 text-red-900" />
-                <p className="font-mono text-xs uppercase tracking-widest">Error accessing the archive</p>
-                <p className="text-[10px] mt-2 opacity-50">{error}</p>
+              <div className="flex flex-col items-center justify-center py-40 text-neutral-600">
+                <AlertCircle className="w-10 h-10 mb-6 text-red-950/40" />
+                <p className="font-mono text-[10px] uppercase tracking-[0.5em]">The Archive is currently unreachable</p>
+                <p className="text-[8px] mt-4 opacity-30 font-mono">{error}</p>
               </div>
             )}
 
             {!error && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {loading ? (
                   Array.from({ length: 15 }).map((_, i) => <SkeletonCard key={i} />)
                 ) : (
@@ -90,10 +102,10 @@ const App: React.FC = () => {
                   ))
                 )}
                 {!loading && songs.length === 0 && (
-                  <div className="col-span-full text-center py-40">
-                    <p className="font-gothic text-4xl opacity-10 select-none">Nothing found in the dark</p>
-                    <p className="font-mono text-[10px] text-neutral-600 uppercase mt-4 tracking-widest">
-                      Your query returned zero results
+                  <div className="col-span-full text-center py-60">
+                    <p className="font-gothic text-5xl opacity-5 select-none tracking-widest">Void</p>
+                    <p className="font-mono text-[9px] text-neutral-700 uppercase mt-6 tracking-[0.6em]">
+                      No frequencies detected for this query
                     </p>
                   </div>
                 )}
@@ -102,7 +114,9 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {currentView === 'developer' && <DevSpace />}
+        {currentView === 'timeline' && <Timeline />}
+        {currentView === 'theater' && <Theater />}
+        {currentView === 'vault' && <TheVault />}
       </main>
 
       {/* Lyrics Immersive Modal */}
@@ -113,16 +127,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Footer Branding */}
-      <footer className="py-12 px-6 border-t border-neutral-900/50 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex items-center gap-4">
-          <span className="font-gothic text-xl text-neutral-700">Lil Peep Memorial</span>
-          <span className="text-[10px] font-mono text-neutral-800 uppercase tracking-[0.4em]">Forever</span>
-        </div>
-        <div className="text-[9px] font-mono text-neutral-600 tracking-widest uppercase">
-          Build by Alê // SandroBreaker &copy; 2024
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
