@@ -1,13 +1,15 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Github, Code, Database, Zap, ExternalLink } from 'lucide-react';
 
 export const DevSpace: React.FC = () => {
+  // Fix: Casting to any to bypass framer-motion type conflicts with React 19
+  const MotionDiv = motion.div as any;
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
@@ -40,9 +42,9 @@ export const DevSpace: React.FC = () => {
               Stack: NODE.JS / SUPABASE / REACT / D3
             </div>
           </div>
-        </motion.div>
+        </MotionDiv>
 
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -69,7 +71,7 @@ export const DevSpace: React.FC = () => {
               <p className="text-xl font-serif-classic text-white tracking-widest">~12ms</p>
             </div>
           </div>
-        </motion.div>
+        </MotionDiv>
       </div>
 
       <div className="mt-24 pt-24 border-t border-neutral-900 text-center">
@@ -83,23 +85,28 @@ export const DevSpace: React.FC = () => {
   );
 };
 
-const SkillBar: React.FC<{ icon: React.ReactNode; label: string; progress: number; color: string }> = ({ icon, label, progress, color }) => (
-  <div>
-    <div className="flex justify-between items-center mb-2">
-      <div className="flex items-center gap-2 text-neutral-400">
-        {icon}
-        <span className="text-[10px] font-mono tracking-widest">{label}</span>
+const SkillBar: React.FC<{ icon: React.ReactNode; label: string; progress: number; color: string }> = ({ icon, label, progress, color }) => {
+  // Fix: Casting to any to bypass framer-motion type conflicts with React 19
+  const MotionDiv = motion.div as any;
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2 text-neutral-400">
+          {icon}
+          <span className="text-[10px] font-mono tracking-widest">{label}</span>
+        </div>
+        <span className="text-[10px] font-mono" style={{ color }}>{progress}%</span>
       </div>
-      <span className="text-[10px] font-mono" style={{ color }}>{progress}%</span>
+      <div className="h-[2px] w-full bg-neutral-900">
+        <MotionDiv 
+          initial={{ width: 0 }}
+          whileInView={{ width: `${progress}%` }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="h-full" 
+          style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
+        ></MotionDiv>
+      </div>
     </div>
-    <div className="h-[2px] w-full bg-neutral-900">
-      <motion.div 
-        initial={{ width: 0 }}
-        whileInView={{ width: `${progress}%` }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
-        className="h-full" 
-        style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
-      ></motion.div>
-    </div>
-  </div>
-);
+  );
+};

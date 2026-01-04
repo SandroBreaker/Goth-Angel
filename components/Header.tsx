@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Search, Archive, User, Zap } from 'lucide-react';
-import { ViewState } from '../types';
+import { Search, Archive, User } from 'lucide-react';
+import { ViewState } from '../types.ts';
 
 interface HeaderProps {
   searchQuery: string;

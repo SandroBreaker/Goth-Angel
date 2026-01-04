@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Info, Share2, Music, UserCheck, Clock, Layers } from 'lucide-react';
-import { Song } from '../types';
+import { Song } from '../types.ts';
 
 interface LyricViewProps {
   song: Song;
@@ -13,13 +12,17 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
 
+  // Fix: Casting to any to bypass framer-motion type conflicts with React 19
+  const MotionDiv = motion.div as any;
+  const MotionAside = motion.aside as any;
+
   const handleTextSelect = () => {
     const selection = window.getSelection()?.toString();
     if (selection) setSelectedText(selection);
   };
 
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-[100] bg-[#050505] overflow-y-auto"
@@ -59,10 +62,9 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           </div>
         </div>
 
-        {/* Retractable Sidebar */}
         <AnimatePresence>
           {sidebarOpen && (
-            <motion.aside
+            <MotionAside
               initial={{ x: 300, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 300, opacity: 0 }}
@@ -88,15 +90,14 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
                   </p>
                 </div>
               </div>
-            </motion.aside>
+            </MotionAside>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Share Selection UI */}
       <AnimatePresence>
         {selectedText && (
-          <motion.div
+          <MotionDiv
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
@@ -115,10 +116,10 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
             <button onClick={() => setSelectedText('')} className="text-neutral-500 hover:text-white">
               <X size={14} />
             </button>
-          </motion.div>
+          </MotionDiv>
         )}
       </AnimatePresence>
-    </motion.div>
+    </MotionDiv>
   );
 };
 
