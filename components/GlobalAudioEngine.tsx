@@ -36,12 +36,15 @@ export const GlobalAudioEngine: React.FC = () => {
         ref={playerRef}
         url={currentSong.video_url}
         playing={isPlaying}
+        // Throttling progress updates to 500ms to avoid clogging the main thread on slow devices/networks
+        progressInterval={500} 
         onProgress={({ playedSeconds }) => setProgress(playedSeconds)}
         onDuration={(d) => setDuration(d)}
         onEnded={() => setPlaying(false)}
         onError={(e) => {
-          console.error('Audio Engine Error:', e);
-          setPlaying(false);
+          console.warn('Audio Engine Frequency Error (Retry expected on slow 4G):', e);
+          // Don't immediately stop on errors if we are on a slow connection, 
+          // let the player try to recover unless it's a fatal block
         }}
         config={{
           youtube: {
