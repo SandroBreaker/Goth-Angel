@@ -1,3 +1,4 @@
+
 {
   "name": "goth-angel-sinner-archive",
   "private": true,
@@ -8,7 +9,8 @@
     "react-dom": "^19.0.0",
     "@supabase/supabase-js": "^2.47.10",
     "lucide-react": "^0.471.0",
-    "framer-motion": "^11.15.0"
+    "framer-motion": "^11.15.0",
+    "react-player": "^2.16.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
