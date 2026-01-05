@@ -10,7 +10,8 @@ interface SongCardProps {
   onClick: (song: Song) => void;
 }
 
-export const SongCard: React.FC<SongCardProps> = ({ song, onClick }) => {
+// Using React.memo to prevent re-renders when the global player progress updates
+export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const { playSong, currentSong, isPlaying } = usePlayer();
   const MotionDiv = motion.div as any;
 
@@ -26,11 +27,14 @@ export const SongCard: React.FC<SongCardProps> = ({ song, onClick }) => {
 
   return (
     <MotionDiv
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "100px" }}
       whileHover={{ scale: 0.98 }}
       className="relative group cursor-pointer overflow-hidden border border-neutral-900 bg-neutral-950 aspect-square transition-all duration-500 hover:border-[#FF007F]/50"
       onClick={() => onClick(song)}
     >
-      {/* Pulse Neon Border Effect on Hover */}
+      {/* Pulse Neon Border Effect */}
       <div className={`absolute inset-0 transition-opacity duration-500 pointer-events-none ${isCurrentlyPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
         <div className={`absolute inset-0 border border-[#FF007F]/30 ${isCurrentlyPlaying ? 'animate-pulse' : ''}`}></div>
       </div>
@@ -42,14 +46,12 @@ export const SongCard: React.FC<SongCardProps> = ({ song, onClick }) => {
         loading="lazy"
       />
 
-      {/* Normal State: Minimalist Title */}
       <div className={`absolute bottom-0 left-0 w-full p-4 z-10 transition-opacity duration-300 ${isCurrentlyPlaying ? 'opacity-0' : 'group-hover:opacity-0'}`}>
         <h3 className="font-serif-classic text-[10px] tracking-[0.2em] text-neutral-400 uppercase truncate">
           {song.title}
         </h3>
       </div>
 
-      {/* Play Icon Trigger (hover) */}
       <div 
         className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         onClick={handlePlayClick}
@@ -65,7 +67,6 @@ export const SongCard: React.FC<SongCardProps> = ({ song, onClick }) => {
         )}
       </div>
 
-      {/* Hover State: Metadata & Action */}
       <div className={`absolute inset-0 flex flex-col items-center justify-center p-6 transition-all duration-500 ${isCurrentlyPlaying ? 'opacity-100 translate-y-0' : 'opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'}`}>
         <div className="flex items-center gap-2 mb-2">
           <Calendar size={10} className="text-[#FF007F]" />
@@ -83,4 +84,7 @@ export const SongCard: React.FC<SongCardProps> = ({ song, onClick }) => {
       </div>
     </MotionDiv>
   );
-};
+}, (prevProps, nextProps) => {
+  // Only re-render if essential properties change
+  return prevProps.song.id === nextProps.song.id;
+});

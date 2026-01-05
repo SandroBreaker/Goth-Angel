@@ -10,10 +10,10 @@ import { GlobalAudioEngine } from './components/GlobalAudioEngine.tsx';
 import { GlobalPlayer } from './components/GlobalPlayer.tsx';
 import { PlayerProvider } from './context/PlayerContext.tsx';
 import { useSongs } from './hooks/useSongs.ts';
+import { supabase } from './services/supabaseClient.ts';
 import { Song, ViewState } from './types.ts';
 import { AlertCircle } from 'lucide-react';
 
-// Using dynamic import for LyricView to improve initial load and prevent blocking if dependencies have issues
 const LyricView = lazy(() => import('./components/LyricView.tsx').then(m => ({ default: m.LyricView })));
 
 const AppContent: React.FC = () => {
@@ -22,10 +22,30 @@ const AppContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sentimentFilter, setSentimentFilter] = useState<string | null>(null);
 
-  const { songs, loading, error } = useSongs(searchQuery, sentimentFilter);
+  const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
 
-  const handleSongClick = (song: Song) => {
-    setSelectedSong(song);
+  const handleSongClick = async (song: Song) => {
+    // Optimization: If lyrics are missing, fetch them on demand before opening the view
+    if (!song.lyrics) {
+      try {
+        const { data, error } = await supabase
+          .from('songs')
+          .select('lyrics, metadata, release_date, producer, writer, bpm')
+          .eq('id', song.id)
+          .single();
+        
+        if (data) {
+          setSelectedSong({ ...song, ...data });
+        } else {
+          setSelectedSong(song);
+        }
+      } catch (err) {
+        console.warn('Could not fetch full artifact details', err);
+        setSelectedSong(song);
+      }
+    } else {
+      setSelectedSong(song);
+    }
     setCurrentView('lyrics');
   };
 
@@ -60,6 +80,8 @@ const AppContent: React.FC = () => {
               <ArchiveView 
                 songs={songs} 
                 loading={loading} 
+                hasMore={hasMore}
+                onLoadMore={loadMore}
                 onSongClick={handleSongClick} 
               />
             )}
@@ -71,7 +93,6 @@ const AppContent: React.FC = () => {
         {currentView === 'vault' && <TheVault />}
       </main>
 
-      {/* Lyrics Immersive View with Suspense for better error boundaries */}
       {currentView === 'lyrics' && selectedSong && (
         <Suspense fallback={
           <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center font-mono text-[10px] uppercase tracking-widest text-[#FF007F]">
