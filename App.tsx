@@ -1,5 +1,5 @@
 
-import { useState, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy, useCallback } from 'react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
@@ -24,48 +24,42 @@ const AppContent: React.FC = () => {
 
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
 
-  const handleSongClick = async (song: Song) => {
+  const handleSongClick = useCallback(async (song: Song) => {
+    // Set immediate partial song data for instant UI feedback
+    setSelectedSong(song);
+    setCurrentView('lyrics');
+
+    // Then fetch full details in background if missing lyrics
     if (!song.lyrics) {
       try {
-        // FIX: Removed columns that likely don't exist as top-level fields.
-        // These are typically inside the 'metadata' JSONB column in the provided dataset.
         const { data, error: fetchError } = await supabase
           .from('songs')
           .select('lyrics, metadata, release_date')
           .eq('id', song.id)
           .single();
         
-        if (fetchError) throw fetchError;
-
-        if (data) {
-          const fullSong = { 
-            ...song, 
+        if (!fetchError && data) {
+          setSelectedSong(prev => prev && prev.id === song.id ? { 
+            ...prev, 
             ...data,
-            album: data.metadata?.album || song.album || 'Single'
-          };
-          setSelectedSong(fullSong);
-        } else {
-          setSelectedSong(song);
+            album: data.metadata?.album || prev.album || 'Single'
+          } : prev);
         }
       } catch (err) {
-        console.warn('Archive: Could not fetch full artifact details, using partial data.', err);
-        setSelectedSong(song);
+        console.warn('Archive: Could not sync full artifact.', err);
       }
-    } else {
-      setSelectedSong(song);
     }
-    setCurrentView('lyrics');
-  };
+  }, []);
 
-  const navigateTo = (view: ViewState) => {
+  const navigateTo = useCallback((view: ViewState) => {
     setCurrentView(view);
     if (view !== 'lyrics') {
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
-  };
+  }, []);
 
   return (
-    <div className="min-h-screen relative z-10 flex flex-col selection:bg-[#FF007F]/30">
+    <div className="min-h-screen relative z-10 flex flex-col selection:bg-[#FF007F]/30 overflow-x-hidden">
       <Header 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
@@ -79,7 +73,7 @@ const AppContent: React.FC = () => {
             {error && (
               <div className="flex flex-col items-center justify-center py-40 text-neutral-600">
                 <AlertCircle className="w-10 h-10 mb-6 text-red-950/40" />
-                <p className="font-mono text-[10px] uppercase tracking-[0.5em]">The Archive is currently unreachable</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.5em]">System Offline</p>
                 <p className="text-[8px] mt-4 opacity-30 font-mono text-center max-w-md">{error}</p>
               </div>
             )}
@@ -101,18 +95,16 @@ const AppContent: React.FC = () => {
         {currentView === 'vault' && <TheVault />}
       </main>
 
-      {currentView === 'lyrics' && selectedSong && (
-        <Suspense fallback={
-          <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center font-mono text-[10px] uppercase tracking-widest text-[#FF007F]">
-            Opening Artifact...
-          </div>
-        }>
-          <LyricView 
-            song={selectedSong} 
-            onClose={() => navigateTo('archive')} 
-          />
-        </Suspense>
-      )}
+      <AnimatePresence>
+        {currentView === 'lyrics' && selectedSong && (
+          <Suspense fallback={null}>
+            <LyricView 
+              song={selectedSong} 
+              onClose={() => navigateTo('archive')} 
+            />
+          </Suspense>
+        )}
+      </AnimatePresence>
 
       <Footer />
       <GlobalPlayer />
@@ -120,6 +112,9 @@ const AppContent: React.FC = () => {
     </div>
   );
 };
+
+// Add AnimatePresence import that was missing in previous snippet if necessary
+import { AnimatePresence } from 'framer-motion';
 
 const App: React.FC = () => {
   return (
