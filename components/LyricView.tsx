@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Share2, Calendar, User, Activity } from 'lucide-react';
+import { X, Share2, Calendar, User, Activity, Play, Pause, AlertTriangle } from 'lucide-react';
 import { Song } from '../types.ts';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
@@ -12,12 +12,12 @@ interface LyricViewProps {
 
 export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   const [selectedText, setSelectedText] = useState('');
-  const { playSong, currentSong } = usePlayer();
+  const { playSong, currentSong, isPlaying, togglePlay } = usePlayer();
   
-  // Auto-play song when entering lyric view if it's not already playing
+  // Auto-play song when entering lyric view if it's not already playing (Optional, keeping it but adding explicit button)
   useEffect(() => {
     if (song.video_url && currentSong?.id !== song.id) {
-      playSong(song);
+      // playSong(song); // Removed auto-play to respect user's "Listen to Artifact" interaction request
     }
   }, [song, currentSong, playSong]);
 
@@ -27,6 +27,8 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
     const selection = window.getSelection()?.toString();
     if (selection) setSelectedText(selection);
   };
+
+  const isCurrentActive = currentSong?.id === song.id;
 
   return (
     <MotionDiv
@@ -78,12 +80,34 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="text-center mb-24 px-6"
+          className="text-center mb-16 px-6"
         >
-          <h1 className="font-gothic text-6xl md:text-8xl lg:text-9xl mb-4 neon-text-pink drop-shadow-[0_0_15px_rgba(255,0,127,0.3)]">
+          <h1 className="font-gothic text-6xl md:text-8xl lg:text-9xl mb-8 neon-text-pink drop-shadow-[0_0_15px_rgba(255,0,127,0.3)]">
             {song.title}
           </h1>
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
+
+          {/* MAIN PLAY BUTTON: ▶ OUVIR ARTEFATO */}
+          <div className="flex flex-col items-center gap-6 mb-12">
+            {song.video_url ? (
+              <button 
+                onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
+                className="group flex items-center gap-4 px-10 py-5 bg-white text-black font-mono text-xs font-bold tracking-[0.3em] hover:bg-[#FF007F] hover:text-white transition-all duration-500 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(255,0,127,0.3)]"
+              >
+                {isCurrentActive && isPlaying ? (
+                  <><Pause size={18} fill="currentColor" /> PAUSAR ARTEFATO</>
+                ) : (
+                  <><Play size={18} fill="currentColor" /> ▶ OUVIR ARTEFATO</>
+                )}
+              </button>
+            ) : (
+              <div className="flex items-center gap-3 px-10 py-5 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[10px] uppercase tracking-widest">
+                <AlertTriangle size={16} />
+                Áudio não catalogado
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4">
             <GlassTag icon={<User size={12}/>} label="Produced by" value={song.metadata?.producer || "N/A"} color="pink" />
             <GlassTag icon={<Activity size={12}/>} label="Frequency" value={`${song.metadata?.bpm || '??'} BPM`} color="purple" />
             <GlassTag icon={<Calendar size={12}/>} label="Dated" value={song.release_date?.split('-')[0] || 'Unknown'} color="pink" />
