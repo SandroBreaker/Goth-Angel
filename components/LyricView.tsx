@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Share2, Play, SkipBack, SkipForward, Volume2, Calendar, User, Activity, Clock, Layers } from 'lucide-react';
+import { X, Share2, Calendar, User, Activity } from 'lucide-react';
 import { Song } from '../types.ts';
+import { usePlayer } from '../context/PlayerContext.tsx';
 
 interface LyricViewProps {
   song: Song;
@@ -11,8 +12,15 @@ interface LyricViewProps {
 
 export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   const [selectedText, setSelectedText] = useState('');
+  const { playSong, currentSong } = usePlayer();
   
-  // Casting for React 19 / Framer Motion compatibility
+  // Auto-play song when entering lyric view if it's not already playing
+  useEffect(() => {
+    if (song.video_url && currentSong?.id !== song.id) {
+      playSong(song);
+    }
+  }, [song, currentSong, playSong]);
+
   const MotionDiv = motion.div as any;
 
   const handleTextSelect = () => {
@@ -49,21 +57,21 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           <span className="font-mono text-[8px] text-neutral-500 tracking-[0.5em] uppercase mb-1">Now Preserving</span>
           <div className="flex items-center gap-3">
              <div className="w-6 h-px bg-gradient-to-r from-transparent to-[#FF007F]"></div>
-             <span className="font-serif-classic text-[10px] text-white tracking-[0.3em] uppercase">{song.album}</span>
+             <span className="font-serif-classic text-[10px] text-white tracking-[0.3em] uppercase">{song.album || 'Single'}</span>
              <div className="w-6 h-px bg-gradient-to-l from-transparent to-[#FF007F]"></div>
           </div>
         </div>
 
         <button 
           className="p-3 bg-white/5 hover:bg-[#7000FF]/20 border border-white/10 rounded-full transition-all duration-500 text-neutral-400 hover:text-[#7000FF]"
-          onClick={() => alert('Artifact details exported to console.')}
+          onClick={() => alert('Artifact metadata synced with browser context.')}
         >
           <Share2 className="w-5 h-5" />
         </button>
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <div className="relative z-10 flex-grow overflow-y-auto scrollbar-hide flex flex-col items-center pt-20 pb-40">
+      <div className="relative z-10 flex-grow overflow-y-auto scrollbar-hide flex flex-col items-center pt-20 pb-48">
         
         {/* TITULAR SECTION */}
         <MotionDiv 
@@ -106,49 +114,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
               </p>
             ))}
           </MotionDiv>
-        </div>
-      </div>
-
-      {/* 4. PLAYER INTERFACE (PLACEHOLDER) */}
-      <div className="fixed bottom-0 left-0 w-full z-30 p-6">
-        <div className="max-w-5xl mx-auto bg-black/40 backdrop-blur-2xl border border-white/5 p-6 rounded-none flex flex-col md:flex-row items-center gap-6 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
-          
-          {/* Small Cover & Track Info */}
-          <div className="flex items-center gap-4 w-full md:w-1/4">
-            <img src={song.image_url} alt="" className="w-12 h-12 border border-white/10 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold text-white tracking-widest uppercase truncate">{song.title}</p>
-              <p className="text-[8px] font-mono text-neutral-500 uppercase tracking-widest truncate">{song.album}</p>
-            </div>
-          </div>
-
-          {/* Controls & Progress */}
-          <div className="flex-grow w-full md:w-1/2 flex flex-col items-center gap-2">
-            <div className="flex items-center gap-8 text-neutral-400">
-              <SkipBack size={18} className="hover:text-white cursor-pointer transition-colors" />
-              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-black hover:scale-105 transition-transform cursor-pointer">
-                <Play size={20} fill="currentColor" />
-              </div>
-              <SkipForward size={18} className="hover:text-white cursor-pointer transition-colors" />
-            </div>
-            <div className="w-full flex items-center gap-3">
-              <span className="text-[8px] font-mono text-neutral-600">0:00</span>
-              <div className="flex-grow h-1 bg-white/10 relative overflow-hidden group cursor-pointer">
-                <div className="absolute inset-0 w-1/3 bg-[#FF007F]"></div>
-                <div className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 bg-white/5 transition-opacity"></div>
-              </div>
-              <span className="text-[8px] font-mono text-neutral-600">3:42</span>
-            </div>
-          </div>
-
-          {/* Tools */}
-          <div className="hidden md:flex items-center justify-end gap-6 w-1/4 text-neutral-500">
-            <Volume2 size={16} className="hover:text-white cursor-pointer transition-colors" />
-            <div className="w-20 h-1 bg-white/10">
-               <div className="w-2/3 h-full bg-neutral-400"></div>
-            </div>
-            <Layers size={16} className="hover:text-[#7000FF] cursor-pointer transition-colors" />
-          </div>
         </div>
       </div>
 

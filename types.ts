@@ -5,6 +5,7 @@ export interface Song {
   album: string;
   image_url: string;
   lyrics: string;
+  video_url?: string;
   release_date?: string;
   producer?: string;
   writer?: string;

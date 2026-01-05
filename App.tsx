@@ -7,11 +7,14 @@ import { Timeline } from './components/Timeline.tsx';
 import { Theater } from './components/Theater.tsx';
 import { TheVault } from './components/TheVault.tsx';
 import { Footer } from './components/Footer.tsx';
+import { GlobalAudioEngine } from './components/GlobalAudioEngine.tsx';
+import { GlobalPlayer } from './components/GlobalPlayer.tsx';
+import { PlayerProvider } from './context/PlayerContext.tsx';
 import { useSongs } from './hooks/useSongs.ts';
 import { Song, ViewState } from './types.ts';
 import { AlertCircle } from 'lucide-react';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('archive');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +78,17 @@ const App: React.FC = () => {
       )}
 
       <Footer />
+      <GlobalPlayer />
+      <GlobalAudioEngine />
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <PlayerProvider>
+      <AppContent />
+    </PlayerProvider>
   );
 };
 

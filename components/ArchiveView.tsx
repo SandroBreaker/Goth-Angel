@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Song } from '../types.ts';
 import { SongCard } from './SongCard.tsx';
 import { SkeletonCard } from './SkeletonCard.tsx';
-import { ChevronRight, Sparkles, Disc, Music, Ghost, Layers } from 'lucide-react';
+import { ChevronRight, Sparkles, Disc, Music, Ghost, Layers, Play, AlertTriangle } from 'lucide-react';
+import { usePlayer } from '../context/PlayerContext.tsx';
 
 interface ArchiveViewProps {
   songs: Song[];
@@ -15,6 +16,7 @@ interface ArchiveViewProps {
 export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, onSongClick }) => {
   const [featuredSong, setFeaturedSong] = useState<Song | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const { playSong, currentSong, isPlaying } = usePlayer();
   const MotionDiv = motion.div as any;
 
   // Select random featured song
@@ -46,6 +48,8 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, onSong
     );
   }
 
+  const isFeaturedPlaying = currentSong?.id === featuredSong?.id && isPlaying;
+
   return (
     <div className="pb-24">
       {/* HERO SECTION */}
@@ -76,9 +80,9 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, onSong
                 <img 
                   src={featuredSong.image_url} 
                   alt={featuredSong.title}
-                  className="w-64 h-64 lg:w-96 lg:h-96 object-cover border border-neutral-800 shadow-2xl relative z-10"
+                  className={`w-64 h-64 lg:w-96 lg:h-96 object-cover border border-neutral-800 shadow-2xl relative z-10 transition-transform duration-1000 ${isFeaturedPlaying ? 'animate-[spin_20s_linear_infinite]' : ''}`}
                 />
-                <div className="absolute -bottom-4 -right-4 bg-white text-black p-4 z-20 hidden md:block border border-black">
+                <div className="absolute -bottom-4 -right-4 bg-white text-black p-4 z-20 hidden md:block border border-black group-hover:scale-110 transition-transform">
                   <Music size={24} />
                 </div>
               </MotionDiv>
@@ -105,14 +109,31 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, onSong
                     </MotionDiv>
                   </div>
 
-                  <button 
-                    onClick={() => onSongClick(featuredSong)}
-                    className="group relative inline-flex items-center gap-4 px-8 py-4 bg-neutral-950 border border-neutral-800 text-white hover:border-[#FF007F] transition-all overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-[#FF007F]/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
-                    <span className="relative z-10 font-mono text-[10px] tracking-[0.4em] uppercase">Explore Artifact</span>
-                    <Sparkles size={14} className="relative z-10 text-[#FF007F]" />
-                  </button>
+                  <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                    <button 
+                      onClick={() => onSongClick(featuredSong)}
+                      className="group relative inline-flex items-center gap-4 px-8 py-4 bg-neutral-950 border border-neutral-800 text-white hover:border-[#FF007F] transition-all overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-[#FF007F]/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                      <span className="relative z-10 font-mono text-[10px] tracking-[0.4em] uppercase">Explore Artifact</span>
+                      <Sparkles size={14} className="relative z-10 text-[#FF007F]" />
+                    </button>
+
+                    {featuredSong.video_url ? (
+                      <button 
+                        onClick={() => playSong(featuredSong)}
+                        className="group relative inline-flex items-center gap-4 px-8 py-4 bg-white text-black border border-white hover:bg-transparent hover:text-white transition-all overflow-hidden"
+                      >
+                        <span className="relative z-10 font-mono text-[10px] tracking-[0.4em] uppercase">{isFeaturedPlaying ? 'Now Playing' : 'Ignite Frequency'}</span>
+                        <Play size={14} className="relative z-10" fill="currentColor" />
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 px-8 py-4 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[10px] uppercase tracking-widest">
+                        <AlertTriangle size={12} />
+                        Collecting from Vault...
+                      </div>
+                    )}
+                  </div>
                 </MotionDiv>
               </div>
             </div>
