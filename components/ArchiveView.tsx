@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Song } from '../types.ts';
 import { SongCard } from './SongCard.tsx';
 import { SkeletonCard } from './SkeletonCard.tsx';
-import { ChevronRight, Sparkles, Disc, Music, Ghost, Layers, Play, AlertTriangle, ArrowDown } from 'lucide-react';
+import { Sparkles, Disc, Ghost, Layers, Play, ArrowDown } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
 interface ArchiveViewProps {
@@ -20,7 +20,6 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
   const { playSong, currentSong, isPlaying } = usePlayer();
   const MotionDiv = motion.div as any;
 
-  // Select random featured song only from the initial batch
   useEffect(() => {
     if (songs.length > 0 && !featuredSong) {
       const random = songs[Math.floor(Math.random() * Math.min(songs.length, 20))];
@@ -29,9 +28,26 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
   }, [songs]);
 
   const categories = useMemo(() => {
-    const classics = songs.filter(s => s.album?.includes("Sober") || s.album?.includes("COWYS")).slice(0, 12);
-    const soundcloud = songs.filter(s => s.album?.includes("Hellboy") || s.album?.includes("Crybaby") || s.album?.includes("Live Forever")).slice(0, 12);
-    const rare = songs.filter(s => !s.album || s.album === "Single" || s.album.toLowerCase().includes("unreleased")).slice(0, 12);
+    // Robust extraction with safe string casting to prevent .toLowerCase() errors
+    const getAlbum = (s: Song) => {
+      const albumValue = s.metadata?.album || s.album || "";
+      return String(albumValue).toLowerCase();
+    };
+    
+    const classics = songs.filter(s => {
+      const album = getAlbum(s);
+      return album.includes("sober") || album.includes("cowys");
+    }).slice(0, 12);
+
+    const soundcloud = songs.filter(s => {
+      const album = getAlbum(s);
+      return album.includes("hellboy") || album.includes("crybaby") || album.includes("live forever");
+    }).slice(0, 12);
+
+    const rare = songs.filter(s => {
+      const album = getAlbum(s);
+      return !album || album === "single" || album.includes("unreleased");
+    }).slice(0, 12);
     
     return [
       { id: 'classics', title: 'The Classics', icon: <Disc size={14} />, data: classics },

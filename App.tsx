@@ -1,5 +1,5 @@
 
-import React, { useState, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
@@ -25,22 +25,30 @@ const AppContent: React.FC = () => {
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
 
   const handleSongClick = async (song: Song) => {
-    // Optimization: If lyrics are missing, fetch them on demand before opening the view
     if (!song.lyrics) {
       try {
-        const { data, error } = await supabase
+        // FIX: Removed columns that likely don't exist as top-level fields.
+        // These are typically inside the 'metadata' JSONB column in the provided dataset.
+        const { data, error: fetchError } = await supabase
           .from('songs')
-          .select('lyrics, metadata, release_date, producer, writer, bpm')
+          .select('lyrics, metadata, release_date')
           .eq('id', song.id)
           .single();
         
+        if (fetchError) throw fetchError;
+
         if (data) {
-          setSelectedSong({ ...song, ...data });
+          const fullSong = { 
+            ...song, 
+            ...data,
+            album: data.metadata?.album || song.album || 'Single'
+          };
+          setSelectedSong(fullSong);
         } else {
           setSelectedSong(song);
         }
       } catch (err) {
-        console.warn('Could not fetch full artifact details', err);
+        console.warn('Archive: Could not fetch full artifact details, using partial data.', err);
         setSelectedSong(song);
       }
     } else {

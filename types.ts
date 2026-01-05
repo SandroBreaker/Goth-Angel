@@ -2,9 +2,9 @@
 export interface Song {
   id: string;
   title: string;
-  album: string;
   image_url: string;
-  lyrics: string;
+  lyrics?: string;
+  album?: string;
   video_url?: string;
   release_date?: string;
   producer?: string;
@@ -12,6 +12,7 @@ export interface Song {
   bpm?: number;
   sentiment?: string;
   metadata?: {
+    album?: string;
     sentiment?: string;
     producer?: string;
     writer?: string;

@@ -34,13 +34,12 @@ const stringifyError = (err: any): string => {
       return `Database Error: ${stringified}`;
     }
   } catch (e) {
-    // Stringify failed (circular ref, etc)
+    // Stringify failed
   }
 
   // Fallback to error code or generic message
   if (err.code) return `System Error (Code: ${err.code})`;
   
-  // Final safeguard against [object Object]
   const finalString = String(err);
   return finalString === '[object Object]' ? 'Unspecified Database Error' : finalString;
 };
@@ -58,13 +57,14 @@ export const useSongs = (query: string, filter: string | null) => {
     setError(null);
 
     try {
+      // FIX: Removed 'album' from selection as it does not exist as a top-level column.
+      // We will extract album information from the 'metadata' JSONB column instead.
       let request = supabase
         .from('songs')
-        .select('id, title, album, image_url, video_url, release_date, metadata', { count: 'exact' });
+        .select('id, title, image_url, video_url, release_date, metadata', { count: 'exact' });
 
       const trimmedQuery = query.trim();
       if (trimmedQuery) {
-        // Prepare search query for FTS
         const sanitizedQuery = trimmedQuery
           .replace(/[!&|():*]/g, ' ')
           .trim()
@@ -92,7 +92,6 @@ export const useSongs = (query: string, filter: string | null) => {
         .range(from, to);
 
       if (supabaseError) {
-        // Logic for column missing or FTS misconfiguration
         const isFtsError = supabaseError.code === '42703' || 
                           (supabaseError.message && supabaseError.message.toLowerCase().includes('search_vector'));
         
@@ -100,7 +99,7 @@ export const useSongs = (query: string, filter: string | null) => {
           console.warn('Archive: Full-text search failed. Falling back to pattern matching.');
           const fallbackRequest = supabase
             .from('songs')
-            .select('id, title, album, image_url, video_url, release_date, metadata', { count: 'exact' })
+            .select('id, title, image_url, video_url, release_date, metadata', { count: 'exact' })
             .ilike('title', `%${trimmedQuery}%`)
             .order('release_date', { ascending: false })
             .range(from, to);
@@ -117,19 +116,24 @@ export const useSongs = (query: string, filter: string | null) => {
         throw supabaseError;
       }
       
-      const newSongs = data as Song[] || [];
+      const newSongs = (data as Song[] || []).map(song => ({
+        ...song,
+        // Extract album from metadata if available
+        album: song.metadata?.album || (song as any).album || 'Single'
+      }));
+
       setSongs(prev => isLoadMore ? [...prev, ...newSongs] : newSongs);
       setHasMore(count ? (from + newSongs.length) < count : false);
       setPage(currentPage);
     } catch (err: any) {
-      // Improved logging to reveal the object's structure in the console
-      console.group('Archive Internal Error Details');
-      console.error('Error Object:', err);
-      console.error('Error Code:', err?.code);
-      console.error('Error Message:', err?.message);
+      const extractedMessage = stringifyError(err);
+      console.group('Archive Error Log');
+      console.error('Message:', extractedMessage);
+      console.error('Code:', err?.code || 'N/A');
+      console.error('Details:', err?.details || 'N/A');
       console.groupEnd();
       
-      setError(stringifyError(err));
+      setError(extractedMessage);
     } finally {
       setLoading(false);
     }
