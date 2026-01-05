@@ -6,37 +6,43 @@ import { Song } from '../types.ts';
 const PAGE_SIZE = 24;
 
 /**
- * Hyper-defensive utility to extract a human-readable string from any error object.
- * Prevents the dreaded "[object Object]" in the UI.
+ * Robust error message extractor.
+ * Ensures we always return a human-readable string and never "[object Object]".
  */
 const stringifyError = (err: any): string => {
-  if (!err) return 'Unknown communication error.';
+  if (!err) return 'The Archive connection was interrupted.';
   if (typeof err === 'string') return err;
   
-  // PostgrestError (Supabase) or standard Error object
-  const message = err.message || err.details || err.hint || err.error_description;
-  if (message && typeof message === 'string') {
-    // Check for common network failures
-    if (message.includes('Failed to fetch') || message.includes('Load failed')) {
-      return 'Archive connection failed. Please check your network or firewall.';
-    }
-    return message;
+  // Standard Error or Supabase/Postgrest Error
+  if (err.message && typeof err.message === 'string') {
+    if (err.message.includes('Failed to fetch')) return 'Network connection failed. The Archive is offline.';
+    return err.message;
   }
+  
+  // Supabase specific fields
+  if (err.details && typeof err.details === 'string') return err.details;
+  if (err.hint && typeof err.hint === 'string') return err.hint;
+  if (err.error_description && typeof err.error_description === 'string') return err.error_description;
 
-  // If we have an object but no recognizable string field, stringify it carefully
+  // Handle arrays of errors
+  if (Array.isArray(err) && err.length > 0) return stringifyError(err[0]);
+
+  // Attempt to stringify the object if no message found
   try {
     const stringified = JSON.stringify(err);
     if (stringified !== '{}' && stringified !== 'null') {
-      return `Database Error: ${stringified.substring(0, 100)}...`;
+      return `Database Error: ${stringified}`;
     }
   } catch (e) {
-    // If circular reference or other JSON error
+    // Stringify failed (circular ref, etc)
   }
 
-  // Fallback for code-only errors
-  if (err.code) return `Archive Error Code: ${err.code}`;
-
-  return 'The Archive returned an unintelligible response. Please try again.';
+  // Fallback to error code or generic message
+  if (err.code) return `System Error (Code: ${err.code})`;
+  
+  // Final safeguard against [object Object]
+  const finalString = String(err);
+  return finalString === '[object Object]' ? 'Unspecified Database Error' : finalString;
 };
 
 export const useSongs = (query: string, filter: string | null) => {
@@ -58,7 +64,7 @@ export const useSongs = (query: string, filter: string | null) => {
 
       const trimmedQuery = query.trim();
       if (trimmedQuery) {
-        // Sanitize search query for Postgres full-text search
+        // Prepare search query for FTS
         const sanitizedQuery = trimmedQuery
           .replace(/[!&|():*]/g, ' ')
           .trim()
@@ -91,7 +97,7 @@ export const useSongs = (query: string, filter: string | null) => {
                           (supabaseError.message && supabaseError.message.toLowerCase().includes('search_vector'));
         
         if (trimmedQuery && isFtsError) {
-          console.warn('FTS unavailable, executing ilike fallback.');
+          console.warn('Archive: Full-text search failed. Falling back to pattern matching.');
           const fallbackRequest = supabase
             .from('songs')
             .select('id, title, album, image_url, video_url, release_date, metadata', { count: 'exact' })
@@ -116,7 +122,13 @@ export const useSongs = (query: string, filter: string | null) => {
       setHasMore(count ? (from + newSongs.length) < count : false);
       setPage(currentPage);
     } catch (err: any) {
-      console.error('Archive Internal Log:', err);
+      // Improved logging to reveal the object's structure in the console
+      console.group('Archive Internal Error Details');
+      console.error('Error Object:', err);
+      console.error('Error Code:', err?.code);
+      console.error('Error Message:', err?.message);
+      console.groupEnd();
+      
       setError(stringifyError(err));
     } finally {
       setLoading(false);
