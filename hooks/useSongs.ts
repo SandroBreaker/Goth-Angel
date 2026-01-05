@@ -5,6 +5,40 @@ import { Song } from '../types.ts';
 
 const PAGE_SIZE = 24;
 
+/**
+ * Hyper-defensive utility to extract a human-readable string from any error object.
+ * Prevents the dreaded "[object Object]" in the UI.
+ */
+const stringifyError = (err: any): string => {
+  if (!err) return 'Unknown communication error.';
+  if (typeof err === 'string') return err;
+  
+  // PostgrestError (Supabase) or standard Error object
+  const message = err.message || err.details || err.hint || err.error_description;
+  if (message && typeof message === 'string') {
+    // Check for common network failures
+    if (message.includes('Failed to fetch') || message.includes('Load failed')) {
+      return 'Archive connection failed. Please check your network or firewall.';
+    }
+    return message;
+  }
+
+  // If we have an object but no recognizable string field, stringify it carefully
+  try {
+    const stringified = JSON.stringify(err);
+    if (stringified !== '{}' && stringified !== 'null') {
+      return `Database Error: ${stringified.substring(0, 100)}...`;
+    }
+  } catch (e) {
+    // If circular reference or other JSON error
+  }
+
+  // Fallback for code-only errors
+  if (err.code) return `Archive Error Code: ${err.code}`;
+
+  return 'The Archive returned an unintelligible response. Please try again.';
+};
+
 export const useSongs = (query: string, filter: string | null) => {
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +52,6 @@ export const useSongs = (query: string, filter: string | null) => {
     setError(null);
 
     try {
-      // Fetching only required columns for the grid view
       let request = supabase
         .from('songs')
         .select('id, title, album, image_url, video_url, release_date, metadata', { count: 'exact' });
@@ -26,7 +59,6 @@ export const useSongs = (query: string, filter: string | null) => {
       const trimmedQuery = query.trim();
       if (trimmedQuery) {
         // Sanitize search query for Postgres full-text search
-        // Replacing common special characters that break tsquery
         const sanitizedQuery = trimmedQuery
           .replace(/[!&|():*]/g, ' ')
           .trim()
@@ -54,24 +86,27 @@ export const useSongs = (query: string, filter: string | null) => {
         .range(from, to);
 
       if (supabaseError) {
-        // If textSearch fails (e.g., column doesn't exist or isn't indexed), try a basic ilike fallback
-        if (trimmedQuery && (supabaseError.code === '42703' || supabaseError.message.includes('search_vector'))) {
-           console.warn('FTS not available, falling back to basic ilike search');
-           const fallbackRequest = supabase
+        // Logic for column missing or FTS misconfiguration
+        const isFtsError = supabaseError.code === '42703' || 
+                          (supabaseError.message && supabaseError.message.toLowerCase().includes('search_vector'));
+        
+        if (trimmedQuery && isFtsError) {
+          console.warn('FTS unavailable, executing ilike fallback.');
+          const fallbackRequest = supabase
             .from('songs')
             .select('id, title, album, image_url, video_url, release_date, metadata', { count: 'exact' })
             .ilike('title', `%${trimmedQuery}%`)
             .order('release_date', { ascending: false })
             .range(from, to);
-           
-           const { data: fbData, error: fbError, count: fbCount } = await fallbackRequest;
-           if (fbError) throw fbError;
-           
-           const newSongs = fbData as Song[] || [];
-           setSongs(prev => isLoadMore ? [...prev, ...newSongs] : newSongs);
-           setHasMore(fbCount ? (from + newSongs.length) < fbCount : false);
-           setPage(currentPage);
-           return;
+          
+          const { data: fbData, error: fbError, count: fbCount } = await fallbackRequest;
+          if (fbError) throw fbError;
+          
+          const newSongs = fbData as Song[] || [];
+          setSongs(prev => isLoadMore ? [...prev, ...newSongs] : newSongs);
+          setHasMore(fbCount ? (from + newSongs.length) < fbCount : false);
+          setPage(currentPage);
+          return;
         }
         throw supabaseError;
       }
@@ -81,24 +116,8 @@ export const useSongs = (query: string, filter: string | null) => {
       setHasMore(count ? (from + newSongs.length) < count : false);
       setPage(currentPage);
     } catch (err: any) {
-      console.error('Archive Fetch Error:', err);
-      
-      // Extract the most readable error message possible
-      let message = 'An unexpected error occurred.';
-      
-      if (typeof err === 'string') {
-        message = err;
-      } else if (err && typeof err === 'object') {
-        // Supabase error objects often have 'message'
-        message = err.message || err.error_description || err.details || 'Database connection error';
-        
-        // Final guard against [object Object] stringification
-        if (message === '[object Object]' || (typeof message === 'object')) {
-          message = JSON.stringify(err);
-        }
-      }
-      
-      setError(message);
+      console.error('Archive Internal Log:', err);
+      setError(stringifyError(err));
     } finally {
       setLoading(false);
     }
