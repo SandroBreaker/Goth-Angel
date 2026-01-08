@@ -28,32 +28,46 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
   }, [songs]);
 
   const categories = useMemo(() => {
-    // Robust extraction with safe string casting to prevent .toLowerCase() errors
     const getAlbum = (s: Song) => {
       const albumValue = s.metadata?.album || s.album || "";
       return String(albumValue).toLowerCase();
     };
     
+    // Broadened filters to capture more variations of the classic albums
     const classics = songs.filter(s => {
       const album = getAlbum(s);
-      return album.includes("sober") || album.includes("cowys");
+      return album.includes("sober") || 
+             album.includes("cowys") || 
+             album.includes("come over when you're sober") ||
+             album.includes("everybody's everything");
     }).slice(0, 12);
 
     const soundcloud = songs.filter(s => {
       const album = getAlbum(s);
-      return album.includes("hellboy") || album.includes("crybaby") || album.includes("live forever");
+      return album.includes("hellboy") || 
+             album.includes("crybaby") || 
+             album.includes("live forever") || 
+             album.includes("lil peep part one") ||
+             album.includes("vertigo") ||
+             album.includes("california girls");
     }).slice(0, 12);
 
+    // Rare & Unreleased: items not caught by the major eras or explicitly tagged
     const rare = songs.filter(s => {
       const album = getAlbum(s);
-      return !album || album === "single" || album.includes("unreleased");
+      const isClassic = classics.some(c => c.id === s.id);
+      const isSoundcloud = soundcloud.some(sc => sc.id === s.id);
+      
+      return (!album || album === "single" || album.includes("unreleased") || album === "") && 
+             !isClassic && !isSoundcloud;
     }).slice(0, 12);
     
+    // Create the category list but FILTER OUT those with no data to avoid empty gaps
     return [
       { id: 'classics', title: 'The Classics', icon: <Disc size={14} />, data: classics },
       { id: 'soundcloud', title: 'Soundcloud Era', icon: <Ghost size={14} />, data: soundcloud },
       { id: 'rare', title: 'Rare & Unreleased', icon: <Layers size={14} />, data: rare }
-    ];
+    ].filter(cat => cat.data.length > 0);
   }, [songs]);
 
   const isFeaturedPlaying = currentSong?.id === featuredSong?.id && isPlaying;
@@ -124,29 +138,37 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
         )}
       </AnimatePresence>
 
-      {/* CAROUSELS */}
+      {/* CAROUSELS: Now only rendering categories that actually have songs */}
       <div className="mt-12 space-y-24">
-        {categories.map((cat, idx) => (
-          <div key={cat.id} className="relative">
-            <div className="px-6 mb-8 flex items-end justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-[#7000FF] mb-2">
-                  {cat.icon}
-                  <span className="font-mono text-[9px] tracking-[0.4em] uppercase">Chapter {idx + 1}</span>
+        {categories.length > 0 ? (
+          categories.map((cat, idx) => (
+            <div key={cat.id} className="relative">
+              <div className="px-6 mb-8 flex items-end justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-[#7000FF] mb-2">
+                    {cat.icon}
+                    <span className="font-mono text-[9px] tracking-[0.4em] uppercase">Chapter {idx + 1}</span>
+                  </div>
+                  <h3 className="font-serif-classic text-2xl text-white tracking-widest">{cat.title}</h3>
                 </div>
-                <h3 className="font-serif-classic text-2xl text-white tracking-widest">{cat.title}</h3>
+              </div>
+
+              <div className="flex gap-4 overflow-x-auto px-6 pb-8 snap-x scrollbar-hide">
+                {cat.data.map((song) => (
+                  <div key={song.id} className="w-48 lg:w-64 shrink-0 snap-start">
+                    <SongCard song={song} onClick={onSongClick} />
+                  </div>
+                ))}
               </div>
             </div>
-
-            <div className="flex gap-4 overflow-x-auto px-6 pb-8 snap-x scrollbar-hide">
-              {cat.data.map((song) => (
-                <div key={song.id} className="w-48 lg:w-64 shrink-0 snap-start">
-                  <SongCard song={song} onClick={onSongClick} />
-                </div>
-              ))}
+          ))
+        ) : (
+          !loading && (
+            <div className="px-6 py-12 border-y border-neutral-900/50 bg-neutral-950/20 text-center">
+               <p className="font-mono text-[9px] text-neutral-700 tracking-[0.5em] uppercase">No specific eras identified in this data segment. Explore the complete archive below.</p>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
 
       {/* MAIN GRID WITH PAGINATION */}
@@ -156,7 +178,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
           {songs.map((song) => (
             <SongCard key={song.id} song={song} onClick={onSongClick} />
           ))}
-          {loading && Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={`skel-${i}`} />)}
+          {loading && Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={`skel-${i}`} />)}
         </div>
 
         {hasMore && !loading && (
