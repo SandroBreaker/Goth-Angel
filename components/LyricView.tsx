@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Share2, Calendar, User, Activity, Play, Pause, AlertTriangle } from 'lucide-react';
+import { X, Share2, Calendar, User, Activity, Play, Pause, Lock } from 'lucide-react';
 import { Song } from '../types.ts';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
@@ -22,9 +22,8 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   };
 
   const isCurrentActive = currentSong?.id === song.id;
-  const hasAudio = !!(song.storage_url || song.video_url);
+  const hasDirectAudio = !!song.storage_url;
 
-  // Robust metadata extraction
   const metadata = useMemo(() => {
     const m = song.metadata || {};
     return {
@@ -44,7 +43,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
       transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col"
     >
-      {/* 1. OPTIMIZED AMBIENT BACKGROUND */}
       <AnimatePresence mode="wait">
         <MotionDiv 
           key={song.id}
@@ -67,7 +65,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
       </AnimatePresence>
       <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-[#050505]/95 to-black pointer-events-none z-[1]"></div>
 
-      {/* STICKY HEADER */}
       <header className="relative z-20 p-4 md:p-6 flex justify-between items-center border-b border-white/5 bg-black/20 backdrop-blur-md">
         <button 
           onClick={onClose}
@@ -96,7 +93,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
         </button>
       </header>
 
-      {/* MAIN CONTENT AREA */}
       <div className="relative z-10 flex-grow overflow-y-auto overflow-x-hidden scroll-smooth flex flex-col items-center pt-16 pb-48" style={{ WebkitOverflowScrolling: 'touch' }}>
         
         <AnimatePresence mode="wait">
@@ -108,14 +104,13 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-4xl flex flex-col items-center"
           >
-            {/* TITULAR SECTION */}
             <div className="text-center mb-16 px-6">
               <h1 className="font-gothic text-5xl md:text-7xl lg:text-8xl mb-8 neon-text-pink drop-shadow-[0_0_10px_rgba(255,0,127,0.2)] px-4">
                 {song.title}
               </h1>
 
               <div className="flex flex-col items-center gap-6 mb-12">
-                {hasAudio ? (
+                {hasDirectAudio ? (
                   <button 
                     onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
                     className="group relative flex items-center gap-4 px-8 py-4 bg-white text-black font-mono text-[10px] font-bold tracking-[0.3em] hover:bg-[#FF007F] hover:text-white transition-all duration-300 shadow-xl"
@@ -127,9 +122,9 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
                     )}
                   </button>
                 ) : (
-                  <div className="flex items-center gap-3 px-8 py-4 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[9px] uppercase tracking-widest">
-                    <AlertTriangle size={14} />
-                    Sem frequência catalogada
+                  <div className="flex items-center gap-3 px-8 py-4 border border-dashed border-neutral-900 text-neutral-600 font-mono text-[9px] uppercase tracking-widest cursor-not-allowed">
+                    <Lock size={14} />
+                    Frequência Restrita (Somente Texto)
                   </div>
                 )}
               </div>
@@ -141,7 +136,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
               </div>
             </div>
 
-            {/* LYRICS */}
             <div 
               className="max-w-3xl w-full px-8 md:px-12 mb-20"
               onMouseUp={handleTextSelect}
@@ -167,7 +161,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
         </AnimatePresence>
       </div>
 
-      {/* SHARE CARD FLOATER */}
       <AnimatePresence>
         {selectedText && (
           <MotionDiv

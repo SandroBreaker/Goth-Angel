@@ -1,14 +1,15 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Layers, AlertTriangle, Zap, Youtube, Shuffle } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Layers, Lock, Zap, Youtube, Shuffle } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
-// Sub-component to isolate re-renders from progress updates
 const ProgressSlider: React.FC = () => {
-  const { progress, duration, seek } = usePlayer();
+  const { progress, duration, seek, currentSong } = usePlayer();
+  const hasDirectAudio = !!currentSong?.storage_url;
   
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hasDirectAudio) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const clickedProgress = x / rect.width;
@@ -27,14 +28,14 @@ const ProgressSlider: React.FC = () => {
     <div className="w-full flex items-center gap-4">
       <span className="text-[9px] font-mono text-neutral-500 w-10 text-right tabular-nums">{formatTime(progress)}</span>
       <div 
-        className="flex-grow h-1 bg-white/5 relative overflow-hidden group cursor-pointer"
+        className={`flex-grow h-1 bg-white/5 relative overflow-hidden group ${hasDirectAudio ? 'cursor-pointer' : 'cursor-not-allowed'}`}
         onClick={handleProgressClick}
       >
         <div 
           className="absolute inset-0 h-full bg-[#FF007F] shadow-[0_0_15px_rgba(255,0,127,0.7)] transition-all duration-300 ease-out"
           style={{ width: `${percent}%` }}
         />
-        <div className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 bg-white/10 transition-opacity"></div>
+        {hasDirectAudio && <div className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 bg-white/10 transition-opacity"></div>}
       </div>
       <span className="text-[9px] font-mono text-neutral-500 w-10 tabular-nums">{formatTime(duration || 0)}</span>
     </div>
@@ -69,7 +70,6 @@ export const GlobalPlayer: React.FC = () => {
       >
         <div className="max-w-6xl mx-auto bg-[#050505]/95 backdrop-blur-3xl border border-white/5 p-4 md:p-6 rounded-none flex flex-col md:flex-row items-center gap-6 shadow-[0_-30px_60px_rgba(0,0,0,1)] pointer-events-auto overflow-hidden">
           
-          {/* Track Info */}
           <div className="flex items-center gap-4 w-full md:w-1/4 overflow-hidden">
             <div className="relative shrink-0">
               <img 
@@ -100,20 +100,19 @@ export const GlobalPlayer: React.FC = () => {
             </div>
           </div>
 
-          {/* Controls & Progress */}
           <div className="flex-grow w-full md:w-1/2 flex flex-col items-center gap-3">
             <div className="flex items-center gap-8 text-neutral-400">
               <button 
                 onClick={prevTrack}
                 className="hover:text-white transition-colors cursor-pointer disabled:opacity-20"
-                disabled={queue.length <= 1}
+                disabled={queue.length <= 1 || !isDirect}
               >
                 <SkipBack size={18} fill="currentColor" />
               </button>
               
-              {!(currentSong.storage_url || currentSong.video_url) ? (
-                <div className="w-12 h-12 rounded-full border border-neutral-800 flex items-center justify-center text-neutral-600">
-                  <AlertTriangle size={18} />
+              {!isDirect ? (
+                <div className="w-12 h-12 rounded-full border border-neutral-800 flex items-center justify-center text-neutral-700 cursor-not-allowed" title="Apenas para fins de arquivamento">
+                  <Lock size={18} />
                 </div>
               ) : (
                 <button 
@@ -127,7 +126,7 @@ export const GlobalPlayer: React.FC = () => {
               <button 
                 onClick={nextTrack}
                 className="hover:text-white transition-colors cursor-pointer disabled:opacity-20"
-                disabled={queue.length <= 1}
+                disabled={queue.length <= 1 || !isDirect}
               >
                 <SkipForward size={18} fill="currentColor" />
               </button>
@@ -136,18 +135,20 @@ export const GlobalPlayer: React.FC = () => {
             <ProgressSlider />
           </div>
 
-          {/* Volume/Meta Tools */}
           <div className="hidden md:flex items-center justify-end gap-6 w-1/4 text-neutral-500">
             <button 
               onClick={toggleShuffle}
-              className={`transition-all duration-300 ${isShuffle ? 'text-[#FF007F] drop-shadow-[0_0_5px_#FF007F]' : 'text-neutral-600 hover:text-neutral-400'}`}
+              disabled={!isDirect}
+              className={`transition-all duration-300 ${isShuffle ? 'text-[#FF007F] drop-shadow-[0_0_5px_#FF007F]' : 'text-neutral-600 hover:text-neutral-400 disabled:opacity-20'}`}
             >
               <Shuffle size={16} />
             </button>
             
             <div className="flex flex-col items-end">
                <span className="text-[7px] font-mono uppercase tracking-[0.2em] mb-1 opacity-50">Signal Source</span>
-               <span className="text-[8px] font-mono uppercase tracking-widest text-[#7000FF]">{isDirect ? 'Direct (Supabase)' : 'Broadcast (YT)'}</span>
+               <span className={`text-[8px] font-mono uppercase tracking-widest ${isDirect ? 'text-[#7000FF]' : 'text-red-900/50'}`}>
+                 {isDirect ? 'Direct (Supabase)' : 'Vault Restricted'}
+               </span>
             </div>
             <Volume2 size={16} />
             <button className="hover:text-[#FF007F] transition-colors">

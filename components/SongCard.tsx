@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Song } from '../types.ts';
-import { FileText, Calendar, Play, Pause, AlertTriangle, Zap } from 'lucide-react';
+import { FileText, Calendar, Play, Pause, Lock, Zap } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
 interface SongCardProps {
@@ -20,16 +20,13 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (song.storage_url || song.video_url) {
-      // Logic for single click play from card: usually plays the song.
-      // If we are in a list, we might want to pass the list, but SongCard 
-      // doesn't know about its peers, so playSong handles existing queue logic.
+    if (hasDirectAudio) {
       playSong(song);
     }
   };
 
   const handleMouseEnter = () => {
-    if (song.storage_url) {
+    if (hasDirectAudio && song.storage_url) {
       const link = document.createElement('link');
       link.rel = 'prefetch';
       link.href = song.storage_url;
@@ -75,9 +72,9 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         onClick={handlePlayClick}
       >
-        {!(song.storage_url || song.video_url) ? (
-          <div className="p-2 bg-neutral-900/80 text-neutral-600 rounded-full border border-neutral-800 cursor-help" title="Collecting from Vault...">
-            <AlertTriangle size={12} />
+        {!hasDirectAudio ? (
+          <div className="p-2 bg-neutral-900/80 text-neutral-700 rounded-full border border-neutral-800 cursor-not-allowed" title="Acesso Restrito: Apenas Metadados">
+            <Lock size={12} />
           </div>
         ) : (
           <div className={`p-2 rounded-full border transition-all ${isCurrentlyPlaying ? 'bg-[#FF007F] border-[#FF007F] text-white' : 'bg-black/60 border-white/20 text-white hover:bg-[#FF007F] hover:border-[#FF007F]'}`}>

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Song } from '../types.ts';
 import { SongCard } from './SongCard.tsx';
 import { SkeletonCard } from './SkeletonCard.tsx';
-import { Sparkles, Disc, Ghost, Layers, Play, ArrowDown } from 'lucide-react';
+import { Sparkles, Disc, Ghost, Layers, Play, ArrowDown, Lock } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
 interface ArchiveViewProps {
@@ -22,10 +22,13 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
 
   useEffect(() => {
     if (songs.length > 0 && !featuredSong) {
-      const random = songs[Math.floor(Math.random() * Math.min(songs.length, 20))];
+      // Prioritize direct artifacts for the spotlight if possible
+      const directOnly = songs.filter(s => !!s.storage_url);
+      const sourceList = directOnly.length > 0 ? directOnly : songs;
+      const random = sourceList[Math.floor(Math.random() * Math.min(sourceList.length, 10))];
       setFeaturedSong(random);
     }
-  }, [songs]);
+  }, [songs, featuredSong]);
 
   const categories = useMemo(() => {
     const getAlbum = (s: Song) => {
@@ -69,22 +72,23 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
 
   const handleFeaturedPlay = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (featuredSong) {
-      playSong(featuredSong, songs); // Queue entire current archival batch
+    if (featuredSong && featuredSong.storage_url) {
+      playSong(featuredSong, songs);
     }
   };
 
   const handleSongSelect = useCallback((song: Song, categorySongs?: Song[]) => {
-    // When playing a song from a category or grid, pass that list as the queue
-    playSong(song, categorySongs || songs);
+    if (song.storage_url) {
+      playSong(song, categorySongs || songs);
+    }
     onSongClick(song);
   }, [playSong, songs, onSongClick]);
 
   const isFeaturedPlaying = currentSong?.id === featuredSong?.id && isPlaying;
+  const isFeaturedPlayable = !!featuredSong?.storage_url;
 
   return (
     <div className="pb-24">
-      {/* HERO SECTION */}
       <AnimatePresence mode="wait">
         {featuredSong && (
           <MotionDiv
@@ -131,15 +135,20 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                       <Sparkles size={14} className="relative z-10 text-[#FF007F]" />
                     </button>
 
-                    {featuredSong.video_url && (
-                      <button 
-                        onClick={handleFeaturedPlay}
-                        className="group relative inline-flex items-center gap-4 px-8 py-4 bg-white text-black border border-white hover:bg-transparent hover:text-white transition-all overflow-hidden"
-                      >
-                        <span className="relative z-10 font-mono text-[10px] tracking-[0.4em] uppercase">{isFeaturedPlaying ? 'Now Playing' : 'Ignite Frequency'}</span>
+                    <button 
+                      onClick={handleFeaturedPlay}
+                      disabled={!isFeaturedPlayable}
+                      className={`group relative inline-flex items-center gap-4 px-8 py-4 transition-all overflow-hidden ${isFeaturedPlayable ? 'bg-white text-black border border-white hover:bg-transparent hover:text-white' : 'bg-neutral-900 text-neutral-600 border border-neutral-800 cursor-not-allowed'}`}
+                    >
+                      <span className="relative z-10 font-mono text-[10px] tracking-[0.4em] uppercase">
+                        {!isFeaturedPlayable ? 'Restricted Access' : isFeaturedPlaying ? 'Now Playing' : 'Ignite Frequency'}
+                      </span>
+                      {isFeaturedPlayable ? (
                         <Play size={14} className="relative z-10" fill="currentColor" />
-                      </button>
-                    )}
+                      ) : (
+                        <Lock size={14} className="relative z-10" />
+                      )}
+                    </button>
                   </div>
                 </MotionDiv>
               </div>
@@ -174,7 +183,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
         ) : (
           !loading && (
             <div className="px-6 py-12 border-y border-neutral-900/50 bg-neutral-950/20 text-center">
-               <p className="font-mono text-[9px] text-neutral-700 tracking-[0.5em] uppercase">No specific eras identified in this data segment. Explore the complete archive below.</p>
+               <p className="font-mono text-[9px] text-neutral-700 tracking-[0.5em] uppercase">No specific eras identified in this data segment.</p>
             </div>
           )
         )}
