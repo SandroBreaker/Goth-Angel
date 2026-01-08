@@ -13,6 +13,7 @@ interface SongCardProps {
 export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const { playSong, currentSong, isPlaying } = usePlayer();
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showLyricsTooltip, setShowLyricsTooltip] = useState(false);
   const MotionDiv = motion.div as any;
 
   const isActive = currentSong?.id === song.id;
@@ -116,9 +117,32 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         <h3 className="font-serif-classic text-sm text-center font-bold tracking-[0.1em] text-white mb-4 px-2 line-clamp-2">
           {song.title}
         </h3>
-        <div className="flex items-center gap-2 px-3 py-1.5 border border-[#FF007F]/30 bg-[#FF007F]/10">
-          <FileText size={10} className="text-[#FF007F]" />
-          <span className="font-mono text-[8px] text-[#FF007F] uppercase tracking-widest">Read Lyrics</span>
+        
+        <div 
+          className="relative"
+          onMouseEnter={() => setShowLyricsTooltip(true)}
+          onMouseLeave={() => setShowLyricsTooltip(false)}
+        >
+          <div className="flex items-center gap-2 px-3 py-1.5 border border-[#FF007F]/30 bg-[#FF007F]/10 transition-colors group-hover:border-[#FF007F]/60">
+            <FileText size={10} className="text-[#FF007F]" />
+            <span className="font-mono text-[8px] text-[#FF007F] uppercase tracking-widest">Read Lyrics</span>
+          </div>
+          
+          <AnimatePresence>
+            {showLyricsTooltip && (
+              <MotionDiv
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-[100] pointer-events-none"
+              >
+                <div className="bg-black border border-[#FF007F]/30 px-3 py-1 shadow-2xl whitespace-nowrap">
+                  <p className="font-mono text-[8px] text-[#FF007F] uppercase tracking-widest">Read Lyrics</p>
+                </div>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-black border-b border-r border-[#FF007F]/30 rotate-45"></div>
+              </MotionDiv>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </MotionDiv>
