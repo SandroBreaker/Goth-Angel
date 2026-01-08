@@ -1,10 +1,11 @@
 
-import React, { useRef, useEffect, useState } from 'react';
-import ReactPlayer from 'react-player/youtube';
+import { useRef, useEffect, useState } from 'react';
+import ReactPlayer from 'react-player';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
 export const GlobalAudioEngine: React.FC = () => {
   const [hasWindow, setHasWindow] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   const { 
     currentSong, 
     isPlaying, 
@@ -28,25 +29,40 @@ export const GlobalAudioEngine: React.FC = () => {
     }
   }, [seekRequest, hasWindow]);
 
-  if (!hasWindow || !currentSong?.video_url) return null;
+  // Logic: Prioritize direct MP3 URL from Supabase Storage, fallback to YouTube
+  const activeUrl = currentSong?.storage_url || currentSong?.video_url;
+
+  if (!hasWindow || !activeUrl) return null;
 
   return (
     <div className="hidden pointer-events-none absolute opacity-0 w-0 h-0 overflow-hidden" aria-hidden="true">
       <ReactPlayer
         ref={playerRef}
-        url={currentSong.video_url}
+        url={activeUrl}
         playing={isPlaying}
-        // Throttling progress updates to 500ms to avoid clogging the main thread on slow devices/networks
+        // Throttling progress updates to 500ms for performance
         progressInterval={500} 
-        onProgress={({ playedSeconds }) => setProgress(playedSeconds)}
+        // Use any to bypass React 19 SyntheticEvent inference issues
+        onProgress={(state: any) => {
+          setProgress(state.playedSeconds);
+          if (isBuffering) setIsBuffering(false);
+        }}
         onDuration={(d) => setDuration(d)}
         onEnded={() => setPlaying(false)}
+        onBuffer={() => setIsBuffering(true)}
+        onBufferEnd={() => setIsBuffering(false)}
         onError={(e) => {
-          console.warn('Audio Engine Frequency Error (Retry expected on slow 4G):', e);
-          // Don't immediately stop on errors if we are on a slow connection, 
-          // let the player try to recover unless it's a fatal block
+          console.warn('Audio Engine Frequency Error (Source switch or network):', e);
         }}
+        // Use any to bypass conflicting YouTube playerVars types in current environment
         config={{
+          file: {
+            forceAudio: true,
+            attributes: {
+              controlsList: 'nodownload',
+              preload: 'auto'
+            }
+          },
           youtube: {
             playerVars: { 
               showinfo: 0, 
@@ -56,7 +72,7 @@ export const GlobalAudioEngine: React.FC = () => {
               origin: typeof window !== "undefined" ? window.location.origin : ""
             }
           }
-        }}
+        } as any}
         width="0"
         height="0"
       />

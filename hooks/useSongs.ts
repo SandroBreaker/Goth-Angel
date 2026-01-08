@@ -57,11 +57,10 @@ export const useSongs = (query: string, filter: string | null) => {
     setError(null);
 
     try {
-      // FIX: Removed 'album' from selection as it does not exist as a top-level column.
-      // We will extract album information from the 'metadata' JSONB column instead.
+      // Included 'storage_url' in selection to support direct MP3 streaming.
       let request = supabase
         .from('songs')
-        .select('id, title, image_url, video_url, release_date, metadata', { count: 'exact' });
+        .select('id, title, image_url, video_url, storage_url, release_date, metadata', { count: 'exact' });
 
       const trimmedQuery = query.trim();
       if (trimmedQuery) {
@@ -99,7 +98,7 @@ export const useSongs = (query: string, filter: string | null) => {
           console.warn('Archive: Full-text search failed. Falling back to pattern matching.');
           const fallbackRequest = supabase
             .from('songs')
-            .select('id, title, image_url, video_url, release_date, metadata', { count: 'exact' })
+            .select('id, title, image_url, video_url, storage_url, release_date, metadata', { count: 'exact' })
             .ilike('title', `%${trimmedQuery}%`)
             .order('release_date', { ascending: false })
             .range(from, to);

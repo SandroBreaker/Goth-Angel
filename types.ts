@@ -6,6 +6,7 @@ export interface Song {
   lyrics?: string;
   album?: string;
   video_url?: string;
+  storage_url?: string; // New field for Supabase Storage MP3s
   release_date?: string;
   producer?: string;
   writer?: string;

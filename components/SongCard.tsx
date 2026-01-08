@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Song } from '../types.ts';
-import { FileText, Calendar, Play, Pause, AlertTriangle } from 'lucide-react';
+import { FileText, Calendar, Play, Pause, AlertTriangle, Zap } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
 interface SongCardProps {
@@ -10,18 +10,29 @@ interface SongCardProps {
   onClick: (song: Song) => void;
 }
 
-// Using React.memo to prevent re-renders when the global player progress updates
 export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const { playSong, currentSong, isPlaying } = usePlayer();
   const MotionDiv = motion.div as any;
 
   const isActive = currentSong?.id === song.id;
   const isCurrentlyPlaying = isActive && isPlaying;
+  const hasDirectAudio = !!song.storage_url;
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (song.video_url) {
+    if (song.storage_url || song.video_url) {
       playSong(song);
+    }
+  };
+
+  // Implement low-level pre-fetch hint for browser
+  const handleMouseEnter = () => {
+    if (song.storage_url) {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = song.storage_url;
+      link.as = 'audio';
+      document.head.appendChild(link);
     }
   };
 
@@ -31,6 +42,7 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "100px" }}
       whileHover={{ scale: 0.98 }}
+      onMouseEnter={handleMouseEnter}
       className="relative group cursor-pointer overflow-hidden border border-neutral-900 bg-neutral-950 aspect-square transition-all duration-500 hover:border-[#FF007F]/50"
       onClick={() => onClick(song)}
     >
@@ -52,17 +64,24 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         </h3>
       </div>
 
+      {/* Direct Source Indicator */}
+      {hasDirectAudio && (
+        <div className="absolute top-4 left-4 z-20 opacity-40 group-hover:opacity-100 transition-opacity">
+          <Zap size={10} className="text-[#7000FF]" fill="#7000FF" />
+        </div>
+      )}
+
       <div 
         className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         onClick={handlePlayClick}
       >
-        {!song.video_url ? (
+        {!(song.storage_url || song.video_url) ? (
           <div className="p-2 bg-neutral-900/80 text-neutral-600 rounded-full border border-neutral-800 cursor-help" title="Collecting from Vault...">
             <AlertTriangle size={12} />
           </div>
         ) : (
           <div className={`p-2 rounded-full border transition-all ${isCurrentlyPlaying ? 'bg-[#FF007F] border-[#FF007F] text-white' : 'bg-black/60 border-white/20 text-white hover:bg-[#FF007F] hover:border-[#FF007F]'}`}>
-            {isCurrentlyPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
+            {isCurrentlyPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" className="ml-0.5" />}
           </div>
         )}
       </div>
@@ -85,6 +104,5 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
     </MotionDiv>
   );
 }, (prevProps, nextProps) => {
-  // Only re-render if essential properties change
   return prevProps.song.id === nextProps.song.id;
 });
