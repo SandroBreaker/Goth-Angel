@@ -26,37 +26,49 @@ const AppContent: React.FC = () => {
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
   const { currentSong } = usePlayer();
 
-  // Sync selectedSong with the global player's current track if viewing lyrics
-  useEffect(() => {
-    if (currentView === 'lyrics' && currentSong && currentSong.id !== selectedSong?.id) {
-      setSelectedSong(currentSong);
+  // Reusable function to fetch full artifact details (lyrics, metadata, etc)
+  const fetchFullSongDetails = useCallback(async (songId: string) => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('songs')
+        .select('lyrics, metadata, release_date, storage_url, video_url, album, producer')
+        .eq('id', songId)
+        .single();
+      
+      if (!fetchError && data) {
+        setSelectedSong(prev => {
+          if (prev && prev.id === songId) {
+            return { 
+              ...prev, 
+              ...data,
+              album: data.metadata?.album || data.album || prev.album || 'Single'
+            };
+          }
+          return prev;
+        });
+      }
+    } catch (err) {
+      console.warn('Archive Sync: Could not retrieve full artifact details.', err);
     }
-  }, [currentSong, currentView, selectedSong]);
+  }, []);
+
+  // Sync selectedSong with the global player's current track and fetch lyrics if needed
+  useEffect(() => {
+    if (currentView === 'lyrics' && currentSong) {
+      if (!selectedSong || currentSong.id !== selectedSong.id) {
+        setSelectedSong(currentSong);
+        // Automatically fetch lyrics for the new song skipped in the player
+        fetchFullSongDetails(currentSong.id);
+      }
+    }
+  }, [currentSong, currentView, selectedSong?.id, fetchFullSongDetails]);
 
   const handleSongClick = useCallback(async (song: Song) => {
     setSelectedSong(song);
     setCurrentView('lyrics');
-
-    if (!song.lyrics) {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('songs')
-          .select('lyrics, metadata, release_date, storage_url, video_url')
-          .eq('id', song.id)
-          .single();
-        
-        if (!fetchError && data) {
-          setSelectedSong(prev => prev && prev.id === song.id ? { 
-            ...prev, 
-            ...data,
-            album: data.metadata?.album || prev.album || 'Single'
-          } : prev);
-        }
-      } catch (err) {
-        console.warn('Archive: Could not sync full artifact.', err);
-      }
-    }
-  }, []);
+    // Fetch details immediately on click
+    fetchFullSongDetails(song.id);
+  }, [fetchFullSongDetails]);
 
   const navigateTo = useCallback((view: ViewState) => {
     setCurrentView(view);
