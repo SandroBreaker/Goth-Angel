@@ -1,5 +1,5 @@
 
-import { useState, Suspense, lazy, useCallback } from 'react';
+import { useState, Suspense, lazy, useCallback, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
@@ -8,11 +8,12 @@ import { TheVault } from './components/TheVault.tsx';
 import { Footer } from './components/Footer.tsx';
 import { GlobalAudioEngine } from './components/GlobalAudioEngine.tsx';
 import { GlobalPlayer } from './components/GlobalPlayer.tsx';
-import { PlayerProvider } from './context/PlayerContext.tsx';
+import { PlayerProvider, usePlayer } from './context/PlayerContext.tsx';
 import { useSongs } from './hooks/useSongs.ts';
 import { supabase } from './services/supabaseClient.ts';
 import { Song, ViewState } from './types.ts';
 import { AlertCircle } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 const LyricView = lazy(() => import('./components/LyricView.tsx').then(m => ({ default: m.LyricView })));
 
@@ -23,18 +24,24 @@ const AppContent: React.FC = () => {
   const [sentimentFilter, setSentimentFilter] = useState<string | null>(null);
 
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
+  const { currentSong } = usePlayer();
+
+  // Sync selectedSong with the global player's current track if viewing lyrics
+  useEffect(() => {
+    if (currentView === 'lyrics' && currentSong && currentSong.id !== selectedSong?.id) {
+      setSelectedSong(currentSong);
+    }
+  }, [currentSong, currentView, selectedSong]);
 
   const handleSongClick = useCallback(async (song: Song) => {
-    // Set immediate partial song data for instant UI feedback
     setSelectedSong(song);
     setCurrentView('lyrics');
 
-    // Then fetch full details in background if missing lyrics
     if (!song.lyrics) {
       try {
         const { data, error: fetchError } = await supabase
           .from('songs')
-          .select('lyrics, metadata, release_date')
+          .select('lyrics, metadata, release_date, storage_url, video_url')
           .eq('id', song.id)
           .single();
         
@@ -112,9 +119,6 @@ const AppContent: React.FC = () => {
     </div>
   );
 };
-
-// Add AnimatePresence import that was missing in previous snippet if necessary
-import { AnimatePresence } from 'framer-motion';
 
 const App: React.FC = () => {
   return (

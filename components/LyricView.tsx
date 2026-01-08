@@ -22,8 +22,18 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   };
 
   const isCurrentActive = currentSong?.id === song.id;
+  const hasAudio = !!(song.storage_url || song.video_url);
 
-  // Memoize lyrics processing to avoid recalculation on every render
+  // Robust metadata extraction
+  const metadata = useMemo(() => {
+    const m = song.metadata || {};
+    return {
+      producer: m.producer || (m as any).prod || song.producer || "N/A",
+      bpm: m.bpm || (m as any).tempo || song.bpm || "??",
+      year: song.release_date?.split('-')[0] || (m as any).year || "Unknown"
+    };
+  }, [song]);
+
   const lyricLines = useMemo(() => song.lyrics?.split('\n') || [], [song.lyrics]);
 
   return (
@@ -31,21 +41,31 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }} // Fast transition for UI responsiveness
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col"
     >
-      {/* 1. OPTIMIZED AMBIENT BACKGROUND - Lower Blur, Fixed Position */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(0)' }}>
-        <div 
-          className="absolute inset-0 bg-cover bg-center scale-105 opacity-30"
-          style={{ 
-            backgroundImage: `url(${song.image_url})`,
-            filter: 'blur(40px)', // Reduced blur for performance
-            willChange: 'transform'
-          }}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-[#050505]/95 to-black"></div>
-      </div>
+      {/* 1. OPTIMIZED AMBIENT BACKGROUND */}
+      <AnimatePresence mode="wait">
+        <MotionDiv 
+          key={song.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.3 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+          className="absolute inset-0 pointer-events-none overflow-hidden" 
+          style={{ transform: 'translateZ(0)' }}
+        >
+          <div 
+            className="absolute inset-0 bg-cover bg-center scale-105"
+            style={{ 
+              backgroundImage: `url(${song.image_url})`,
+              filter: 'blur(40px)',
+              willChange: 'transform'
+            }}
+          ></div>
+        </MotionDiv>
+      </AnimatePresence>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-[#050505]/95 to-black pointer-events-none z-[1]"></div>
 
       {/* STICKY HEADER */}
       <header className="relative z-20 p-4 md:p-6 flex justify-between items-center border-b border-white/5 bg-black/20 backdrop-blur-md">
@@ -60,7 +80,7 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           <span className="font-mono text-[7px] text-neutral-500 tracking-[0.5em] uppercase mb-1">Preserving Archive</span>
           <div className="flex items-center gap-3">
              <div className="w-4 h-px bg-[#FF007F]/40"></div>
-             <span className="font-serif-classic text-[9px] text-white tracking-[0.3em] uppercase">{song.album || 'Single'}</span>
+             <span className="font-serif-classic text-[9px] text-white tracking-[0.3em] uppercase truncate max-w-[150px]">{song.album || 'Single'}</span>
              <div className="w-4 h-px bg-[#FF007F]/40"></div>
           </div>
         </div>
@@ -69,80 +89,82 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           className="p-2.5 bg-white/5 hover:bg-[#7000FF]/20 border border-white/10 rounded-full transition-all duration-300 text-neutral-400 hover:text-[#7000FF]"
           onClick={() => {
             navigator.clipboard.writeText(window.location.href);
-            alert('Link copiado para o clipboard.');
+            alert('Fragment location secured in clipboard.');
           }}
         >
           <Share2 className="w-5 h-5" />
         </button>
       </header>
 
-      {/* MAIN CONTENT AREA - Optimized for scroll */}
+      {/* MAIN CONTENT AREA */}
       <div className="relative z-10 flex-grow overflow-y-auto overflow-x-hidden scroll-smooth flex flex-col items-center pt-16 pb-48" style={{ WebkitOverflowScrolling: 'touch' }}>
         
-        {/* TITULAR SECTION */}
-        <div className="text-center mb-16 px-6 w-full max-w-4xl">
+        <AnimatePresence mode="wait">
           <MotionDiv 
-            initial={{ y: 20, opacity: 0 }}
+            key={song.id}
+            initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6 }}
+            exit={{ y: -10, opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-4xl flex flex-col items-center"
           >
-            <h1 className="font-gothic text-5xl md:text-7xl lg:text-8xl mb-8 neon-text-pink drop-shadow-[0_0_10px_rgba(255,0,127,0.2)]">
-              {song.title}
-            </h1>
+            {/* TITULAR SECTION */}
+            <div className="text-center mb-16 px-6">
+              <h1 className="font-gothic text-5xl md:text-7xl lg:text-8xl mb-8 neon-text-pink drop-shadow-[0_0_10px_rgba(255,0,127,0.2)] px-4">
+                {song.title}
+              </h1>
 
-            <div className="flex flex-col items-center gap-6 mb-12">
-              {song.video_url ? (
-                <button 
-                  onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
-                  className="group relative flex items-center gap-4 px-8 py-4 bg-white text-black font-mono text-[10px] font-bold tracking-[0.3em] hover:bg-[#FF007F] hover:text-white transition-all duration-300 shadow-xl"
-                >
-                  {isCurrentActive && isPlaying ? (
-                    <><Pause size={16} fill="currentColor" /> PAUSAR</>
-                  ) : (
-                    <><Play size={16} fill="currentColor" /> OUVIR ARTEFATO</>
-                  )}
-                </button>
-              ) : (
-                <div className="flex items-center gap-3 px-8 py-4 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[9px] uppercase tracking-widest">
-                  <AlertTriangle size={14} />
-                  Sem frequência catalogada
-                </div>
-              )}
+              <div className="flex flex-col items-center gap-6 mb-12">
+                {hasAudio ? (
+                  <button 
+                    onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
+                    className="group relative flex items-center gap-4 px-8 py-4 bg-white text-black font-mono text-[10px] font-bold tracking-[0.3em] hover:bg-[#FF007F] hover:text-white transition-all duration-300 shadow-xl"
+                  >
+                    {isCurrentActive && isPlaying ? (
+                      <><Pause size={16} fill="currentColor" /> PAUSAR</>
+                    ) : (
+                      <><Play size={16} fill="currentColor" /> OUVIR ARTEFATO</>
+                    )}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3 px-8 py-4 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[9px] uppercase tracking-widest">
+                    <AlertTriangle size={14} />
+                    Sem frequência catalogada
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-3">
+                <GlassTag icon={<User size={10}/>} label="Produced by" value={metadata.producer} color="pink" />
+                <GlassTag icon={<Activity size={10}/>} label="Frequency" value={`${metadata.bpm} BPM`} color="purple" />
+                <GlassTag icon={<Calendar size={10}/>} label="Dated" value={metadata.year} color="pink" />
+              </div>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-3">
-              <GlassTag icon={<User size={10}/>} label="Produced by" value={song.metadata?.producer || "N/A"} color="pink" />
-              <GlassTag icon={<Activity size={10}/>} label="Frequency" value={`${song.metadata?.bpm || '??'} BPM`} color="purple" />
-              <GlassTag icon={<Calendar size={10}/>} label="Dated" value={song.release_date?.split('-')[0] || 'Unknown'} color="pink" />
+            {/* LYRICS */}
+            <div 
+              className="max-w-3xl w-full px-8 md:px-12 mb-20"
+              onMouseUp={handleTextSelect}
+              style={{ contentVisibility: 'auto' }}
+            >
+              <div className="flex flex-col gap-6 text-center">
+                {lyricLines.map((line, i) => (
+                  <p 
+                    key={i} 
+                    className={`text-lg md:text-2xl font-light leading-relaxed tracking-tight transition-colors duration-200 select-all ${
+                      line.trim() 
+                        ? 'text-zinc-400 hover:text-white' 
+                        : 'h-8'
+                    }`}
+                    style={{ transform: 'translateZ(0)' }}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
             </div>
           </MotionDiv>
-        </div>
-
-        {/* LYRICS: CSS OPTIMIZED BLOCK */}
-        <div 
-          className="max-w-3xl w-full px-8 md:px-12 mb-20"
-          onMouseUp={handleTextSelect}
-          style={{ 
-            contentVisibility: 'auto', // Browser optimization for long content
-            containIntrinsicSize: '1000px'
-          }}
-        >
-          <div className="flex flex-col gap-6 text-center">
-            {lyricLines.map((line, i) => (
-              <p 
-                key={i} 
-                className={`text-lg md:text-2xl font-light leading-relaxed tracking-tight transition-colors duration-200 select-all ${
-                  line.trim() 
-                    ? 'text-zinc-400 hover:text-white' 
-                    : 'h-8'
-                }`}
-                style={{ transform: 'translateZ(0)' }} // Hardware acceleration for each line
-              >
-                {line}
-              </p>
-            ))}
-          </div>
-        </div>
+        </AnimatePresence>
       </div>
 
       {/* SHARE CARD FLOATER */}
@@ -182,8 +204,8 @@ const GlassTag: React.FC<{ icon: React.ReactNode; label: string; value: string; 
 }) => {
   const accent = color === 'pink' ? '#FF007F' : '#7000FF';
   return (
-    <div className="flex items-center gap-3 bg-white/5 border border-white/5 px-3 py-1.5 transition-colors hover:bg-white/10">
-      <div style={{ color: accent }}>{icon}</div>
+    <div className="flex items-center gap-3 bg-white/5 border border-white/5 px-3 py-1.5 transition-colors hover:bg-white/10 group min-w-[120px]">
+      <div style={{ color: accent }} className="group-hover:scale-110 transition-transform">{icon}</div>
       <div className="text-left">
         <p className="text-[6px] font-mono text-neutral-500 uppercase tracking-widest">{label}</p>
         <p className="text-[9px] font-mono text-white uppercase tracking-wider">{value}</p>
