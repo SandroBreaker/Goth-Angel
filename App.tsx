@@ -35,10 +35,10 @@ const AppContent: React.FC = () => {
 
   const fetchFullSongDetails = useCallback(async (songId: string) => {
     try {
-      // Garantir que a query não contenha colunas inexistentes no root
+      // producer e bpm removidos pois residem dentro do JSON metadata
       const { data, error: fetchError } = await supabase
         .from('songs')
-        .select('lyrics, metadata, release_date, storage_url, video_url, title, producer, bpm')
+        .select('lyrics, metadata, release_date, storage_url, video_url, title')
         .eq('id', songId)
         .single();
       

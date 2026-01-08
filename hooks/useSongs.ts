@@ -38,9 +38,10 @@ export const useSongs = (query: string, filter: string | null) => {
     setError(null);
 
     try {
+      // producer e bpm removidos do select root para evitar erro 400
       let request = supabase
         .from('songs')
-        .select('id, title, image_url, video_url, storage_url, release_date, metadata, producer, bpm', { count: 'exact' });
+        .select('id, title, image_url, video_url, storage_url, release_date, metadata', { count: 'exact' });
 
       const trimmedQuery = query.trim();
       if (trimmedQuery) {
