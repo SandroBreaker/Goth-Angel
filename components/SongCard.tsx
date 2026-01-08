@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Song } from '../types.ts';
 import { FileText, Calendar, Play, Pause, Lock, Zap } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
@@ -12,6 +12,7 @@ interface SongCardProps {
 
 export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const { playSong, currentSong, isPlaying } = usePlayer();
+  const [showTooltip, setShowTooltip] = useState(false);
   const MotionDiv = motion.div as any;
 
   const isActive = currentSong?.id === song.id;
@@ -37,9 +38,6 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
 
   return (
     <MotionDiv
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "100px" }}
       whileHover={{ scale: 0.98 }}
       onMouseEnter={handleMouseEnter}
       className="relative group cursor-pointer overflow-hidden border border-neutral-900 bg-neutral-950 aspect-square transition-all duration-500 hover:border-[#FF007F]/50"
@@ -73,8 +71,33 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         onClick={handlePlayClick}
       >
         {!hasDirectAudio ? (
-          <div className="p-2 bg-neutral-900/80 text-neutral-700 rounded-full border border-neutral-800 cursor-not-allowed" title="Acesso Restrito: Apenas Metadados">
-            <Lock size={12} />
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            <div className="p-2 bg-neutral-900/80 text-neutral-700 rounded-full border border-neutral-800 cursor-not-allowed">
+              <Lock size={12} />
+            </div>
+            
+            <AnimatePresence>
+              {showTooltip && (
+                <MotionDiv
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap z-[100]"
+                >
+                  <div className="bg-black border border-[#FF007F]/30 px-3 py-1.5 shadow-2xl">
+                    <p className="font-mono text-[8px] text-[#FF007F] uppercase tracking-widest leading-tight">
+                      Audio restricted. <br/>
+                      <span className="text-neutral-500">Only metadata available.</span>
+                    </p>
+                  </div>
+                  <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-black border-r border-t border-[#FF007F]/30 rotate-45"></div>
+                </MotionDiv>
+              )}
+            </AnimatePresence>
           </div>
         ) : (
           <div className={`p-2 rounded-full border transition-all ${isCurrentlyPlaying ? 'bg-[#FF007F] border-[#FF007F] text-white' : 'bg-black/60 border-white/20 text-white hover:bg-[#FF007F] hover:border-[#FF007F]'}`}>

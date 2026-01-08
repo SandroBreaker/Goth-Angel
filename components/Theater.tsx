@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Play, film, ExternalLink, Info, Youtube } from 'lucide-react';
+// Fixed: 'film' changed to 'Film' to match lucide-react exports
+import { Play, Film, ExternalLink, Info, Youtube } from 'lucide-react';
 
 const videos = [
   { id: '3rkJ3L5Ce80', title: 'Benz Truck', type: 'Legacy Visual', duration: '3:48' },

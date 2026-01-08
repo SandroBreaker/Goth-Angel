@@ -26,38 +26,38 @@ const AppContent: React.FC = () => {
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
   const { currentSong } = usePlayer();
 
-  // Reusable function to fetch full artifact details (lyrics, metadata, etc)
   const fetchFullSongDetails = useCallback(async (songId: string) => {
     try {
+      // Correção: Removidas colunas 'album' e 'producer' que causavam erro 400 por não existirem no schema root
       const { data, error: fetchError } = await supabase
         .from('songs')
-        .select('lyrics, metadata, release_date, storage_url, video_url, album, producer')
+        .select('lyrics, metadata, release_date, storage_url, video_url')
         .eq('id', songId)
         .single();
       
-      if (!fetchError && data) {
+      if (fetchError) throw fetchError;
+      
+      if (data) {
         setSelectedSong(prev => {
           if (prev && prev.id === songId) {
             return { 
               ...prev, 
               ...data,
-              album: data.metadata?.album || data.album || prev.album || 'Single'
+              album: data.metadata?.album || (data as any).album || prev.album || 'Single'
             };
           }
           return prev;
         });
       }
     } catch (err) {
-      console.warn('Archive Sync: Could not retrieve full artifact details.', err);
+      console.warn('Archive Sync Error: Failed to fetch artifact details. Ensure columns exist.', err);
     }
   }, []);
 
-  // Sync selectedSong with the global player's current track and fetch lyrics if needed
   useEffect(() => {
     if (currentView === 'lyrics' && currentSong) {
       if (!selectedSong || currentSong.id !== selectedSong.id) {
         setSelectedSong(currentSong);
-        // Automatically fetch lyrics for the new song skipped in the player
         fetchFullSongDetails(currentSong.id);
       }
     }
@@ -66,7 +66,6 @@ const AppContent: React.FC = () => {
   const handleSongClick = useCallback(async (song: Song) => {
     setSelectedSong(song);
     setCurrentView('lyrics');
-    // Fetch details immediately on click
     fetchFullSongDetails(song.id);
   }, [fetchFullSongDetails]);
 

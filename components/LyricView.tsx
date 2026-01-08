@@ -26,14 +26,30 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
 
   const metadata = useMemo(() => {
     const m = song.metadata || {};
+    
+    // Função auxiliar para garantir que o valor seja uma string e não um objeto complexo
+    const sanitize = (val: any): string => {
+      if (!val) return "N/A";
+      if (typeof val === 'string') return val;
+      if (typeof val === 'object') {
+        // Tenta extrair nomes comuns em objetos do Genius ou similares
+        return val.name || val.title || val.full_title || String(val);
+      }
+      return String(val);
+    };
+
     return {
-      producer: m.producer || (m as any).prod || song.producer || "N/A",
-      bpm: m.bpm || (m as any).tempo || song.bpm || "??",
-      year: song.release_date?.split('-')[0] || (m as any).year || "Unknown"
+      producer: sanitize(m.producer || (m as any).prod || song.producer),
+      bpm: sanitize(m.bpm || (m as any).tempo || song.bpm || "??"),
+      year: sanitize(song.release_date?.split('-')[0] || (m as any).year || "Unknown"),
+      album: sanitize(song.album || m.album || "Single")
     };
   }, [song]);
 
-  const lyricLines = useMemo(() => song.lyrics?.split('\n') || [], [song.lyrics]);
+  const lyricLines = useMemo(() => {
+    if (!song.lyrics) return ["ARQUIVO DE TEXTO NÃO LOCALIZADO"];
+    return song.lyrics.split('\n');
+  }, [song.lyrics]);
 
   return (
     <MotionDiv
@@ -77,7 +93,9 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           <span className="font-mono text-[7px] text-neutral-500 tracking-[0.5em] uppercase mb-1">Preserving Archive</span>
           <div className="flex items-center gap-3">
              <div className="w-4 h-px bg-[#FF007F]/40"></div>
-             <span className="font-serif-classic text-[9px] text-white tracking-[0.3em] uppercase truncate max-w-[150px]">{song.album || 'Single'}</span>
+             <span className="font-serif-classic text-[9px] text-white tracking-[0.3em] uppercase truncate max-w-[150px]">
+               {metadata.album}
+             </span>
              <div className="w-4 h-px bg-[#FF007F]/40"></div>
           </div>
         </div>
@@ -106,7 +124,7 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           >
             <div className="text-center mb-16 px-6">
               <h1 className="font-gothic text-5xl md:text-7xl lg:text-8xl mb-8 neon-text-pink drop-shadow-[0_0_10px_rgba(255,0,127,0.2)] px-4">
-                {song.title}
+                {String(song.title)}
               </h1>
 
               <div className="flex flex-col items-center gap-6 mb-12">
@@ -152,7 +170,7 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
                     }`}
                     style={{ transform: 'translateZ(0)' }}
                   >
-                    {line}
+                    {String(line)}
                   </p>
                 ))}
               </div>
