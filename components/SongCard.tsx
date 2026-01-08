@@ -21,11 +21,13 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (song.storage_url || song.video_url) {
+      // Logic for single click play from card: usually plays the song.
+      // If we are in a list, we might want to pass the list, but SongCard 
+      // doesn't know about its peers, so playSong handles existing queue logic.
       playSong(song);
     }
   };
 
-  // Implement low-level pre-fetch hint for browser
   const handleMouseEnter = () => {
     if (song.storage_url) {
       const link = document.createElement('link');
@@ -46,7 +48,6 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
       className="relative group cursor-pointer overflow-hidden border border-neutral-900 bg-neutral-950 aspect-square transition-all duration-500 hover:border-[#FF007F]/50"
       onClick={() => onClick(song)}
     >
-      {/* Pulse Neon Border Effect */}
       <div className={`absolute inset-0 transition-opacity duration-500 pointer-events-none ${isCurrentlyPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
         <div className={`absolute inset-0 border border-[#FF007F]/30 ${isCurrentlyPlaying ? 'animate-pulse' : ''}`}></div>
       </div>
@@ -64,7 +65,6 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         </h3>
       </div>
 
-      {/* Direct Source Indicator */}
       {hasDirectAudio && (
         <div className="absolute top-4 left-4 z-20 opacity-40 group-hover:opacity-100 transition-opacity">
           <Zap size={10} className="text-[#7000FF]" fill="#7000FF" />

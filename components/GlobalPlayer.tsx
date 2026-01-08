@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Layers, AlertTriangle, Zap, Youtube } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Layers, AlertTriangle, Zap, Youtube, Shuffle } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
 // Sub-component to isolate re-renders from progress updates
@@ -42,7 +42,16 @@ const ProgressSlider: React.FC = () => {
 };
 
 export const GlobalPlayer: React.FC = () => {
-  const { isPlaying, currentSong, togglePlay } = usePlayer();
+  const { 
+    isPlaying, 
+    currentSong, 
+    togglePlay, 
+    nextTrack, 
+    prevTrack, 
+    isShuffle, 
+    toggleShuffle,
+    queue 
+  } = usePlayer();
   const MotionDiv = motion.div as any;
 
   if (!currentSong) return null;
@@ -71,7 +80,6 @@ export const GlobalPlayer: React.FC = () => {
               {isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                    <div className="flex gap-1 items-end h-3">
-                      {/* Using MotionDiv (any) to avoid React 19 / Framer Motion type conflict */}
                       <MotionDiv animate={{ height: [4, 12, 6] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-0.5 bg-[#FF007F]" />
                       <MotionDiv animate={{ height: [8, 4, 10] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-0.5 bg-[#FF007F]" />
                       <MotionDiv animate={{ height: [6, 10, 4] }} transition={{ repeat: Infinity, duration: 0.7 }} className="w-0.5 bg-[#FF007F]" />
@@ -95,7 +103,13 @@ export const GlobalPlayer: React.FC = () => {
           {/* Controls & Progress */}
           <div className="flex-grow w-full md:w-1/2 flex flex-col items-center gap-3">
             <div className="flex items-center gap-8 text-neutral-400">
-              <SkipBack size={18} className="opacity-20 cursor-not-allowed" />
+              <button 
+                onClick={prevTrack}
+                className="hover:text-white transition-colors cursor-pointer disabled:opacity-20"
+                disabled={queue.length <= 1}
+              >
+                <SkipBack size={18} fill="currentColor" />
+              </button>
               
               {!(currentSong.storage_url || currentSong.video_url) ? (
                 <div className="w-12 h-12 rounded-full border border-neutral-800 flex items-center justify-center text-neutral-600">
@@ -110,7 +124,13 @@ export const GlobalPlayer: React.FC = () => {
                 </button>
               )}
 
-              <SkipForward size={18} className="opacity-20 cursor-not-allowed" />
+              <button 
+                onClick={nextTrack}
+                className="hover:text-white transition-colors cursor-pointer disabled:opacity-20"
+                disabled={queue.length <= 1}
+              >
+                <SkipForward size={18} fill="currentColor" />
+              </button>
             </div>
 
             <ProgressSlider />
@@ -118,6 +138,13 @@ export const GlobalPlayer: React.FC = () => {
 
           {/* Volume/Meta Tools */}
           <div className="hidden md:flex items-center justify-end gap-6 w-1/4 text-neutral-500">
+            <button 
+              onClick={toggleShuffle}
+              className={`transition-all duration-300 ${isShuffle ? 'text-[#FF007F] drop-shadow-[0_0_5px_#FF007F]' : 'text-neutral-600 hover:text-neutral-400'}`}
+            >
+              <Shuffle size={16} />
+            </button>
+            
             <div className="flex flex-col items-end">
                <span className="text-[7px] font-mono uppercase tracking-[0.2em] mb-1 opacity-50">Signal Source</span>
                <span className="text-[8px] font-mono uppercase tracking-widest text-[#7000FF]">{isDirect ? 'Direct (Supabase)' : 'Broadcast (YT)'}</span>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Song } from '../types.ts';
 import { SongCard } from './SongCard.tsx';
@@ -33,7 +33,6 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
       return String(albumValue).toLowerCase();
     };
     
-    // Broadened filters to capture more variations of the classic albums
     const classics = songs.filter(s => {
       const album = getAlbum(s);
       return album.includes("sober") || 
@@ -52,7 +51,6 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
              album.includes("california girls");
     }).slice(0, 12);
 
-    // Rare & Unreleased: items not caught by the major eras or explicitly tagged
     const rare = songs.filter(s => {
       const album = getAlbum(s);
       const isClassic = classics.some(c => c.id === s.id);
@@ -62,13 +60,25 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
              !isClassic && !isSoundcloud;
     }).slice(0, 12);
     
-    // Create the category list but FILTER OUT those with no data to avoid empty gaps
     return [
       { id: 'classics', title: 'The Classics', icon: <Disc size={14} />, data: classics },
       { id: 'soundcloud', title: 'Soundcloud Era', icon: <Ghost size={14} />, data: soundcloud },
       { id: 'rare', title: 'Rare & Unreleased', icon: <Layers size={14} />, data: rare }
     ].filter(cat => cat.data.length > 0);
   }, [songs]);
+
+  const handleFeaturedPlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (featuredSong) {
+      playSong(featuredSong, songs); // Queue entire current archival batch
+    }
+  };
+
+  const handleSongSelect = useCallback((song: Song, categorySongs?: Song[]) => {
+    // When playing a song from a category or grid, pass that list as the queue
+    playSong(song, categorySongs || songs);
+    onSongClick(song);
+  }, [playSong, songs, onSongClick]);
 
   const isFeaturedPlaying = currentSong?.id === featuredSong?.id && isPlaying;
 
@@ -123,7 +133,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
 
                     {featuredSong.video_url && (
                       <button 
-                        onClick={() => playSong(featuredSong)}
+                        onClick={handleFeaturedPlay}
                         className="group relative inline-flex items-center gap-4 px-8 py-4 bg-white text-black border border-white hover:bg-transparent hover:text-white transition-all overflow-hidden"
                       >
                         <span className="relative z-10 font-mono text-[10px] tracking-[0.4em] uppercase">{isFeaturedPlaying ? 'Now Playing' : 'Ignite Frequency'}</span>
@@ -138,7 +148,6 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
         )}
       </AnimatePresence>
 
-      {/* CAROUSELS: Now only rendering categories that actually have songs */}
       <div className="mt-12 space-y-24">
         {categories.length > 0 ? (
           categories.map((cat, idx) => (
@@ -156,7 +165,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
               <div className="flex gap-4 overflow-x-auto px-6 pb-8 snap-x scrollbar-hide">
                 {cat.data.map((song) => (
                   <div key={song.id} className="w-48 lg:w-64 shrink-0 snap-start">
-                    <SongCard song={song} onClick={onSongClick} />
+                    <SongCard song={song} onClick={() => handleSongSelect(song, cat.data)} />
                   </div>
                 ))}
               </div>
@@ -171,12 +180,11 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
         )}
       </div>
 
-      {/* MAIN GRID WITH PAGINATION */}
       <div className="mt-32 px-6 pt-20 border-t border-neutral-900">
         <h3 className="font-serif-classic text-2xl text-white tracking-widest mb-12">THE COMPLETE ARCHIVE</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {songs.map((song) => (
-            <SongCard key={song.id} song={song} onClick={onSongClick} />
+            <SongCard key={song.id} song={song} onClick={() => handleSongSelect(song, songs)} />
           ))}
           {loading && Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={`skel-${i}`} />)}
         </div>

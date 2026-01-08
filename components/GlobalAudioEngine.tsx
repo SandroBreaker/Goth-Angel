@@ -12,10 +12,14 @@ export const GlobalAudioEngine: React.FC = () => {
     setPlaying, 
     setProgress, 
     setDuration, 
-    seekRequest 
+    seekRequest,
+    nextTrack
   } = usePlayer();
   
   const playerRef = useRef<any>(null);
+
+  // Fix: Casting ReactPlayer to any to handle React 19 type incompatibilities with legacy player components
+  const Player = ReactPlayer as any;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -36,7 +40,8 @@ export const GlobalAudioEngine: React.FC = () => {
 
   return (
     <div className="hidden pointer-events-none absolute opacity-0 w-0 h-0 overflow-hidden" aria-hidden="true">
-      <ReactPlayer
+      {/* Fix: Using casted Player component to avoid Prop 'url' missing error */}
+      <Player
         ref={playerRef}
         url={activeUrl}
         playing={isPlaying}
@@ -47,12 +52,14 @@ export const GlobalAudioEngine: React.FC = () => {
           setProgress(state.playedSeconds);
           if (isBuffering) setIsBuffering(false);
         }}
-        onDuration={(d) => setDuration(d)}
-        onEnded={() => setPlaying(false)}
+        onDuration={(d: any) => setDuration(d)}
+        onEnded={() => nextTrack()} // Trigger auto-play for next item in queue
         onBuffer={() => setIsBuffering(true)}
         onBufferEnd={() => setIsBuffering(false)}
-        onError={(e) => {
+        onError={(e: any) => {
           console.warn('Audio Engine Frequency Error (Source switch or network):', e);
+          // Auto skip if error occurs
+          setTimeout(() => nextTrack(), 1000);
         }}
         // Use any to bypass conflicting YouTube playerVars types in current environment
         config={{
