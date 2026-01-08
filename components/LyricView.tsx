@@ -11,15 +11,9 @@ interface LyricViewProps {
 }
 
 export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
-  const [selectedText, setSelectedText] = useState('');
   const { playSong, currentSong, isPlaying, togglePlay } = usePlayer();
   
   const MotionDiv = motion.div as any;
-
-  const handleTextSelect = () => {
-    const selection = window.getSelection()?.toString();
-    if (selection) setSelectedText(selection);
-  };
 
   const isCurrentActive = currentSong?.id === song.id;
   const hasDirectAudio = !!song.storage_url;
@@ -28,20 +22,39 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
     const m = song.metadata || {};
     
     const sanitize = (val: any): string => {
-      if (!val) return "N/A";
+      if (val === null || val === undefined || val === "" || val === "null") return "N/A";
       if (typeof val === 'string') return val;
+      if (typeof val === 'number') return String(val);
       if (typeof val === 'object') {
         return val.name || val.title || val.full_title || String(val);
       }
       return String(val);
     };
 
-    return {
-      producer: sanitize(m.producer || (m as any).prod || song.producer),
-      bpm: sanitize(m.bpm || (m as any).tempo || song.bpm || "??"),
-      year: sanitize(song.release_date?.split('-')[0] || (m as any).year || "Unknown"),
-      album: sanitize(song.album || m.album || "Single")
+    // Deep lookup for metadata fields to handle various scraper formats
+    const findField = (keys: string[], rootVal?: any) => {
+      if (rootVal && rootVal !== "null") return rootVal;
+      for (const key of keys) {
+        if (m[key]) return m[key];
+        if ((song as any)[key]) return (song as any)[key];
+      }
+      return null;
     };
+
+    const producer = sanitize(findField(['producer', 'produced_by', 'prod', 'producer_name', 'credits'], song.producer));
+    const bpm = sanitize(findField(['bpm', 'tempo', 'beats_per_minute', 'frequency'], song.bpm));
+    
+    // Timeline/Year logic
+    let year = "UNKNOWN";
+    const rawDate = song.release_date || (m as any).release_date || (m as any).year;
+    if (rawDate && rawDate !== "null") {
+      const yearMatch = String(rawDate).match(/\d{4}/);
+      year = yearMatch ? yearMatch[0] : sanitize(rawDate);
+    }
+
+    const album = sanitize(song.album || m.album || (m as any).collection || "Single Artifact");
+
+    return { producer, bpm, year, album };
   }, [song]);
 
   const lyricLines = useMemo(() => {
@@ -77,9 +90,9 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           ></div>
         </MotionDiv>
       </AnimatePresence>
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-[#050505]/95 to-black pointer-events-none z-[1]"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-[#050505]/98 to-black pointer-events-none z-[1]"></div>
 
-      <header className="relative z-20 p-6 md:p-8 flex justify-between items-center border-b border-neutral-800 bg-black/40 backdrop-blur-2xl">
+      <header className="relative z-20 p-6 md:p-8 flex justify-between items-center border-b border-neutral-800 bg-black/40 backdrop-blur-3xl">
         <button 
           onClick={onClose}
           className="group p-4 bg-neutral-900/50 hover:bg-[#FF007F]/20 border border-neutral-800 rounded-full transition-all duration-300"
@@ -88,7 +101,7 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
         </button>
         
         <div className="flex flex-col items-center">
-          <span className="font-mono text-[10px] text-neutral-500 tracking-[0.5em] uppercase mb-2 font-bold">Preserving Archive</span>
+          <span className="font-mono text-[10px] text-neutral-600 tracking-[0.5em] uppercase mb-2 font-bold">Preserving Archive</span>
           <div className="flex items-center gap-4">
              <div className="w-8 h-px bg-[#FF007F]/40"></div>
              <span className="font-serif-classic text-[14px] text-white tracking-[0.2em] uppercase truncate max-w-[200px] font-bold">
@@ -101,7 +114,8 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
         <button 
           className="p-4 bg-neutral-900/50 hover:bg-[#7000FF]/20 border border-neutral-800 rounded-full transition-all duration-300 text-neutral-200 hover:text-[#7000FF]"
           onClick={() => {
-            navigator.clipboard.writeText(window.location.href);
+            const url = window.location.href;
+            navigator.clipboard.writeText(url);
             alert('Fragment location secured in clipboard.');
           }}
         >
@@ -110,7 +124,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
       </header>
 
       <div className="relative z-10 flex-grow overflow-y-auto overflow-x-hidden scroll-smooth flex flex-col items-center pt-20 pb-48 px-6">
-        
         <AnimatePresence mode="wait">
           <MotionDiv 
             key={song.id}
@@ -120,47 +133,48 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-5xl flex flex-col items-center"
           >
-            <div className="text-center mb-20 px-6">
-              <h1 className="font-gothic text-6xl md:text-8xl lg:text-9xl mb-12 neon-text-pink drop-shadow-[0_0_20px_rgba(255,0,127,0.3)] px-4 leading-[0.8]">
+            <div className="text-center mb-24 px-6">
+              <h1 className="font-gothic text-7xl md:text-8xl lg:text-[10rem] mb-12 neon-text-pink drop-shadow-[0_0_30px_rgba(255,0,127,0.4)] px-4 leading-[0.8] tracking-tighter">
                 {String(song.title)}
               </h1>
 
-              <div className="flex flex-col items-center gap-8 mb-16">
+              <div className="flex flex-col items-center gap-8 mb-20">
                 {hasDirectAudio ? (
                   <button 
                     onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
-                    className="group relative flex items-center gap-6 px-12 py-5 bg-white text-black font-mono text-[14px] font-bold tracking-[0.3em] hover:bg-[#FF007F] hover:text-white transition-all duration-300 shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+                    className="group relative flex items-center gap-8 px-16 py-6 bg-white text-black font-mono text-[16px] font-bold tracking-[0.4em] hover:bg-[#FF007F] hover:text-white transition-all duration-300 shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
                   >
+                    <div className="absolute inset-0 border border-white group-hover:border-[#FF007F] scale-105 group-hover:scale-110 opacity-0 group-hover:opacity-100 transition-all" />
                     {isCurrentActive && isPlaying ? (
-                      <><Pause size={20} fill="currentColor" /> PAUSE SIGNAL</>
+                      <><Pause size={24} fill="currentColor" /> PAUSE SIGNAL</>
                     ) : (
-                      <><Play size={20} fill="currentColor" /> IGNITE FREQUENCY</>
+                      <><Play size={24} fill="currentColor" className="ml-1" /> IGNITE FREQUENCY</>
                     )}
                   </button>
                 ) : (
-                  <div className="flex items-center gap-4 px-10 py-5 border-2 border-dashed border-neutral-800 text-neutral-500 font-mono text-[11px] uppercase tracking-[0.4em] font-bold">
-                    <Lock size={18} />
+                  <div className="flex items-center gap-5 px-12 py-6 border-2 border-dashed border-neutral-800 text-neutral-600 font-mono text-[13px] uppercase tracking-[0.5em] font-bold">
+                    <Lock size={20} />
                     Signal Restricted
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-wrap justify-center gap-4">
-                <GlassTag icon={<User size={14}/>} label="Producer" value={metadata.producer} color="pink" />
-                <GlassTag icon={<Activity size={14}/>} label="Frequency" value={`${metadata.bpm} BPM`} color="purple" />
-                <GlassTag icon={<Calendar size={14}/>} label="Timeline" value={metadata.year} color="pink" />
+              <div className="flex flex-wrap justify-center gap-6">
+                <GlassTag icon={<User size={18}/>} label="Producer" value={metadata.producer} color="pink" />
+                <GlassTag icon={<Activity size={18}/>} label="Frequency" value={metadata.bpm === "N/A" ? "?? BPM" : `${metadata.bpm} BPM`} color="purple" />
+                <GlassTag icon={<Calendar size={18}/>} label="Timeline" value={metadata.year} color="pink" />
               </div>
             </div>
 
-            <div className="max-w-4xl w-full px-8 mb-32 border-l border-white/5 pl-12">
-              <div className="flex flex-col gap-8">
+            <div className="max-w-4xl w-full px-8 mb-40 border-l-2 border-[#FF007F]/20 pl-16">
+              <div className="flex flex-col gap-10">
                 {lyricLines.map((line, i) => (
                   <p 
                     key={i} 
-                    className={`text-xl md:text-3xl font-light leading-relaxed tracking-tight transition-all duration-300 select-all ${
+                    className={`text-2xl md:text-4xl font-light leading-relaxed tracking-tight transition-all duration-500 select-all ${
                       line.trim() 
-                        ? 'text-neutral-400 hover:text-white hover:pl-4 border-l-2 border-transparent hover:border-[#FF007F]/40' 
-                        : 'h-10'
+                        ? 'text-neutral-400 hover:text-white hover:pl-6 border-l-4 border-transparent hover:border-[#FF007F] cursor-text' 
+                        : 'h-12'
                     }`}
                   >
                     {String(line)}
@@ -180,11 +194,11 @@ const GlassTag: React.FC<{ icon: React.ReactNode; label: string; value: string; 
 }) => {
   const accent = color === 'pink' ? '#FF007F' : '#7000FF';
   return (
-    <div className="flex items-center gap-4 bg-neutral-900/50 border border-neutral-800 px-5 py-3 transition-colors hover:bg-neutral-800 group min-w-[160px]">
-      <div style={{ color: accent }} className="group-hover:scale-110 transition-transform">{icon}</div>
-      <div className="text-left border-l border-neutral-800 pl-4">
-        <p className="text-[9px] font-mono text-neutral-500 uppercase tracking-widest mb-1 font-bold">{label}</p>
-        <p className="text-[12px] font-mono text-neutral-100 uppercase tracking-wider font-bold">{value}</p>
+    <div className="flex items-center gap-6 bg-neutral-900/60 border border-neutral-800 px-8 py-5 transition-all hover:bg-neutral-800 group min-w-[200px] shadow-xl backdrop-blur-md">
+      <div style={{ color: accent }} className="group-hover:scale-125 transition-transform duration-500 drop-shadow-[0_0_8px_currentColor]">{icon}</div>
+      <div className="text-left border-l border-neutral-800 pl-6">
+        <p className="text-[10px] font-mono text-neutral-500 uppercase tracking-[0.2em] mb-1.5 font-bold">{label}</p>
+        <p className="text-[14px] font-mono text-neutral-100 uppercase tracking-widest font-bold group-hover:text-white transition-colors">{value}</p>
       </div>
     </div>
   );

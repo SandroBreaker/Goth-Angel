@@ -38,7 +38,7 @@ const AppContent: React.FC = () => {
       // Garantir que a query não contenha colunas inexistentes no root
       const { data, error: fetchError } = await supabase
         .from('songs')
-        .select('lyrics, metadata, release_date, storage_url, video_url, title')
+        .select('lyrics, metadata, release_date, storage_url, video_url, title, producer, bpm')
         .eq('id', songId)
         .single();
       

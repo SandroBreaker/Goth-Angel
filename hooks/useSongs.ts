@@ -40,7 +40,7 @@ export const useSongs = (query: string, filter: string | null) => {
     try {
       let request = supabase
         .from('songs')
-        .select('id, title, image_url, video_url, storage_url, release_date, metadata', { count: 'exact' });
+        .select('id, title, image_url, video_url, storage_url, release_date, metadata, producer, bpm', { count: 'exact' });
 
       const trimmedQuery = query.trim();
       if (trimmedQuery) {
