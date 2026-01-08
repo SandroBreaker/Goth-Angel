@@ -10,6 +10,13 @@ interface SongCardProps {
   onClick: (song: Song) => void;
 }
 
+const ensureString = (val: any): string => {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') return val.title || val.name || "Artifact";
+  return String(val);
+};
+
 export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const { playSong, currentSong, isPlaying } = usePlayer();
   const [showTooltip, setShowTooltip] = useState(false);
@@ -19,6 +26,8 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const isActive = currentSong?.id === song.id;
   const isCurrentlyPlaying = isActive && isPlaying;
   const hasDirectAudio = !!song.storage_url;
+
+  const safeTitle = ensureString(song.title);
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -50,14 +59,14 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
 
       <img
         src={song.image_url || `https://picsum.photos/seed/${song.id}/400/400`}
-        alt={song.title}
+        alt={safeTitle}
         className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 grayscale-[30%] group-hover:grayscale-0 group-hover:scale-110 opacity-60 group-hover:opacity-30 ${isCurrentlyPlaying ? 'opacity-20 grayscale-0 scale-105' : ''}`}
         loading="lazy"
       />
 
       <div className={`absolute bottom-0 left-0 w-full p-4 z-10 transition-opacity duration-300 ${isCurrentlyPlaying ? 'opacity-0' : 'group-hover:opacity-0'}`}>
         <h3 className="font-serif-classic text-[10px] tracking-[0.2em] text-neutral-400 uppercase truncate">
-          {song.title}
+          {safeTitle}
         </h3>
       </div>
 
@@ -115,7 +124,7 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
           </span>
         </div>
         <h3 className="font-serif-classic text-sm text-center font-bold tracking-[0.1em] text-white mb-4 px-2 line-clamp-2">
-          {song.title}
+          {safeTitle}
         </h3>
         
         <div 
@@ -148,5 +157,5 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
     </MotionDiv>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.song.id === nextProps.song.id;
+  return prevProps.song.id === nextProps.song.id && prevProps.song.title === nextProps.song.title;
 });

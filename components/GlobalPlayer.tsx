@@ -4,6 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipBack, SkipForward, Volume2, Layers, Lock, Zap, Youtube, Shuffle } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 
+const ensureString = (val: any): string => {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') return val.title || val.name || "Artifact";
+  return String(val);
+};
+
 const ProgressSlider: React.FC = () => {
   const { progress, duration, seek, currentSong } = usePlayer();
   const hasDirectAudio = !!currentSong?.storage_url;
@@ -58,6 +65,8 @@ export const GlobalPlayer: React.FC = () => {
   if (!currentSong) return null;
 
   const isDirect = !!currentSong.storage_url;
+  const safeTitle = ensureString(currentSong.title);
+  const safeAlbum = ensureString(currentSong.album || currentSong.metadata?.album || 'Single Artifact');
 
   return (
     <AnimatePresence>
@@ -74,7 +83,7 @@ export const GlobalPlayer: React.FC = () => {
             <div className="relative shrink-0">
               <img 
                 src={currentSong.image_url} 
-                alt="" 
+                alt={safeTitle} 
                 className={`w-14 h-14 border border-white/10 object-cover transition-all ${isPlaying ? 'brightness-125' : 'brightness-50'}`} 
               />
               {isPlaying && (
@@ -89,14 +98,14 @@ export const GlobalPlayer: React.FC = () => {
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <p className="text-[11px] font-bold text-white tracking-widest uppercase truncate">{currentSong.title}</p>
+                <p className="text-[11px] font-bold text-white tracking-widest uppercase truncate">{safeTitle}</p>
                 {isDirect ? (
                   <Zap size={8} className="text-[#7000FF]" fill="currentColor" />
                 ) : (
                   <Youtube size={10} className="text-neutral-700" />
                 )}
               </div>
-              <p className="text-[9px] font-mono text-neutral-500 uppercase tracking-widest truncate">{currentSong.album || 'Single Artifact'}</p>
+              <p className="text-[9px] font-mono text-neutral-500 uppercase tracking-widest truncate">{safeAlbum}</p>
             </div>
           </div>
 

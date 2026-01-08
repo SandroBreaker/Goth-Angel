@@ -17,6 +17,13 @@ import { AnimatePresence } from 'framer-motion';
 
 const LyricView = lazy(() => import('./components/LyricView.tsx').then(m => ({ default: m.LyricView })));
 
+const ensureString = (val: any): string => {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') return val.title || val.name || "Artifact";
+  return String(val);
+};
+
 const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('archive');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
@@ -28,10 +35,10 @@ const AppContent: React.FC = () => {
 
   const fetchFullSongDetails = useCallback(async (songId: string) => {
     try {
-      // Correção: Removidas colunas 'album' e 'producer' que causavam erro 400 por não existirem no schema root
+      // Garantir que a query não contenha colunas inexistentes no root
       const { data, error: fetchError } = await supabase
         .from('songs')
-        .select('lyrics, metadata, release_date, storage_url, video_url')
+        .select('lyrics, metadata, release_date, storage_url, video_url, title')
         .eq('id', songId)
         .single();
       
@@ -43,14 +50,15 @@ const AppContent: React.FC = () => {
             return { 
               ...prev, 
               ...data,
-              album: data.metadata?.album || (data as any).album || prev.album || 'Single'
+              title: ensureString(data.title || prev.title),
+              album: ensureString(data.metadata?.album || (data as any).album || prev.album || 'Single')
             };
           }
           return prev;
         });
       }
     } catch (err) {
-      console.warn('Archive Sync Error: Failed to fetch artifact details. Ensure columns exist.', err);
+      console.warn('Sync Error:', err);
     }
   }, []);
 
