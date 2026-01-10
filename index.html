@@ -21,10 +21,14 @@
         color: #e5e5e5;
         overflow-x: hidden;
         font-family: 'Inter', sans-serif;
+        /* Otimização de renderização global */
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
       }
 
       .font-gothic { font-family: 'UnifrakturMaguntia', serif; }
-      .font-serif-classic { font-family: 'Cinzel', serif; }      .font-mono { font-family: 'JetBrains Mono', monospace; }
+      .font-serif-classic { font-family: 'Cinzel', serif; }
+      .font-mono { font-family: 'JetBrains Mono', monospace; }
 
       .grain {
         position: fixed;
@@ -33,10 +37,12 @@
         width: 200%;
         height: 200%;
         background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-        opacity: 0.05;
+        opacity: 0.04;
         pointer-events: none;
         z-index: 9999;
-        animation: noise 0.2s infinite;
+        /* Otimização: Animação mais lenta e discreta para reduzir repaints */
+        animation: noise 8s steps(10) infinite;
+        will-change: transform;
       }
 
       .scanlines {
@@ -48,7 +54,7 @@
         background: linear-gradient(
           to bottom,
           rgba(18, 16, 16, 0) 50%,
-          rgba(0, 0, 0, 0.2) 50%
+          rgba(0, 0, 0, 0.1) 50%
         );
         background-size: 100% 4px;
         z-index: 9998;
@@ -56,17 +62,16 @@
       }
 
       @keyframes noise {
-        0% { transform: translate(0,0) }
-        10% { transform: translate(-5%,-5%) }
-        20% { transform: translate(-10%,5%) }
-        30% { transform: translate(5%,-10%) }
-        40% { transform: translate(-5%,15%) }
-        50% { transform: translate(-10%,5%) }
-        60% { transform: translate(15%,0) }
-        70% { transform: translate(0,10%) }
-        80% { transform: translate(-15%,0) }
-        90% { transform: translate(10%,5%) }
-        100% { transform: translate(5%,0) }
+        0%, 100% { transform: translate(0,0) }
+        10% { transform: translate(-1%,-1%) }
+        20% { transform: translate(-2%,1%) }
+        30% { transform: translate(1%,-2%) }
+        40% { transform: translate(-1%,2%) }
+        50% { transform: translate(-2%,1%) }
+        60% { transform: translate(2%,0) }
+        70% { transform: translate(0,2%) }
+        80% { transform: translate(-2%,0) }
+        90% { transform: translate(1%,1%) }
       }
 
       .neon-text-pink { color: var(--neon-pink); text-shadow: 0 0 5px var(--neon-pink); }
@@ -74,7 +79,7 @@
 
       ::-webkit-scrollbar { width: 4px; }
       ::-webkit-scrollbar-track { background: var(--pure-black); }
-      ::-webkit-scrollbar-thumb { background: #333; }
+      ::-webkit-scrollbar-thumb { background: #222; }
       ::-webkit-scrollbar-thumb:hover { background: var(--neon-pink); }
 
       .scrollbar-hide::-webkit-scrollbar {
@@ -83,6 +88,12 @@
       .scrollbar-hide {
         -ms-overflow-style: none;
         scrollbar-width: none;
+      }
+
+      /* Utilitários de performance */
+      .gpu-accelerated {
+        will-change: transform, opacity;
+        transform: translateZ(0);
       }
     </style>
     <script type="importmap">

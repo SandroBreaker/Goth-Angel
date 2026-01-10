@@ -41,7 +41,7 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
     <MotionDiv
       whileHover={hasDirectAudio ? { scale: 1.02, y: -4 } : { y: -2 }}
       whileTap={{ scale: 0.98 }}
-      className={`relative group cursor-pointer overflow-hidden border transition-all duration-700 aspect-square ${
+      className={`relative group cursor-pointer overflow-hidden border transition-all duration-500 aspect-square will-change-transform ${
         !hasDirectAudio 
           ? 'bg-neutral-950 border-neutral-900 grayscale brightness-50 opacity-60' 
           : isActive 
@@ -50,7 +50,6 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
       }`}
       onClick={() => onClick(song)}
     >
-      {/* Dynamic Border Glow Overlay */}
       <AnimatePresence>
         {isCurrentlyPlaying && (
           <MotionDiv
@@ -69,12 +68,11 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         )}
       </AnimatePresence>
 
-      {/* Image with Enhanced Transitions */}
       <div className="absolute inset-0 overflow-hidden bg-neutral-900">
         <img
           src={song.image_url || `https://picsum.photos/seed/${song.id}/400/400`}
           alt={safeTitle}
-          className={`w-full h-full object-cover transition-all duration-1000 ease-out transform ${
+          className={`w-full h-full object-cover transition-all duration-700 ease-out transform will-change-transform ${
             !hasDirectAudio
               ? 'grayscale group-hover:scale-105 brightness-[0.2]'
               : isCurrentlyPlaying 
@@ -86,7 +84,6 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         <div className={`absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 ${!hasDirectAudio ? 'opacity-90' : 'opacity-60'}`} />
       </div>
 
-      {/* Info Overlay (Static state) */}
       <div className={`absolute bottom-0 left-0 w-full p-5 z-10 transition-all duration-500 ${isCurrentlyPlaying || (!hasDirectAudio) ? 'opacity-100' : 'group-hover:opacity-0 group-hover:translate-y-4'}`}>
         <h3 className={`font-serif-classic text-[13px] tracking-widest font-bold uppercase truncate mb-1 drop-shadow-md ${!hasDirectAudio ? 'text-neutral-500' : 'text-white'}`}>
           {safeTitle}
@@ -96,14 +93,12 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         </p>
       </div>
 
-      {/* Play/Audio Status Indicator */}
       {hasDirectAudio && (
         <div className="absolute top-5 left-5 z-20 transition-transform duration-500 group-hover:scale-110">
           <Zap size={14} className={`${isCurrentlyPlaying ? 'text-[#FF007F] animate-pulse' : 'text-[#7000FF]'} drop-shadow-[0_0_8px_currentColor]`} fill="currentColor" />
         </div>
       )}
 
-      {/* Play Button Trigger */}
       <div 
         className={`absolute top-5 right-5 z-40 transition-all duration-500 ${!hasDirectAudio ? 'opacity-100 scale-100' : isCurrentlyPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
         onClick={handlePlayClick}
@@ -123,9 +118,8 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         )}
       </div>
 
-      {/* Hover/Active Content View (Only for songs with audio) */}
       {hasDirectAudio && (
-        <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center p-8 transition-all duration-700 backdrop-blur-[2px] ${isCurrentlyPlaying ? 'opacity-100 bg-black/40' : 'opacity-0 group-hover:opacity-100 group-hover:bg-black/40 translate-y-4 group-hover:translate-y-0'}`}>
+        <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center p-8 transition-all duration-500 backdrop-blur-[2px] ${isCurrentlyPlaying ? 'opacity-100 bg-black/40' : 'opacity-0 group-hover:opacity-100 group-hover:bg-black/40 translate-y-4 group-hover:translate-y-0'}`}>
           <div className="flex items-center gap-3 mb-4">
             <Calendar size={14} className="text-[#FF007F]" />
             <span className="font-mono text-[12px] font-bold text-white tracking-[0.3em]">
@@ -165,9 +159,8 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
         </div>
       )}
 
-      {/* Subtle Gray Hover Overlay for Locked items */}
       {!hasDirectAudio && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-black/60 backdrop-blur-[1px]">
+        <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-black/60 backdrop-blur-[1px]">
            <div className="flex flex-col items-center gap-4">
              <div className="flex items-center gap-3 px-6 py-3 border border-neutral-800 bg-neutral-900/50 text-neutral-500 transition-all duration-300">
                <FileText size={18} />

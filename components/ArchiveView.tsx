@@ -20,15 +20,15 @@ const containerVariants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.2
+      staggerChildren: 0.03, // Reduzido de 0.05 para ser mais rápido
+      delayChildren: 0.1
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, scale: 0.95, y: 20 },
-  show: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  hidden: { opacity: 0, scale: 0.98, y: 10 }, // Reduzida a intensidade do movimento
+  show: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
 };
 
 export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMore, onLoadMore, onSongClick }) => {
@@ -136,7 +136,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
             key="archive-content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.6 }}
           >
             <AnimatePresence mode="wait">
               {featuredSong && (
@@ -147,19 +147,19 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                   className="relative h-[90vh] w-full overflow-hidden flex items-center justify-center"
                 >
                   <div 
-                    className="absolute inset-0 bg-cover bg-center scale-110 blur-[100px] opacity-40"
+                    className="absolute inset-0 bg-cover bg-center scale-110 blur-[40px] opacity-40 will-change-[filter,opacity]"
                     style={{ backgroundImage: `url(${featuredSong.image_url})` }}
                   ></div>
                   <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-[#050505]"></div>
 
                   <div className="relative z-10 max-w-7xl w-full px-8 flex flex-col md:flex-row items-center gap-12 lg:gap-24">
                     <MotionDiv 
-                      initial={{ scale: 0.9, opacity: 0 }}
+                      initial={{ scale: 0.95, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 1.2 }}
-                      className="relative group shrink-0"
+                      transition={{ duration: 0.8 }}
+                      className="relative group shrink-0 will-change-transform"
                     >
-                      <div className="absolute inset-0 bg-[#FF007F]/30 blur-[60px] rounded-full opacity-50 transition-opacity duration-1000 group-hover:opacity-80"></div>
+                      <div className="absolute inset-0 bg-[#FF007F]/30 blur-[60px] rounded-full opacity-50 transition-opacity duration-1000 group-hover:opacity-80" />
                       <img 
                         src={featuredSong.image_url} 
                         alt={featuredSong.title}
@@ -168,11 +168,10 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                     </MotionDiv>
 
                     <div className="flex-1 text-center md:text-left">
-                      <MotionDiv initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
+                      <MotionDiv initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
                         <div className="inline-block px-4 py-1.5 border border-[#FF007F]/40 bg-[#FF007F]/10 mb-6">
                            <span className="font-mono text-[10px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">Spotlight</span>
                         </div>
-                        {/* Redução do título monumental */}
                         <h2 className="font-gothic text-5xl lg:text-7xl mb-8 neon-text-pink leading-tight tracking-tighter drop-shadow-[0_10px_30px_rgba(255,0,127,0.3)]">
                           {featuredSong.title}
                         </h2>
@@ -182,7 +181,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                             onClick={() => onSongClick(featuredSong)}
                             className="group relative inline-flex items-center gap-4 px-8 py-4 bg-neutral-950 border-2 border-neutral-800 text-white hover:border-[#FF007F] transition-all overflow-hidden"
                           >
-                            <div className="absolute inset-0 bg-[#FF007F]/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                            <div className="absolute inset-0 bg-[#FF007F]/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
                             <span className="relative z-10 font-mono text-[11px] font-bold tracking-[0.2em] uppercase">Explore</span>
                             <Sparkles size={16} className="relative z-10 text-[#FF007F]" />
                           </button>
@@ -227,11 +226,11 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                       variants={containerVariants}
                       initial="hidden"
                       whileInView="show"
-                      viewport={{ once: true, amount: 0.1 }}
+                      viewport={{ once: true, amount: 0.05 }} // Ativado mais cedo para scroll mais suave
                       className="flex gap-6 overflow-x-auto px-8 pb-8 snap-x scrollbar-hide"
                     >
                       {cat.data.map((song) => (
-                        <MotionDiv key={song.id} variants={itemVariants} className="w-56 lg:w-64 shrink-0 snap-start">
+                        <MotionDiv key={song.id} variants={itemVariants} className="w-56 lg:w-64 shrink-0 snap-start will-change-transform">
                           <SongCard song={song} onClick={() => handleSongSelect(song, cat.data)} />
                         </MotionDiv>
                       ))}
@@ -249,19 +248,19 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
             
             <div className="mt-32 px-8 pt-16 border-t border-neutral-800">
               <div className="flex items-center gap-4 mb-12">
-                 <div className="h-px flex-grow bg-neutral-900"></div>
+                 <div className="h-px flex-grow bg-neutral-900" />
                  <h3 className="font-serif-classic text-xl text-neutral-400 tracking-[0.2em] uppercase font-bold">Full Archive</h3>
-                 <div className="h-px flex-grow bg-neutral-900"></div>
+                 <div className="h-px flex-grow bg-neutral-900" />
               </div>
               <MotionDiv 
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: true, amount: 0.05 }}
+                viewport={{ once: true, amount: 0.02 }}
                 className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
               >
                 {songs.map((song) => (
-                  <MotionDiv key={song.id} variants={itemVariants}>
+                  <MotionDiv key={song.id} variants={itemVariants} className="will-change-transform">
                     <SongCard song={song} onClick={() => handleSongSelect(song, songs)} />
                   </MotionDiv>
                 ))}

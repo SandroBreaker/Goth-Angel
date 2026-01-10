@@ -64,12 +64,12 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
       initial={{ opacity: 0, scale: 1.05 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
-      transition={{ duration: 0.5, ease: "circOut" }}
+      transition={{ duration: 0.4, ease: "circOut" }}
       className="fixed inset-0 z-[150] bg-[#050505] overflow-y-auto overflow-x-hidden selection:bg-[#FF007F]/30"
     >
       <div className="fixed inset-0 pointer-events-none">
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20 scale-110 blur-[80px] transition-all duration-1000"
+          className="absolute inset-0 bg-cover bg-center opacity-20 scale-110 blur-[40px] transition-all duration-1000 will-change-[filter,opacity]"
           style={{ backgroundImage: `url(${song.image_url})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-[#050505] to-black" />
@@ -104,10 +104,10 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           <MotionDiv 
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="relative mb-12 group"
+            transition={{ duration: 0.6 }}
+            className="relative mb-12 group will-change-transform"
           >
-            <div className="absolute inset-0 bg-[#FF007F]/20 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="absolute inset-0 bg-[#FF007F]/20 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
             <div className="relative z-10 w-56 h-56 md:w-[380px] md:h-[380px] border border-neutral-800 shadow-2xl overflow-hidden">
               <img 
                 src={song.image_url} 
@@ -119,7 +119,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           </MotionDiv>
 
           <div className="text-center max-w-4xl">
-            {/* Ajuste de tamanho do título principal */}
             <h1 className="font-gothic text-4xl md:text-6xl lg:text-7xl mb-8 neon-text-pink leading-tight tracking-tighter drop-shadow-[0_0_30px_rgba(255,0,127,0.3)]">
               {song.title}
             </h1>
@@ -185,10 +184,9 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
               </div>
             ) : lyricLines.length > 0 ? (
               lyricLines.map((line, i) => (
-                /* Ajuste de tamanho da fonte da letra */
                 <p 
                   key={i} 
-                  className={`text-xl md:text-3xl font-light leading-relaxed tracking-tight transition-all duration-700 hover:text-white border-l-2 border-transparent hover:border-[#FF007F] hover:pl-6 ${line.trim() ? 'text-neutral-500' : 'h-12'}`}
+                  className={`text-xl md:text-3xl font-light leading-relaxed tracking-tight transition-all duration-500 hover:text-white border-l-2 border-transparent hover:border-[#FF007F] hover:pl-6 ${line.trim() ? 'text-neutral-500' : 'h-12'}`}
                 >
                   {line}
                 </p>
@@ -211,7 +209,7 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
 };
 
 const GlassBox: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="flex items-center gap-4 bg-neutral-900/30 border border-neutral-900 p-6 hover:bg-neutral-800 transition-all group backdrop-blur-md">
+  <div className="flex items-center gap-4 bg-neutral-900/30 border border-neutral-900 p-6 hover:bg-neutral-800 transition-all group backdrop-blur-md will-change-transform">
     <div className="text-[#7000FF] group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_6px_#7000FF]">{icon}</div>
     <div className="border-l border-neutral-800 pl-4">
       <p className="text-[9px] font-mono text-neutral-600 uppercase tracking-[0.2em] mb-1 font-bold">{label}</p>
