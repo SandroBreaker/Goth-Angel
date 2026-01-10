@@ -31,11 +31,10 @@ const AppContent: React.FC = () => {
   const [sentimentFilter, setSentimentFilter] = useState<string | null>(null);
 
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
-  const { currentSong } = usePlayer();
+  const { currentSong, stop } = usePlayer();
 
   const fetchFullSongDetails = useCallback(async (songId: string) => {
     try {
-      // producer e bpm removidos pois residem dentro do JSON metadata
       const { data, error: fetchError } = await supabase
         .from('songs')
         .select('lyrics, metadata, release_date, storage_url, video_url, title')
@@ -83,6 +82,17 @@ const AppContent: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, []);
+
+  const handleExpandPlayer = useCallback(() => {
+    if (currentSong) {
+      handleSongClick(currentSong);
+    }
+  }, [currentSong, handleSongClick]);
+
+  const handleCloseEverything = useCallback(() => {
+    stop();
+    navigateTo('archive');
+  }, [stop, navigateTo]);
 
   return (
     <div className="min-h-screen relative z-10 flex flex-col selection:bg-[#FF007F]/30 overflow-x-hidden">
@@ -133,7 +143,7 @@ const AppContent: React.FC = () => {
       </AnimatePresence>
 
       <Footer />
-      <GlobalPlayer />
+      <GlobalPlayer onExpand={handleExpandPlayer} onClose={handleCloseEverything} />
       <GlobalAudioEngine />
     </div>
   );
