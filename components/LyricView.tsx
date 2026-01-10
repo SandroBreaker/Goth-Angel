@@ -19,7 +19,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   const isCurrentActive = currentSong?.id === song.id;
   const hasDirectAudio = !!song.storage_url;
 
-  // Efeito para simular/aguardar o carregamento dos detalhes (lyrics/metadata)
   useEffect(() => {
     if (song.lyrics) {
       setIsSyncing(false);
@@ -68,7 +67,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
       transition={{ duration: 0.5, ease: "circOut" }}
       className="fixed inset-0 z-[150] bg-[#050505] overflow-y-auto overflow-x-hidden selection:bg-[#FF007F]/30"
     >
-      {/* Immersive Background */}
       <div className="fixed inset-0 pointer-events-none">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-20 scale-110 blur-[80px] transition-all duration-1000"
@@ -77,7 +75,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-[#050505] to-black" />
       </div>
 
-      {/* Persistent Header */}
       <header className="sticky top-0 z-[160] p-6 md:p-10 flex justify-between items-center bg-transparent">
         <button 
           onClick={onClose}
@@ -102,19 +99,16 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
         </button>
       </header>
 
-      {/* Content Layout */}
       <div className="relative z-[155] w-full max-w-6xl mx-auto px-6 pb-40">
-        
-        {/* HERO SECTION: The Core Visual */}
-        <section className="flex flex-col items-center pt-10 md:pt-20 mb-32">
+        <section className="flex flex-col items-center pt-10 md:pt-20 mb-20">
           <MotionDiv 
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="relative mb-16 group"
+            className="relative mb-12 group"
           >
             <div className="absolute inset-0 bg-[#FF007F]/20 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-            <div className="relative z-10 w-64 h-64 md:w-[480px] md:h-[480px] border border-neutral-800 shadow-2xl overflow-hidden">
+            <div className="relative z-10 w-56 h-56 md:w-[380px] md:h-[380px] border border-neutral-800 shadow-2xl overflow-hidden">
               <img 
                 src={song.image_url} 
                 alt={song.title} 
@@ -125,43 +119,42 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           </MotionDiv>
 
           <div className="text-center max-w-4xl">
-            <h1 className="font-gothic text-6xl md:text-8xl lg:text-[9rem] mb-10 neon-text-pink leading-[0.85] tracking-tighter drop-shadow-[0_0_40px_rgba(255,0,127,0.4)]">
+            {/* Ajuste de tamanho do título principal */}
+            <h1 className="font-gothic text-4xl md:text-6xl lg:text-7xl mb-8 neon-text-pink leading-tight tracking-tighter drop-shadow-[0_0_30px_rgba(255,0,127,0.3)]">
               {song.title}
             </h1>
 
-            {/* Immersive Controls */}
-            <div className="flex flex-col items-center gap-10">
-               <div className="flex items-center gap-12">
+            <div className="flex flex-col items-center gap-8">
+               <div className="flex items-center gap-10">
                   {hasDirectAudio ? (
                     <button 
                       onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
-                      className="w-24 h-24 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#FF007F] hover:text-white hover:scale-110 transition-all duration-500 shadow-[0_0_50px_rgba(255,255,255,0.1)] active:scale-95 group"
+                      className="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#FF007F] hover:text-white hover:scale-110 transition-all duration-500 shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95 group"
                     >
-                      {isCurrentActive && isPlaying ? <Pause size={36} fill="currentColor" /> : <Play size={36} fill="currentColor" className="ml-2" />}
+                      {isCurrentActive && isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1.5" />}
                     </button>
                   ) : (
-                    <div className="flex items-center gap-4 px-8 py-4 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[11px] uppercase tracking-[0.4em]">
-                      <Lock size={16} /> Restricted
+                    <div className="flex items-center gap-4 px-6 py-3 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[10px] uppercase tracking-[0.3em]">
+                      <Lock size={14} /> Restricted
                     </div>
                   )}
                </div>
 
-               {/* Large Progress Bar */}
                {isCurrentActive && hasDirectAudio && (
-                 <div className="w-full max-w-2xl px-4 flex flex-col gap-3">
+                 <div className="w-full max-w-xl px-4 flex flex-col gap-2">
                     <div 
-                      className="h-1.5 bg-neutral-900 relative cursor-pointer group/progress overflow-hidden"
+                      className="h-1 bg-neutral-900 relative cursor-pointer group/progress overflow-hidden"
                       onClick={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         seek(( (e.clientX - rect.left) / rect.width ) * duration);
                       }}
                     >
                       <div 
-                        className="absolute h-full bg-[#FF007F] shadow-[0_0_15px_#FF007F] transition-all duration-300"
+                        className="absolute h-full bg-[#FF007F] shadow-[0_0_10px_#FF007F] transition-all duration-300"
                         style={{ width: `${progressPercent}%` }}
                       />
                     </div>
-                    <div className="flex justify-between font-mono text-[10px] text-neutral-600 tracking-widest font-bold">
+                    <div className="flex justify-between font-mono text-[9px] text-neutral-600 tracking-widest font-bold">
                        <span>{Math.floor(progress/60)}:{(progress%60).toFixed(0).padStart(2,'0')}</span>
                        <span>{Math.floor(duration/60)}:{(duration%60).toFixed(0).padStart(2,'0')}</span>
                     </div>
@@ -171,61 +164,58 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           </div>
         </section>
 
-        {/* METADATA GRID */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-40">
-          <GlassBox icon={<User size={20}/>} label="Producer" value={metadata.producer} />
-          <GlassBox icon={<Activity size={20}/>} label="BPM / Frequency" value={metadata.bpm} />
-          <GlassBox icon={<Calendar size={20}/>} label="Archive Year" value={metadata.year} />
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-32">
+          <GlassBox icon={<User size={18}/>} label="Producer" value={metadata.producer} />
+          <GlassBox icon={<Activity size={18}/>} label="BPM / Frequency" value={metadata.bpm} />
+          <GlassBox icon={<Calendar size={18}/>} label="Archive Year" value={metadata.year} />
         </section>
 
-        {/* LYRICS SECTION: The Scroll */}
-        <section className="max-w-3xl mx-auto border-t border-neutral-900 pt-24">
-          <div className="flex items-center gap-4 mb-20 text-neutral-700">
-            <Cpu size={18} className="animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.5em] font-bold">Encrypted Lyric Scroll</span>
+        <section className="max-w-3xl mx-auto border-t border-neutral-900 pt-20">
+          <div className="flex items-center gap-4 mb-16 text-neutral-700">
+            <Cpu size={16} className="animate-pulse" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.4em] font-bold">Lyric Scroll</span>
             <div className="h-px flex-grow bg-neutral-900" />
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-8">
             {isSyncing ? (
-              <div className="py-20 flex flex-col items-center gap-6">
+              <div className="py-16 flex flex-col items-center gap-6">
                  <LoaderAnimation />
-                 <p className="font-mono text-[11px] text-[#FF007F] uppercase tracking-[0.5em] animate-pulse">Decrypting Data Stream...</p>
+                 <p className="font-mono text-[10px] text-[#FF007F] uppercase tracking-[0.4em] animate-pulse">Decrypting Data Stream...</p>
               </div>
             ) : lyricLines.length > 0 ? (
               lyricLines.map((line, i) => (
+                /* Ajuste de tamanho da fonte da letra */
                 <p 
                   key={i} 
-                  className={`text-2xl md:text-5xl font-light leading-snug tracking-tight transition-all duration-700 hover:text-white border-l-2 border-transparent hover:border-[#FF007F] hover:pl-8 ${line.trim() ? 'text-neutral-500' : 'h-16'}`}
+                  className={`text-xl md:text-3xl font-light leading-relaxed tracking-tight transition-all duration-700 hover:text-white border-l-2 border-transparent hover:border-[#FF007F] hover:pl-6 ${line.trim() ? 'text-neutral-500' : 'h-12'}`}
                 >
                   {line}
                 </p>
               ))
             ) : (
-              <div className="py-20 border border-neutral-900 bg-neutral-950/40 p-10 text-center">
-                 <p className="font-mono text-[11px] text-neutral-600 uppercase tracking-[0.4em]">Historical transcription not located in primary vault.</p>
-                 <p className="mt-4 text-[10px] text-neutral-800 font-bold uppercase tracking-[0.2em]">Contact archivist for verification.</p>
+              <div className="py-16 border border-neutral-900 bg-neutral-950/40 p-8 text-center">
+                 <p className="font-mono text-[10px] text-neutral-600 uppercase tracking-[0.3em]">Transcription not located.</p>
               </div>
             )}
           </div>
         </section>
       </div>
 
-      {/* Floating Scroll Indicator */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 opacity-30 animate-bounce pointer-events-none">
-         <span className="font-mono text-[8px] text-white tracking-[0.4em] uppercase">Scroll to read</span>
-         <ChevronDown size={14} className="text-[#FF007F]" />
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30 animate-bounce pointer-events-none">
+         <span className="font-mono text-[7px] text-white tracking-[0.4em] uppercase">Scroll</span>
+         <ChevronDown size={12} className="text-[#FF007F]" />
       </div>
     </MotionDiv>
   );
 };
 
 const GlassBox: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="flex items-center gap-6 bg-neutral-900/30 border border-neutral-900 p-8 hover:bg-neutral-800 transition-all group backdrop-blur-md">
-    <div className="text-[#7000FF] group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_8px_#7000FF]">{icon}</div>
-    <div className="border-l border-neutral-800 pl-6">
-      <p className="text-[10px] font-mono text-neutral-600 uppercase tracking-[0.3em] mb-1.5 font-bold">{label}</p>
-      <p className="text-[14px] font-mono text-neutral-200 uppercase tracking-widest font-bold group-hover:text-white">{value}</p>
+  <div className="flex items-center gap-4 bg-neutral-900/30 border border-neutral-900 p-6 hover:bg-neutral-800 transition-all group backdrop-blur-md">
+    <div className="text-[#7000FF] group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_6px_#7000FF]">{icon}</div>
+    <div className="border-l border-neutral-800 pl-4">
+      <p className="text-[9px] font-mono text-neutral-600 uppercase tracking-[0.2em] mb-1 font-bold">{label}</p>
+      <p className="text-[12px] font-mono text-neutral-200 uppercase tracking-widest font-bold group-hover:text-white">{value}</p>
     </div>
   </div>
 );
@@ -235,9 +225,9 @@ const LoaderAnimation = () => (
     {[0, 1, 2].map(i => (
       <motion.div 
         key={i}
-        animate={{ height: [10, 30, 10], opacity: [0.3, 1, 0.3] }}
+        animate={{ height: [8, 20, 8], opacity: [0.3, 1, 0.3] }}
         transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.2 }}
-        className="w-1 bg-[#FF007F] shadow-[0_0_10px_#FF007F]"
+        className="w-1 bg-[#FF007F] shadow-[0_0_8px_#FF007F]"
       />
     ))}
   </div>

@@ -108,7 +108,6 @@ const TimelineItem: React.FC<{ event: TimelineEvent; idx: number }> = ({ event, 
     <div className="relative group">
       <div className={`flex flex-col md:flex-row items-start gap-12 lg:gap-24 ${idx % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
         
-        {/* Text Section */}
         <MotionDiv 
           initial={{ opacity: 0, x: idx % 2 === 0 ? -30 : 30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -117,31 +116,31 @@ const TimelineItem: React.FC<{ event: TimelineEvent; idx: number }> = ({ event, 
           className={`w-full md:w-1/2 ${idx % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}
         >
           <div className={`flex items-center gap-4 mb-2 ${idx % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-            <span className="font-mono text-[10px] text-[#FF007F] tracking-[0.4em] uppercase">{event.year}</span>
+            <span className="font-mono text-[9px] text-[#FF007F] tracking-[0.3em] uppercase">{event.year}</span>
             <div className="text-[#7000FF]">{event.icon}</div>
           </div>
           
-          <h3 className="font-serif-classic text-3xl md:text-5xl text-white mb-2 tracking-tight leading-tight group-hover:neon-text-pink transition-all duration-500">
+          <h3 className="font-serif-classic text-2xl md:text-3xl text-white mb-2 tracking-tight leading-tight group-hover:neon-text-pink transition-all duration-500">
             {event.title}
           </h3>
-          <p className="font-mono text-[9px] text-neutral-500 uppercase tracking-[0.3em] mb-6 block">
+          <p className="font-mono text-[8px] text-neutral-500 uppercase tracking-[0.2em] mb-4 block">
             {event.subtitle}
           </p>
           
-          <p className="text-neutral-400 text-base font-light leading-relaxed mb-8 max-w-lg mx-auto md:mx-0 inline-block">
+          <p className="text-neutral-400 text-sm font-light leading-relaxed mb-6 max-w-lg mx-auto md:mx-0 inline-block">
             {event.description}
           </p>
 
           <div className={`flex ${idx % 2 === 0 ? 'justify-end' : 'justify-start'} mb-6`}>
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-2 px-4 py-2 border border-neutral-800 bg-black/40 hover:border-[#FF007F]/50 hover:bg-[#FF007F]/5 transition-all group/btn"
+              className="flex items-center gap-2 px-3 py-1.5 border border-neutral-800 bg-black/40 hover:border-[#FF007F]/50 hover:bg-[#FF007F]/5 transition-all group/btn"
             >
-              <span className="font-mono text-[8px] tracking-[0.3em] text-neutral-500 group-hover/btn:text-[#FF007F]">
-                {isExpanded ? 'CLOSE ARCHIVE' : 'DECRYPT DATASET'}
+              <span className="font-mono text-[7px] tracking-[0.2em] text-neutral-500 group-hover/btn:text-[#FF007F]">
+                {isExpanded ? 'CLOSE' : 'DECRYPT'}
               </span>
               <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                <ChevronDown size={12} className="text-[#7000FF]" />
+                <ChevronDown size={10} className="text-[#7000FF]" />
               </div>
             </button>
           </div>
@@ -155,17 +154,17 @@ const TimelineItem: React.FC<{ event: TimelineEvent; idx: number }> = ({ event, 
                 transition={{ duration: 0.5, ease: "circOut" }}
                 className="overflow-hidden"
               >
-                <div className={`space-y-4 pt-4 border-t border-neutral-900 ${idx % 2 === 0 ? 'items-end' : 'items-start'} flex flex-col`}>
+                <div className={`space-y-3 pt-4 border-t border-neutral-900 ${idx % 2 === 0 ? 'items-end' : 'items-start'} flex flex-col`}>
                   {event.details?.map((detail, dIdx) => (
                     <MotionDiv 
                       key={dIdx}
                       initial={{ x: idx % 2 === 0 ? 20 : -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: dIdx * 0.1 }}
-                      className={`flex items-start gap-4 max-w-md ${idx % 2 === 0 ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}
+                      className={`flex items-start gap-3 max-w-md ${idx % 2 === 0 ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}
                     >
-                      <div className="w-1 h-1 bg-[#FF007F] rounded-full mt-2 shrink-0 shadow-[0_0_5px_#FF007F]" />
-                      <span className="text-[11px] font-mono text-neutral-500 tracking-wider leading-relaxed uppercase">{detail}</span>
+                      <div className="w-1 h-1 bg-[#FF007F] rounded-full mt-1.5 shrink-0 shadow-[0_0_5px_#FF007F]" />
+                      <span className="text-[10px] font-mono text-neutral-500 tracking-wider leading-relaxed uppercase">{detail}</span>
                     </MotionDiv>
                   ))}
                 </div>
@@ -174,7 +173,6 @@ const TimelineItem: React.FC<{ event: TimelineEvent; idx: number }> = ({ event, 
           </AnimatePresence>
         </MotionDiv>
 
-        {/* Visual / Abstract Section */}
         <MotionDiv 
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -182,12 +180,12 @@ const TimelineItem: React.FC<{ event: TimelineEvent; idx: number }> = ({ event, 
           transition={{ duration: 1, delay: 0.2 }}
           className="w-full md:w-1/2 flex justify-center"
         >
-          <div className="relative p-12 bg-neutral-950/40 border border-neutral-900 shadow-2xl overflow-hidden group/card">
+          <div className="relative p-10 bg-neutral-950/40 border border-neutral-900 shadow-2xl overflow-hidden group/card">
             <div className="absolute inset-0 bg-gradient-to-tr from-[#FF007F]/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-            <div className="relative z-10 font-gothic text-9xl opacity-5 select-none pointer-events-none group-hover/card:opacity-20 transition-opacity duration-1000">
+            <div className="relative z-10 font-gothic text-8xl opacity-5 select-none pointer-events-none group-hover/card:opacity-10 transition-opacity duration-1000">
               {event.era.charAt(0)}
             </div>
-            <div className="mt-4 font-mono text-[8px] text-neutral-800 uppercase tracking-[0.5em] group-hover/card:text-neutral-500 transition-colors">
+            <div className="mt-4 font-mono text-[7px] text-neutral-800 uppercase tracking-[0.4em] group-hover/card:text-neutral-500 transition-colors">
               LOG_FRAGMENT_#{100+idx}
             </div>
             <div className="absolute top-6 right-6 text-[#7000FF]/20 group-hover/card:text-[#7000FF]/60 transition-colors">
@@ -197,9 +195,8 @@ const TimelineItem: React.FC<{ event: TimelineEvent; idx: number }> = ({ event, 
         </MotionDiv>
       </div>
 
-      {/* Vertical Node Connector for Mobile */}
       <div className="md:hidden absolute left-0 top-0 h-full w-px bg-white/5 ml-[-1rem]">
-        <div className="w-2 h-2 bg-[#7000FF]/40 rounded-full mt-4 -ml-1" />
+        <div className="w-1.5 h-1.5 bg-[#7000FF]/40 rounded-full mt-4 -ml-[3px]" />
       </div>
     </div>
   );
@@ -236,54 +233,54 @@ export const Timeline: React.FC = () => {
     <MotionDiv 
       ref={containerRef}
       style={{ backgroundColor }}
-      className="relative min-h-screen py-32 transition-colors duration-1000 overflow-hidden"
+      className="relative min-h-screen py-24 transition-colors duration-1000 overflow-hidden"
     >
       <div className="max-w-6xl mx-auto px-6 relative">
-        {/* Central Vertical Line */}
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/5 -translate-x-1/2 hidden md:block" />
         <MotionDiv 
           className="absolute left-1/2 top-0 w-px -translate-x-1/2 hidden md:block origin-top z-20"
           style={{ 
             height: useTransform(lineHeight, [0, 1], ['0%', '100%']),
             backgroundColor: lineColor,
-            boxShadow: useTransform(lineColor, (c) => `0 0 15px ${c}`)
+            boxShadow: useTransform(lineColor, (c) => `0 0 10px ${c}`)
           }}
         />
 
-        <div className="text-center mb-48">
+        <div className="text-center mb-32">
           <MotionDiv
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1 }}
           >
-            <h2 className="font-gothic text-7xl md:text-9xl mb-4 text-white opacity-20 select-none tracking-tighter uppercase">Chronicle</h2>
-            <p className="font-serif-classic text-xl tracking-[0.4em] text-neutral-400 uppercase">A Digital Preservation</p>
+            {/* Redução do título monumental Chronicle */}
+            <h2 className="font-gothic text-5xl md:text-7xl mb-4 text-white opacity-20 select-none tracking-tighter uppercase">Chronicle</h2>
+            <p className="font-serif-classic text-sm tracking-[0.3em] text-neutral-400 uppercase font-bold">A Digital Preservation</p>
           </MotionDiv>
         </div>
 
-        <div className="space-y-64 relative z-10">
+        <div className="space-y-48 relative z-10">
           {bioData.map((event, idx) => (
             <TimelineItem key={idx} event={event} idx={idx} />
           ))}
         </div>
 
-        {/* Closing Quote */}
         <MotionDiv 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 2 }}
-          className="mt-64 text-center pb-32"
+          className="mt-48 text-center pb-24"
         >
-          <div className="mb-12 flex justify-center opacity-40">
-            <Quote size={48} className="text-[#FF007F]" />
+          <div className="mb-8 flex justify-center opacity-40">
+            <Quote size={32} className="text-[#FF007F]" />
           </div>
-          <blockquote className="font-serif-classic text-2xl md:text-5xl text-white italic max-w-5xl mx-auto leading-tight mb-12">
+          {/* Citação final em escala mais confortável */}
+          <blockquote className="font-serif-classic text-xl md:text-2xl text-white italic max-w-3xl mx-auto leading-relaxed mb-10">
             "I'm just a human. I have emotions. I have feelings. I'm not a robot. I want to be everything for everyone."
           </blockquote>
-          <div className="space-y-4">
-             <cite className="font-mono text-sm text-[#FF007F] block tracking-[0.5em] uppercase">— Gustav Elijah Åhr</cite>
-             <p className="font-mono text-[10px] text-neutral-700 max-w-xl mx-auto leading-relaxed uppercase tracking-widest">
-               His vulnerability was his greatest weapon, and his legacy is now preserved forever in code and collective memory.
+          <div className="space-y-3">
+             <cite className="font-mono text-xs text-[#FF007F] block tracking-[0.4em] uppercase font-bold">— Gustav Elijah Åhr</cite>
+             <p className="font-mono text-[9px] text-neutral-700 max-w-lg mx-auto leading-relaxed uppercase tracking-widest">
+               His vulnerability was his greatest weapon, and his legacy is preserved forever.
              </p>
           </div>
         </MotionDiv>
