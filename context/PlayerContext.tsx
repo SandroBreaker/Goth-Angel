@@ -19,7 +19,6 @@ interface PlayerContextType {
   setProgress: (progress: number) => void;
   setDuration: (duration: number) => void;
   seek: (seconds: number) => void;
-  stop: () => void;
   seekRequest: number | null;
 }
 
@@ -37,15 +36,6 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const togglePlay = () => setIsPlaying(!isPlaying);
 
-  const stop = useCallback(() => {
-    setIsPlaying(false);
-    setCurrentSong(null);
-    setQueue([]);
-    setCurrentIndex(-1);
-    setProgress(0);
-    setDuration(0);
-  }, []);
-
   const playSong = useCallback((song: Song, newQueue?: Song[]) => {
     if (newQueue && newQueue.length > 0) {
       setQueue(newQueue);
@@ -59,6 +49,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (index !== -1) {
         setCurrentIndex(index);
       } else {
+        // Append to queue if not present
         setQueue(prev => [...prev, song]);
         setCurrentIndex(queue.length);
       }
@@ -79,6 +70,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     let nextIdx: number;
     if (isShuffle) {
       nextIdx = Math.floor(Math.random() * queue.length);
+      // Try not to play the same song if queue > 1
       if (nextIdx === currentIndex && queue.length > 1) {
         nextIdx = (nextIdx + 1) % queue.length;
       }
@@ -95,6 +87,7 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const prevTrack = useCallback(() => {
     if (queue.length === 0) return;
 
+    // If progress > 3 seconds, just restart the song
     if (progress > 3) {
       seek(0);
       return;
@@ -132,7 +125,6 @@ export const PlayerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setProgress, 
       setDuration,
       seek,
-      stop,
       seekRequest
     }}>
       {children}

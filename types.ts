@@ -6,7 +6,7 @@ export interface Song {
   lyrics?: string;
   album?: string;
   video_url?: string;
-  storage_url?: string; // New field for Supabase Storage MP3s
+  storage_url?: string;
   release_date?: string;
   producer?: string;
   writer?: string;
@@ -20,10 +20,11 @@ export interface Song {
     bpm?: number;
     genre?: string;
     duration?: string;
+    key_themes?: string[];
   };
 }
 
-export type ViewState = 'archive' | 'lyrics' | 'timeline' | 'vault' | 'theater';
+export type ViewState = 'archive' | 'lyrics' | 'timeline' | 'vault' | 'theater' | 'advocacy';
 
 export interface AppState {
   currentView: ViewState;
