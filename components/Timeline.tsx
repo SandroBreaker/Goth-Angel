@@ -1,290 +1,408 @@
 
-import React, { useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
-import { Quote, Heart, Music, Star, ShieldCheck, Plus, Minus, ChevronDown } from 'lucide-react';
+import React, { useRef, useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Heart, Music, Star, ShieldCheck, ChevronRight, 
+  Zap, Activity, BookOpen, Scale, 
+  Archive, User, Maximize2, X, Disc, 
+  Ghost, ExternalLink, Skull, HelpCircle, Film
+} from 'lucide-react';
 
-interface TimelineEvent {
-  year: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  details?: string[];
-  era: 'origins' | 'awakening' | 'ascent' | 'stardom' | 'legacy';
-  icon?: React.ReactNode;
+interface NodeData {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  content: {
+    title: string;
+    description: string;
+    details?: { heading: string; body: string }[];
+  };
+  children?: NodeData[];
 }
 
-const bioData: TimelineEvent[] = [
-  {
-    year: '1996 – 2001',
-    title: 'ORIGINS & LINEAGE',
-    subtitle: 'Allentown, Pennsylvania',
-    description: 'Gustav Elijah Åhr entered the world on November 1st, 1996. Born to Harvard-educated parents—Liza Womack and Johan Åhr.',
-    details: [
-      'Nascimento em 1 de novembro de 1996, em Allentown, Pensilvânia.',
-      'Família vivia na 2625 Liberty St., em uma casa do Muhlenberg College.',
-      'Influência central do avô materno, John Womack, renomado historiador de Harvard.',
-      'Apelido "Peep" inspirado nos filhotes de galinha que a família criava.'
-    ],
-    era: 'origins',
-    icon: <Heart size={18} />
+const mindMapTree: NodeData = {
+  id: 'root',
+  label: 'Lil Peep (Gustav Elijah Åhr)',
+  icon: <User size={18} />,
+  content: {
+    title: 'Gustav Elijah Åhr',
+    description: 'Pioneiro do emo-rap e fenômeno cultural do SoundCloud.',
   },
-  {
-    year: '2001 – 2010',
-    title: 'THE GIFTED OUTSIDER',
-    subtitle: 'Long Beach, Long Island',
-    description: 'Relocated to Long Island before age five. Gus was identified as a "gifted and talented" student, showing a precocious nature.',
-    details: [
-      'Mudança para Long Beach por volta de 2001.',
-      'Identificado como aluno "superdotado e talentoso" na terceira série (2004).',
-      'Aprendeu a tocar instrumentos de sopro: trombone e tuba.',
-      'Trabalhos de infância já misturavam realidade e faz-de-conta para expressar sentimentos.'
-    ],
-    era: 'origins',
-    icon: <Music size={18} />
-  },
-  {
-    year: '2013 – 2015',
-    title: 'THE AWAKENING',
-    subtitle: 'The Bedroom Sanctuary',
-    description: 'After his parents\' separation in 2012, Gus began facing severe anxiety. He graduated high school early and chose art.',
-    details: [
-      'Formou-se no ensino médio 6 meses antes do esperado via cursos online.',
-      'Primeira tatuagem facial (coração partido) aos 18 para "bloquear" empregos convencionais.',
-      'Começou no SoundCloud como Trap Goose antes de assumir Lil Peep.',
-      'Gravou "Lil Peep; Part One" e "Live Forever" inteiramente em seu quarto.'
-    ],
-    era: 'awakening',
-    icon: <Quote size={18} />
-  },
-  {
-    year: '2016',
-    title: 'UNDERGROUND ASCENT',
-    subtitle: 'Skid Row to GBC',
-    description: 'Moved to Los Angeles in February 2016. Living initially in Skid Row, performing first shows and joining collectives.',
-    details: [
-      'Primeiro show em Tucson, Arizona (12 de fevereiro) com Schemaposse.',
-      'Uniu-se formalmente ao GothBoiClique (GBC) em setembro de 2016.',
-      'Lançou "Crybaby" e "Hellboy", consolidando o gênero Emo Rap globalmente.',
-      'Assinou parceria de gestão com a First Access Entertainment.'
-    ],
-    era: 'ascent',
-    icon: <Star size={18} />
-  },
-  {
-    year: '2017',
-    title: 'GLOBAL FREQUENCY',
-    subtitle: 'Stardom & Identity',
-    description: 'A meteoric rise led to global tours, fashion runway appearances, and profound personal revelations.',
-    details: [
-      'Primeira turnê solo pela Rússia, Europa e EUA na primavera de 2017.',
-      'Desfilou para VLONE e Marcelo Burlon nas Semanas de Moda de Paris e Milão.',
-      'Assumiu bissexualidade no Twitter em 8 de agosto de 2017.',
-      'Lançou "Come Over When You\'re Sober, Pt. 1" em 15 de agosto de 2017.'
-    ],
-    era: 'stardom',
-    icon: <ShieldCheck size={18} />
-  },
-  {
-    year: '2017 – PRESENT',
-    title: 'THE ETERNAL ECHO',
-    subtitle: 'Legacy & Preservation',
-    description: 'Following his passing on Nov 15, 2017, his family began a long journey to protect his artistic integrity.',
-    details: [
-      'Overdose acidental de fentanil e alprazolam em 15 de novembro de 2017.',
-      'Liza Womack processou a gestão por negligência, recuperando o controle total em 2023.',
-      'Lançamentos póstumos: COWYS Pt. 2, documentário Everybody\'s Everything e Diamonds.',
-      'Relançamento de mixtapes clássicas com samples autorizados para streaming.'
-    ],
-    era: 'legacy',
-    icon: <ShieldCheck size={18} />
-  }
-];
+  children: [
+    {
+      id: 'carreira',
+      label: 'Carreira Musical',
+      icon: <Music size={16} />,
+      content: {
+        title: 'Arquitetura do Emo-Rap',
+        description: 'Fusão estratégica de hip-hop, trap, punk e rock alternativo.',
+      },
+      children: [
+        {
+          id: 'estilo', label: 'Estilo', icon: <Zap size={14} />,
+          content: { title: 'Identidade Sônica', description: 'Gêneros híbridos e produção lo-fi.' },
+          children: [
+            { id: 'emo-rap', label: 'Emo Rap', icon: <Activity size={12} />, content: { title: 'Emo Rap', description: 'Gênero que funde a angústia do emo com a cadência do trap.' } },
+            { id: 'trap', label: 'Trap', icon: <Activity size={12} />, content: { title: 'Trap', description: 'Batidas rítmicas e graves profundos da cultura de Atlanta.' } },
+            { id: 'pop-punk', label: 'Pop-punk', icon: <Activity size={12} />, content: { title: 'Pop-punk', description: 'Melodias cativantes com letras de rebeldia juvenil.' } },
+            { id: 'lo-fi', label: 'Lo-fi', icon: <Activity size={12} />, content: { title: 'Lo-fi', description: 'Estética intencionalmente crua e distorcida (Audacity).' } },
+          ]
+        },
+        {
+          id: 'discografia', label: 'Discografia Principal', icon: <Disc size={14} />,
+          content: { title: 'Trabalhos Seminais', description: 'Projetos que definiram o movimento emo-rap.' },
+          children: [
+            { id: 'cowys1', label: "Come Over When You're Sober, Pt. 1", icon: <Disc size={12} />, content: { title: "COWYS Pt. 1", description: "Lançado em 15 de agosto de 2017, marcando sua transição para o pop-punk." } },
+            { id: 'crybaby', label: 'Mixtape Crybaby', icon: <Disc size={12} />, content: { title: "Crybaby", description: "Lançada em 2016, estabelecendo o Gus como o futuro do emo." } },
+            { id: 'hellboy', label: 'Mixtape Hellboy', icon: <Disc size={12} />, content: { title: "Hellboy", description: "Projeto definitivo que sintetiza a nostalgia dos anos 2000." } },
+            { id: 'partone', label: 'Mixtape Lil Peep; Part One', icon: <Disc size={12} />, content: { title: "Part One", description: "Lançada no SoundCloud em 2015, o início do fenômeno." } },
+          ]
+        },
+        {
+          id: 'coletivos', label: 'Coletivos', icon: <Ghost size={14} />,
+          content: { title: 'Grupos e Afiliações', description: 'Comunidades criativas fundamentais.' },
+          children: [
+            { id: 'gbc', label: 'GothBoiClique (GBC)', icon: <Ghost size={12} />, content: { title: "GBC", description: "Uniu-se em 2016, mudando o paradigma do rap alternativo." } },
+            { id: 'schemaposse', label: 'Schemaposse', icon: <Ghost size={12} />, content: { title: "Schemaposse", description: "Seu primeiro coletivo, fundado por JGRXXN." } },
+          ]
+        },
+        {
+          id: 'colaboradores', label: 'Colaboradores Chave', icon: <User size={14} />,
+          content: { title: 'Parcerias Criativas', description: 'Artistas que ajudaram a moldar o som de Peep.' },
+          children: [
+            { id: 'tracy', label: 'Lil Tracy', icon: <User size={12} />, content: { title: "Lil Tracy", description: "Parceria prolífica resultando em hits como Witchblades." } },
+            { id: 'makonnen', label: 'iLoveMakonnen', icon: <User size={12} />, content: { title: "iLoveMakonnen", description: "Colaboração em Londres para o álbum Diamonds." } },
+            { id: 'smokeasac', label: 'Smokeasac', icon: <User size={12} />, content: { title: "Smokeasac", description: "Produtor principal por trás da sonoridade de COWYS." } },
+            { id: 'nedarb', label: 'Nedarb Nagrom', icon: <User size={12} />, content: { title: "Nedarb Nagrom", description: "Produtor chave das primeiras mixtapes experimentais." } },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'samples',
+      label: 'Amostragem (Samples)',
+      icon: <Zap size={16} />,
+      content: {
+        title: 'Ética do Sampling',
+        description: 'Curadoria sonora que conectou o rap contemporâneo ao rock alternativo.',
+      },
+      children: [
+        { id: 'brandnew', label: 'Brand New', icon: <Music size={12} />, content: { title: 'Brand New', description: 'Samples que trazem a angústia do rock alternativo dos anos 2000.' } },
+        { id: 'underoath', label: 'Underoath', icon: <Music size={12} />, content: { title: 'Underoath', description: 'Influências de post-hardcore integradas ao trap.' } },
+        { id: 'deathcab', label: 'Death Cab for Cutie', icon: <Music size={12} />, content: { title: 'Death Cab for Cutie', description: 'Sample de "Brothers on a Hotel Bed" em Skyscrapers.' } },
+        { id: 'oasis', label: 'Oasis', icon: <Music size={12} />, content: { title: 'Oasis', description: 'Incursões no Britpop e melodias melancólicas.' } },
+        { id: 'avenged', label: 'Avenged Sevenfold', icon: <Music size={12} />, content: { title: 'Avenged Sevenfold', description: 'Samples de metal moderno em Hellboy.' } },
+        { id: 'microphones', label: 'The Microphones', icon: <Music size={12} />, content: { title: 'The Microphones', description: 'Influências de indie folk e lo-fi atmosférico.' } },
+      ]
+    },
+    {
+      id: 'moda',
+      label: 'Moda e Estilo Visual',
+      icon: <Star size={16} />,
+      content: {
+        title: 'Redefinição Estética',
+        description: 'Androginia e sensibilidade de gênero fluido desafiando o hip-hop.',
+      },
+      children: [
+        { id: 'paris-milan', label: 'Desfiles em Paris e Milão', icon: <ExternalLink size={12} />, content: { title: 'Passarelas', description: 'Desfilou para VLONE e Marcelo Burlon em 2017.' } },
+        { id: 'brands', label: 'Vlone e Marcelo Burlon', icon: <Star size={12} />, content: { title: 'Legitimação', description: 'Sinalizou a aceitação da estética disruptiva pela alta costura.' } },
+        { id: 'tattoos', label: 'Tatuagens Faciais', icon: <Star size={12} />, content: { title: 'Crybaby', description: 'Símbolos de vulnerabilidade e compromisso com a arte.' } },
+        { id: 'hair', label: 'Cabelos Coloridos', icon: <Star size={12} />, content: { title: 'Cabelos Neon', description: 'Fusão de estéticas punk, gótica e streetwear.' } },
+        { id: 'nosmoking', label: "Marca 'No Smoking'", icon: <Archive size={12} />, content: { title: 'Plataforma Comunitária', description: 'Conceito colaborativo para capacitar fãs e artistas.' } },
+      ]
+    },
+    {
+      id: 'vida',
+      label: 'Vida Pessoal e Saúde',
+      icon: <Heart size={16} />,
+      content: {
+        title: 'Ethos de Vulnerabilidade',
+        description: 'Uso da plataforma para destigmatizar problemas de saúde mental.',
+      },
+      children: [
+        { id: 'bisexual', label: 'Bissexualidade', icon: <Heart size={12} />, content: { title: 'Bissexualidade', description: 'Assumiu abertamente, quebrando paradigmas na cena rap.' } },
+        { id: 'depression', label: 'Depressão e Ansiedade', icon: <Activity size={12} />, content: { title: 'Saúde Mental', description: 'Letras confessionais que serviam como diário aberto.' } },
+        { id: 'bipolar', label: 'Transtorno Bipolar', icon: <Activity size={12} />, content: { title: 'Condições', description: 'Falou abertamente sobre suas lutas e automedicação.' } },
+        { id: 'substances', label: 'Uso de Substâncias', icon: <Zap size={12} />, content: { title: 'Crise de Opioides', description: 'Automedicação como resposta ao trauma e pressão da fama.' } },
+      ]
+    },
+    {
+      id: 'morte',
+      label: 'Morte e Legado',
+      icon: <ShieldCheck size={16} />,
+      content: {
+        title: 'Legado Póstumo',
+        description: 'Uma análise das implicações legais e culturais após novembro de 2017.',
+      },
+      children: [
+        {
+          id: 'incidente', label: 'Incidente em Tucson (2017)', icon: <Skull size={14} />,
+          content: { title: '15 de Novembro', description: 'A tragédia que chocou a indústria musical.' },
+          children: [
+            { id: 'overdose', label: 'Overdose Acidental', icon: <Skull size={12} />, content: { title: 'Overdose', description: 'Falecimento no ônibus de turnê durante a rota de Tucson.' } },
+            { id: 'fentanyl', label: 'Fentanil e Xanax', icon: <Skull size={12} />, content: { title: 'Substâncias', description: 'Overdose causada pela combinação letal de fármacos.' } },
+          ]
+        },
+        {
+          id: 'juridico', label: 'Batalha Jurídica', icon: <Scale size={14} />,
+          content: { title: 'Dever de Cuidado', description: 'Processo histórico contra a gestão First Access Entertainment.' },
+          children: [
+            { id: 'liza', label: 'Processo de Liza Womack', icon: <Scale size={12} />, content: { title: 'Womack vs FAE', description: 'Processo por negligência e homicídio culposo movido em 2019.' } },
+            { id: 'fae', label: 'First Access Entertainment (FAE)', icon: <Scale size={12} />, content: { title: 'A Gestão', description: 'Defesa baseada no "acordo comercial" e responsabilidade adulta.' } },
+            { id: 'negligencia', label: 'Alegação de Negligência', icon: <Scale size={12} />, content: { title: 'Negligência', description: 'Acusação de que a gestão falhou em proteger o artista exausto.' } },
+            { id: 'acordo', label: 'Acordo em 2023', icon: <ShieldCheck size={12} />, content: { title: 'Resolução', description: 'Catálogo e arquivos devolvidos integralmente à família.' } },
+          ]
+        },
+        {
+          id: 'postumo', label: 'Lançamentos Posthuma', icon: <Archive size={14} />,
+          content: { title: 'Estratégia Póstuma', description: 'Migração de obras originais para plataformas de streaming.' },
+          children: [
+            { id: 'cowys2', label: "Come Over When You're Sober, Pt. 2", icon: <Disc size={12} />, content: { title: "COWYS Pt. 2", description: "Primeiro álbum póstumo de estúdio, lançado em 2018." } },
+            { id: 'diamonds', label: 'Álbum Diamonds', icon: <Disc size={12} />, content: { title: "Diamonds", description: "Lançamento em 2023 após anos de antecipação pelos fãs." } },
+            { id: 'doc', label: "Documentário Everybody's Everything", icon: <Film size={12} />, content: { title: "Everybody's Everything", description: "Registro documental da vida e impacto de Gus." } },
+          ]
+        },
+        {
+          id: 'comparacoes', label: 'Comparações', icon: <HelpCircle size={14} />,
+          content: { title: 'Estatura Cultural', description: 'Como Peep é visto na história da música.' },
+          children: [
+            { id: 'cobain', label: 'Kurt Cobain da Geração', icon: <User size={12} />, content: { title: "Voz Geracional", description: "Canalizou angústia niilista como Cobain fez nos anos 90." } },
+            { id: 'metallica', label: 'Metallica (Corgan)', icon: <Music size={12} />, content: { title: "Billy Corgan", description: "Elogiado por vocalistas do rock clássico pela sua crueza." } },
+          ]
+        }
+      ]
+    }
+  ]
+};
 
-const TimelineItem: React.FC<{ event: TimelineEvent; idx: number }> = ({ event, idx }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const MindMapNode: React.FC<{ 
+  node: NodeData; 
+  depth: number; 
+  onSelect: (node: NodeData) => void;
+  expandedIds: Set<string>;
+  onToggle: (id: string) => void;
+}> = ({ node, depth, onSelect, expandedIds, onToggle }) => {
+  const isExpanded = expandedIds.has(node.id);
   const MotionDiv = motion.div as any;
 
   return (
-    <div className="relative group">
-      <div className={`flex flex-col md:flex-row items-start gap-12 lg:gap-24 ${idx % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-        
-        <MotionDiv 
-          initial={{ opacity: 0, x: idx % 2 === 0 ? -30 : 30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ margin: "-50px" }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className={`w-full md:w-1/2 ${idx % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}
-        >
-          <div className={`flex items-center gap-4 mb-2 ${idx % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-            <span className="font-mono text-[9px] text-[#FF007F] tracking-[0.3em] uppercase">{event.year}</span>
-            <div className="text-[#7000FF]">{event.icon}</div>
+    <div className="flex flex-col">
+      <div className="flex items-center">
+        {/* Connection Line to parent */}
+        {depth > 0 && (
+          <div className="w-8 h-px bg-neutral-800 relative">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 bg-neutral-700 rounded-full" />
           </div>
-          
-          <h3 className="font-serif-classic text-2xl md:text-3xl text-white mb-2 tracking-tight leading-tight group-hover:neon-text-pink transition-all duration-500">
-            {event.title}
-          </h3>
-          <p className="font-mono text-[8px] text-neutral-500 uppercase tracking-[0.2em] mb-4 block">
-            {event.subtitle}
-          </p>
-          
-          <p className="text-neutral-400 text-sm font-light leading-relaxed mb-6 max-w-lg mx-auto md:mx-0 inline-block">
-            {event.description}
-          </p>
+        )}
 
-          <div className={`flex ${idx % 2 === 0 ? 'justify-end' : 'justify-start'} mb-6`}>
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-2 px-3 py-1.5 border border-neutral-800 bg-black/40 hover:border-[#FF007F]/50 hover:bg-[#FF007F]/5 transition-all group/btn"
-            >
-              <span className="font-mono text-[7px] tracking-[0.2em] text-neutral-500 group-hover/btn:text-[#FF007F]">
-                {isExpanded ? 'CLOSE' : 'DECRYPT'}
-              </span>
-              <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                <ChevronDown size={10} className="text-[#7000FF]" />
-              </div>
-            </button>
-          </div>
-          
-          <AnimatePresence>
-            {isExpanded && (
-              <MotionDiv
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.5, ease: "circOut" }}
-                className="overflow-hidden"
-              >
-                <div className={`space-y-3 pt-4 border-t border-neutral-900 ${idx % 2 === 0 ? 'items-end' : 'items-start'} flex flex-col`}>
-                  {event.details?.map((detail, dIdx) => (
-                    <MotionDiv 
-                      key={dIdx}
-                      initial={{ x: idx % 2 === 0 ? 20 : -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: dIdx * 0.1 }}
-                      className={`flex items-start gap-3 max-w-md ${idx % 2 === 0 ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}
-                    >
-                      <div className="w-1 h-1 bg-[#FF007F] rounded-full mt-1.5 shrink-0 shadow-[0_0_5px_#FF007F]" />
-                      <span className="text-[10px] font-mono text-neutral-500 tracking-wider leading-relaxed uppercase">{detail}</span>
-                    </MotionDiv>
-                  ))}
-                </div>
-              </MotionDiv>
-            )}
-          </AnimatePresence>
-        </MotionDiv>
-
-        <MotionDiv 
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ margin: "-100px" }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="w-full md:w-1/2 flex justify-center"
+        <MotionDiv
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            if (node.children) onToggle(node.id);
+            onSelect(node);
+          }}
+          className={`group flex items-center gap-3 px-5 py-2.5 rounded-lg border backdrop-blur-md cursor-pointer transition-all duration-300 ${
+            node.id === 'root' 
+              ? 'bg-[#1a1c23] border-neutral-700 shadow-xl' 
+              : isExpanded
+                ? 'bg-[#2a2d36] border-[#7000FF]/50 shadow-[0_0_15px_rgba(112,0,255,0.15)]'
+                : 'bg-[#2a2d36]/60 border-neutral-800 hover:border-[#FF007F]/40'
+          }`}
         >
-          <div className="relative p-10 bg-neutral-950/40 border border-neutral-900 shadow-2xl overflow-hidden group/card">
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF007F]/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
-            <div className="relative z-10 font-gothic text-8xl opacity-5 select-none pointer-events-none group-hover/card:opacity-10 transition-opacity duration-1000">
-              {event.era.charAt(0)}
-            </div>
-            <div className="mt-4 font-mono text-[7px] text-neutral-800 uppercase tracking-[0.4em] group-hover/card:text-neutral-500 transition-colors">
-              LOG_FRAGMENT_#{100+idx}
-            </div>
-            <div className="absolute top-6 right-6 text-[#7000FF]/20 group-hover/card:text-[#7000FF]/60 transition-colors">
-              {event.icon}
-            </div>
+          <div className={`${isExpanded ? 'text-[#FF007F]' : 'text-neutral-500'} transition-colors`}>
+            {node.icon}
           </div>
+          <span className="font-mono text-[10px] text-neutral-100 tracking-[0.1em] uppercase whitespace-nowrap">
+            {node.label}
+          </span>
+          {node.children && (
+            <ChevronRight 
+              size={12} 
+              className={`text-neutral-600 transition-transform ${isExpanded ? 'rotate-90 text-[#FF007F]' : 'group-hover:translate-x-1'}`} 
+            />
+          )}
         </MotionDiv>
       </div>
 
-      <div className="md:hidden absolute left-0 top-0 h-full w-px bg-white/5 ml-[-1rem]">
-        <div className="w-1.5 h-1.5 bg-[#7000FF]/40 rounded-full mt-4 -ml-[3px]" />
-      </div>
+      <AnimatePresence>
+        {isExpanded && node.children && (
+          <MotionDiv
+            initial={{ opacity: 0, height: 0, x: -10 }}
+            animate={{ opacity: 1, height: 'auto', x: 0 }}
+            exit={{ opacity: 0, height: 0, x: -10 }}
+            className="ml-8 border-l border-neutral-900 mt-2 space-y-2 relative"
+          >
+            {node.children.map((child) => (
+              <MindMapNode 
+                key={child.id} 
+                node={child} 
+                depth={depth + 1} 
+                onSelect={onSelect} 
+                expandedIds={expandedIds}
+                onToggle={onToggle}
+              />
+            ))}
+          </MotionDiv>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
 export const Timeline: React.FC = () => {
+  const [selectedNode, setSelectedNode] = useState<NodeData | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['root', 'carreira', 'morte']));
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  const backgroundColor = useTransform(
-    scrollYProgress,
-    [0, 0.2, 0.4, 0.6, 0.8, 1],
-    ['#050505', '#0a050a', '#050505', '#050a0a', '#0a0505', '#050505']
-  );
-
-  const lineHeight = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
-
-  const lineColor = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    ['#7000FF', '#FF007F', '#7000FF']
-  );
-
   const MotionDiv = motion.div as any;
 
-  return (
-    <MotionDiv 
-      ref={containerRef}
-      style={{ backgroundColor }}
-      className="relative min-h-screen py-24 transition-colors duration-1000 overflow-hidden"
-    >
-      <div className="max-w-6xl mx-auto px-6 relative">
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/5 -translate-x-1/2 hidden md:block" />
-        <MotionDiv 
-          className="absolute left-1/2 top-0 w-px -translate-x-1/2 hidden md:block origin-top z-20"
-          style={{ 
-            height: useTransform(lineHeight, [0, 1], ['0%', '100%']),
-            backgroundColor: lineColor,
-            boxShadow: useTransform(lineColor, (c) => `0 0 10px ${c}`)
-          }}
-        />
+  const handleToggle = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
-        <div className="text-center mb-32">
-          <MotionDiv
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1 }}
-          >
-            {/* Redução do título monumental Chronicle */}
-            <h2 className="font-gothic text-5xl md:text-7xl mb-4 text-white opacity-20 select-none tracking-tighter uppercase">Chronicle</h2>
-            <p className="font-serif-classic text-sm tracking-[0.3em] text-neutral-400 uppercase font-bold">A Digital Preservation</p>
+  return (
+    <div className="relative min-h-screen bg-[#050505] overflow-hidden py-32" ref={containerRef}>
+      {/* Dynamic Background Effects */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#FF007F]/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#7000FF]/5 blur-[120px] rounded-full animate-pulse delay-1000" />
+        
+        <div className="absolute inset-0 opacity-10">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+      </div>
+
+      <div className="max-w-[1600px] mx-auto px-10 relative z-10">
+        <div className="mb-24 flex flex-col items-center">
+          <MotionDiv initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex flex-col items-center gap-4">
+             <div className="px-4 py-1 border border-[#FF007F]/20 bg-[#FF007F]/5">
+               <span className="font-mono text-[8px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">Relational Mind Map</span>
+             </div>
+             <h2 className="font-serif-classic text-5xl md:text-6xl text-white tracking-[0.1em] uppercase text-center drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]">MAPA DO LEGADO</h2>
+             <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-[#FF007F] to-transparent mt-4" />
           </MotionDiv>
         </div>
 
-        <div className="space-y-48 relative z-10">
-          {bioData.map((event, idx) => (
-            <TimelineItem key={idx} event={event} idx={idx} />
-          ))}
+        {/* Tree Layout Container */}
+        <div className="flex justify-start min-h-[900px] p-10 overflow-x-auto scrollbar-hide pb-40">
+           <div className="relative">
+             <MindMapNode 
+               node={mindMapTree} 
+               depth={0} 
+               onSelect={setSelectedNode} 
+               expandedIds={expandedIds}
+               onToggle={handleToggle}
+             />
+           </div>
         </div>
-
-        <MotionDiv 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 2 }}
-          className="mt-48 text-center pb-24"
-        >
-          <div className="mb-8 flex justify-center opacity-40">
-            <Quote size={32} className="text-[#FF007F]" />
-          </div>
-          {/* Citação final em escala mais confortável */}
-          <blockquote className="font-serif-classic text-xl md:text-2xl text-white italic max-w-3xl mx-auto leading-relaxed mb-10">
-            "I'm just a human. I have emotions. I have feelings. I'm not a robot. I want to be everything for everyone."
-          </blockquote>
-          <div className="space-y-3">
-             <cite className="font-mono text-xs text-[#FF007F] block tracking-[0.4em] uppercase font-bold">— Gustav Elijah Åhr</cite>
-             <p className="font-mono text-[9px] text-neutral-700 max-w-lg mx-auto leading-relaxed uppercase tracking-widest">
-               His vulnerability was his greatest weapon, and his legacy is preserved forever.
-             </p>
-          </div>
-        </MotionDiv>
       </div>
-    </MotionDiv>
+
+      {/* Deep Dive Lateral Panel */}
+      <AnimatePresence>
+        {selectedNode && (
+          <MotionDiv
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 35, stiffness: 250 }}
+            className="fixed top-0 right-0 w-full md:w-[500px] h-full bg-[#0a0a0b] border-l border-neutral-900 z-[300] shadow-[-40px_0_100px_rgba(0,0,0,0.95)] overflow-hidden flex flex-col"
+          >
+            {/* Panel Header */}
+            <div className="p-8 border-b border-neutral-900 flex justify-between items-center bg-[#0d0d0f]">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-[#FF007F]/10 border border-[#FF007F]/20 text-[#FF007F]">
+                  {selectedNode.icon}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-mono text-[9px] text-neutral-600 tracking-[0.3em] uppercase">Fragment ID: {selectedNode.id}</span>
+                  <span className="font-mono text-[10px] text-white tracking-[0.1em] uppercase font-bold">Protocolo Ativo</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedNode(null)}
+                className="p-3 hover:bg-neutral-900 text-neutral-500 hover:text-white transition-all rounded-full"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Panel Content */}
+            <div className="flex-grow overflow-y-auto p-10 space-y-12">
+              <section>
+                <h2 className="font-serif-classic text-3xl text-white mb-6 tracking-tight leading-tight">
+                  {selectedNode.content.title}
+                </h2>
+                <div className="p-6 bg-neutral-950 border-l-2 border-[#FF007F] font-mono text-sm text-neutral-300 leading-relaxed italic uppercase">
+                  "{selectedNode.content.description}"
+                </div>
+              </section>
+
+              {/* Data Visualization / Details */}
+              <div className="space-y-10">
+                 <div className="flex items-center gap-4 text-neutral-700">
+                    <Activity size={12} className="text-[#7000FF]" />
+                    <span className="font-mono text-[8px] uppercase tracking-[0.4em]">Análise de Fluxo</span>
+                    <div className="h-px flex-grow bg-neutral-900" />
+                 </div>
+
+                 <p className="text-neutral-400 font-mono text-xs leading-relaxed uppercase tracking-wide">
+                   Este nó representa uma frequência crítica na linha do tempo de Lil Peep. A análise sugere um impacto direto na subcultura digital contemporânea, influenciando tanto a estética quanto a narrativa de vulnerabilidade no hip-hop moderno.
+                 </p>
+
+                 {selectedNode.children && (
+                   <div className="space-y-4">
+                     <span className="font-mono text-[8px] text-neutral-600 uppercase tracking-[0.3em]">Sub-Nódulos Relacionados:</span>
+                     <div className="flex flex-wrap gap-2">
+                       {selectedNode.children.map(child => (
+                         <span key={child.id} className="px-3 py-1 bg-neutral-900 border border-neutral-800 text-neutral-500 font-mono text-[9px] uppercase">
+                           {child.label}
+                         </span>
+                       ))}
+                     </div>
+                   </div>
+                 )}
+              </div>
+            </div>
+
+            {/* Panel Footer */}
+            <div className="p-8 bg-[#0d0d0f] border-t border-neutral-900 flex flex-col items-center gap-4">
+               <Archive size={32} className="text-neutral-900 mb-2" />
+               <p className="font-mono text-[8px] text-neutral-700 tracking-[0.4em] uppercase text-center">
+                 Heritage Protected by SandroBreaker Engineering.<br/>
+                 Integridade de dados verificada.
+               </p>
+            </div>
+          </MotionDiv>
+        )}
+      </AnimatePresence>
+
+      <div className="fixed bottom-10 left-10 flex flex-col gap-3 opacity-30">
+         <div className="flex items-center gap-3">
+           <div className="w-3 h-3 bg-[#FF007F] rounded-sm" />
+           <span className="font-mono text-[8px] text-white tracking-[0.2em] uppercase">Eixo Emocional</span>
+         </div>
+         <div className="flex items-center gap-3">
+           <div className="w-3 h-3 bg-[#7000FF] rounded-sm" />
+           <span className="font-mono text-[8px] text-white tracking-[0.2em] uppercase">Eixo Técnico</span>
+         </div>
+      </div>
+      
+      <div className="fixed bottom-10 right-10 flex flex-col items-end gap-2 opacity-30 animate-pulse pointer-events-none">
+         <span className="font-mono text-[7px] text-white tracking-[0.4em] uppercase">Clique para Expandir / Explorar</span>
+         <Maximize2 size={12} className="text-[#FF007F]" />
+      </div>
+    </div>
   );
 };
