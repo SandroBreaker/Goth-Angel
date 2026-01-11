@@ -17,7 +17,7 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigate 
 }) => {
   return (
-    <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-neutral-800 px-4 md:px-6 py-4 md:py-5 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6 transition-all">
+    <header className="fixed top-0 left-0 w-full z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-neutral-800 px-4 md:px-6 py-4 md:py-5 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6 transition-all">
       <div 
         className="flex items-center gap-3 md:gap-4 cursor-pointer group w-full lg:w-auto justify-between lg:justify-start"
         onClick={() => onNavigate('archive')}

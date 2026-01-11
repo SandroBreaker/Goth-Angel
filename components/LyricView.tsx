@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Share2, Calendar, User, Activity, Play, Pause, Lock, ChevronDown, Cpu, Music, Layers, MapPin, SkipBack, SkipForward } from 'lucide-react';
 import { Song } from '../types.ts';
@@ -25,6 +25,7 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
     queue
   } = usePlayer();
   const [isSyncing, setIsSyncing] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const MotionDiv = motion.div as any;
 
@@ -40,7 +41,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
     }
   }, [song.lyrics]);
 
-  // Utiliza o parser centralizado para garantir consistência entre o Player Global e o LyricView
   const techData = useMemo(() => parseTrackMetadata(song), [song]);
 
   const lyricLines = useMemo(() => {
@@ -48,15 +48,36 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
     return song.lyrics.split('\n');
   }, [song.lyrics]);
 
+  // Lógica de Sincronização: Mapeamento Linear do Progresso para a Linha
+  const activeLineIndex = useMemo(() => {
+    if (!isCurrentActive || duration <= 0 || lyricLines.length === 0) return -1;
+    const ratio = progress / duration;
+    return Math.floor(ratio * lyricLines.length);
+  }, [progress, duration, lyricLines.length, isCurrentActive]);
+
+  // Efeito de Scroll Automático
+  useEffect(() => {
+    if (isCurrentActive && isPlaying && scrollContainerRef.current && activeLineIndex !== -1) {
+      const activeElement = scrollContainerRef.current.querySelector(`[data-line-index="${activeLineIndex}"]`);
+      if (activeElement) {
+        activeElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }
+  }, [activeLineIndex, isCurrentActive, isPlaying]);
+
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
     <MotionDiv
+      ref={scrollContainerRef}
       initial={{ opacity: 0, scale: 1.05 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.4, ease: "circOut" }}
-      className="fixed inset-0 z-[150] bg-[#050505] overflow-y-auto overflow-x-hidden selection:bg-[#FF007F]/30"
+      className="fixed inset-0 z-[150] bg-[#050505] overflow-y-auto overflow-x-hidden selection:bg-[#FF007F]/30 scroll-smooth"
     >
       <div className="fixed inset-0 pointer-events-none">
         <div 
@@ -172,7 +193,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           </div>
         </section>
 
-        {/* Grade de metadados com fallbacks inteligentes replicada aqui */}
         <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 mb-12 md:mb-16">
           <GlassBox icon={<Activity size={16}/>} label={techData.tempo.label} value={techData.tempo.value} />
           <GlassBox icon={<Music size={16}/>} label={techData.key.label} value={techData.key.value} />
@@ -198,7 +218,14 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
               lyricLines.map((line, i) => (
                 <p 
                   key={i} 
-                  className={`text-lg md:text-3xl font-light leading-relaxed tracking-tight transition-all duration-500 hover:text-white border-l-2 border-transparent hover:border-[#FF007F] hover:pl-4 md:hover:pl-6 ${line.trim() ? 'text-neutral-500' : 'h-8 md:h-12'}`}
+                  data-line-index={i}
+                  className={`text-lg md:text-3xl font-light leading-relaxed tracking-tight transition-all duration-700 border-l-2 hover:border-[#FF007F] hover:pl-4 md:hover:pl-6 will-change-transform ${
+                    i === activeLineIndex 
+                      ? 'text-white border-[#FF007F] pl-4 md:pl-6 opacity-100 scale-105 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]' 
+                      : line.trim() 
+                        ? 'text-neutral-600 border-transparent opacity-40' 
+                        : 'h-8 md:h-12 border-transparent'
+                  }`}
                 >
                   {line}
                 </p>

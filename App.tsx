@@ -109,7 +109,7 @@ const AppContent: React.FC = () => {
         onNavigate={navigateTo}
       />
 
-      <main className="flex-grow">
+      <main className="flex-grow pt-[180px] lg:pt-[96px]">
         {currentView === 'archive' && (
           <>
             {error && (
