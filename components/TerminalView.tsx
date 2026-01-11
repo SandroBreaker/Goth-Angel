@@ -1,205 +1,242 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Terminal, Cpu, Database, Activity, Clock, 
+  Wifi, ShieldAlert, Code, X, ChevronRight,
+  Lock, Zap, Play, Pause
+} from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
-import { Terminal, Cpu, Database, Wifi, ShieldAlert, Code, X } from 'lucide-react';
-
-interface LogEntry {
-  id: number;
-  text: string;
-  type: 'info' | 'error' | 'success' | 'warning';
-  timestamp: string;
-}
+import { parseTrackMetadata } from '../utils/metadataParser.ts';
 
 interface TerminalViewProps {
   onClose: () => void;
 }
 
-const LOG_MESSAGES = [
-  "ACCESSING_MEMORY_ADDRESS_0x4F...",
-  "BUFFERING_AUDIO_STREAM_LOCAL_NODE...",
-  "DECRYPTING_LYRIC_FRAGMENTS...",
-  "NEURAL_LINK_ESTABLISHED...",
-  "PARSING_METADATA_HEADER...",
-  "CALIBRATING_SENSORY_OUTPUT...",
-  "SYNCHRONIZING_CORE_CLOCK...",
-  "PROTOCOL_GAS_ACTIVE...",
-  "FETCHING_ARTIFACT_FROM_VAULT...",
-  "RECONSTRUCTING_DIGITAL_MEMORY...",
-  "FILTERING_NIHLISTIC_SENTIMENT...",
-  "BYPASSING_ANALOG_LIMITATIONS...",
-];
+// Helper: Converter string para Hexadecimal formatado
+const stringToHex = (str: string) => {
+  return str
+    .split('')
+    .map(c => c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'))
+    .join(' ')
+    .match(/.{1,24}/g) // Quebrar em linhas de 8-12 hexadecimais
+    ?.join('\n') || '0x00';
+};
+
+// Helper: Gerar numero randômico entre min e max
+const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1) + min);
 
 export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
-  const { currentSong } = usePlayer();
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const { currentSong, isPlaying, progress, togglePlay } = usePlayer();
+  const [time, setTime] = useState(new Date().toISOString());
+  const [heap, setHeap] = useState(randomInt(40, 52));
+  const [visualizerBars, setVisualizerBars] = useState(Array(12).fill(2));
   const scrollRef = useRef<HTMLDivElement>(null);
-  const MotionDiv = motion.div as any;
 
+  // Efeito para Relógio e Heap dinâmico
   useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const nextId = prev.length > 0 ? prev[prev.length - 1].id + 1 : 0;
-        const randomMsg = LOG_MESSAGES[Math.floor(Math.random() * LOG_MESSAGES.length)];
-        const type = Math.random() > 0.9 ? 'error' : Math.random() > 0.8 ? 'warning' : 'info';
-        
-        const newEntry: LogEntry = {
-          id: nextId,
-          text: type === 'error' ? `ERROR: SEGMENTATION_FAULT_AT_${(Math.random() * 0xFFF).toString(16).toUpperCase()}` : randomMsg,
-          type,
-          timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false })
-        };
-        
-        const updated = [...prev, newEntry];
-        return updated.slice(-100); // Keep last 100 entries
-      });
-    }, 800);
-
-    return () => clearInterval(interval);
+    const timer = setInterval(() => {
+      setTime(new Date().toLocaleTimeString('en-GB', { hour12: false }));
+      if (Math.random() > 0.7) setHeap(randomInt(40, 55));
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
 
+  // Efeito do Visualizador ASCII
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      setVisualizerBars(prev => prev.map(() => randomInt(1, 8)));
+    }, 150);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  // Auto-scroll para os logs
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [currentSong?.lyrics, progress]);
 
-  const jsonContent = useMemo(() => {
-    if (!currentSong) return { status: "IDLE", signal: "NONE" };
-    return {
-      artifact: currentSong.title,
-      album: currentSong.album || currentSong.metadata?.album || "Single",
-      metadata: currentSong.metadata || {},
-      release: currentSong.release_date,
-      bpm: currentSong.bpm || currentSong.metadata?.bpm || 0,
-      id: currentSong.id
-    };
+  const techData = useMemo(() => currentSong ? parseTrackMetadata(currentSong) : null, [currentSong]);
+  const hexTitle = useMemo(() => currentSong ? stringToHex(currentSong.title) : 'NULL', [currentSong]);
+  
+  const lyricLines = useMemo(() => {
+    if (!currentSong?.lyrics) return ["WAITING_FOR_DATA_STREAM..."];
+    return currentSong.lyrics.split('\n').filter(l => l.trim() !== "");
   }, [currentSong]);
 
-  const formatJSON = (obj: any, indent = 0): React.ReactNode[] => {
-    const elements: React.ReactNode[] = [];
-    const spacing = "  ".repeat(indent);
-
-    Object.entries(obj).forEach(([key, value], idx, arr) => {
-      const isLast = idx === arr.length - 1;
-      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-        elements.push(
-          <div key={key}>
-            <span className="text-neutral-500">{spacing}</span>
-            <span className="text-[#FF007F]">"{key}"</span>: <span className="text-neutral-400">{'{'}</span>
-            {formatJSON(value, indent + 1)}
-            <span className="text-neutral-400">{spacing}{'}'}{!isLast ? ',' : ''}</span>
-          </div>
-        );
-      } else {
-        elements.push(
-          <div key={key}>
-            <span className="text-neutral-500">{spacing}</span>
-            <span className="text-[#FF007F]">"{key}"</span>:{" "}
-            <span className={typeof value === 'number' ? 'text-[#7000FF]' : 'text-[#00FF41]'}>
-              {typeof value === 'string' ? `"${value}"` : String(value)}
-            </span>
-            {!isLast ? <span className="text-neutral-400">,</span> : ""}
-          </div>
-        );
-      }
-    });
-
-    return elements;
-  };
+  if (!currentSong) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black text-[#00FF41] font-mono selection:bg-[#00FF41]/20 overflow-hidden flex flex-col md:flex-row animate-in fade-in duration-500">
-      {/* Botão de Fechar Flutuante (Mobile/Geral) */}
-      <button 
-        onClick={onClose}
-        className="absolute top-6 right-6 z-[210] flex items-center gap-3 px-4 py-2 bg-neutral-900/80 border border-neutral-800 hover:border-[#FF007F] hover:text-[#FF007F] transition-all group"
-      >
-        <span className="text-[10px] font-bold tracking-[0.2em] uppercase">[ SYS_EXIT ]</span>
-        <X size={14} className="group-hover:rotate-90 transition-transform" />
-      </button>
-
+    <div className="fixed inset-0 z-[200] bg-black text-neutral-400 font-mono selection:bg-[#FF007F]/30 overflow-hidden flex flex-col p-2 md:p-4 gap-2">
       {/* Scanline Overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-50"></div>
-      
-      {/* Header Mobile Only */}
-      <div className="md:hidden p-4 border-b border-neutral-900 bg-black flex items-center justify-between">
-         <span className="text-[10px] tracking-widest font-bold text-neutral-500">TERMINAL_V1.0.4</span>
-         <Wifi size={14} className="animate-pulse text-neutral-700" />
-      </div>
+      <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-[210]"></div>
 
-      {/* Left Column: Live Logs */}
-      <div className="flex-1 flex flex-col border-r border-neutral-900 overflow-hidden relative">
-        <div className="p-4 bg-neutral-950 border-b border-neutral-900 flex items-center gap-3">
-          <Terminal size={14} />
-          <span className="text-[9px] font-bold tracking-[0.4em] uppercase">SYSTEM_EXECUTION_LOG</span>
-        </div>
-        <div 
-          ref={scrollRef}
-          className="flex-grow p-6 overflow-y-auto space-y-2 scrollbar-hide text-[10px] md:text-[11px]"
-        >
-          {logs.map((log) => (
-            <div key={log.id} className="flex gap-4">
-              <span className="text-neutral-700 shrink-0">[{log.timestamp}]</span>
-              <span className={`
-                ${log.type === 'error' ? 'text-red-500' : ''}
-                ${log.type === 'warning' ? 'text-yellow-500' : ''}
-                ${log.type === 'success' ? 'text-green-500' : ''}
-                ${log.type === 'info' ? 'text-[#00FF41]' : ''}
-              `}>
-                {log.text}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="absolute bottom-4 left-4 pointer-events-none opacity-20">
-          <Cpu size={120} className="text-neutral-900" />
-        </div>
-      </div>
-
-      {/* Right Column: JSON Metadata */}
-      <div className="w-full md:w-[450px] lg:w-[600px] flex flex-col bg-[#050505] overflow-hidden">
-        <div className="p-4 bg-neutral-950 border-b border-neutral-900 flex items-center justify-between">
+      {/* SECTION 1: HEADER */}
+      <header className="h-14 shrink-0 border border-neutral-800 bg-neutral-900/20 backdrop-blur-md flex items-center justify-between px-6 relative overflow-hidden group">
+        <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
-            <Database size={14} className="text-[#FF007F]" />
-            <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#FF007F]">ARTIFACT_DOSSIER_JSON</span>
+            <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-[#00FF41] animate-pulse shadow-[0_0_8px_#00FF41]' : 'bg-red-600'}`}></div>
+            <span className="text-[10px] font-bold tracking-[0.3em] uppercase">
+              STATUS: <span className={isPlaying ? 'text-[#00FF41]' : 'text-red-600'}>{isPlaying ? 'CONNECTED' : 'STANDBY'}</span>
+            </span>
           </div>
-          <div className="flex gap-2">
-            <div className="w-2 h-2 rounded-full bg-red-900 opacity-50" />
-            <div className="w-2 h-2 rounded-full bg-yellow-900 opacity-50" />
-            <div className="w-2 h-2 rounded-full bg-green-900 opacity-50" />
+          <div className="hidden md:flex items-center gap-2 text-neutral-600">
+            <Cpu size={14} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">HEAP: {heap}MB</span>
           </div>
-        </div>
-        
-        <div className="flex-grow p-6 md:p-10 overflow-y-auto scrollbar-hide text-[10px] md:text-[12px] leading-relaxed">
-           <div className="text-neutral-400">
-             <span>{'{'}</span>
-             {formatJSON(jsonContent, 1)}
-             <span>{'}'}</span>
-           </div>
-
-           <div className="mt-12 pt-12 border-t border-neutral-900 space-y-6">
-              <div className="flex items-center gap-4 text-neutral-800">
-                <Code size={14} className="text-[#7000FF]" />
-                <span className="text-[8px] uppercase tracking-[0.5em] font-bold">Encrypted Streams</span>
-              </div>
-              <div className="p-4 border border-neutral-900 bg-black/40">
-                <p className="text-[8px] text-neutral-600 mb-2 uppercase tracking-widest">Digital Signature</p>
-                <p className="text-[9px] text-[#7000FF] break-all opacity-50">
-                  {currentSong ? btoa(currentSong.id + currentSong.title).slice(0, 64) : "WAITING_FOR_HANDSHAKE..."}
-                </p>
-              </div>
-           </div>
         </div>
 
-        <div className="p-4 bg-neutral-950 border-t border-neutral-900 flex items-center justify-between">
-           <div className="flex items-center gap-3">
-              <ShieldAlert size={12} className="text-neutral-700" />
-              <span className="text-[8px] text-neutral-700 uppercase tracking-widest">Protocol GAS-v4 Operational</span>
-           </div>
-           <span className="text-[8px] text-neutral-800 uppercase tracking-widest">© 2025 SANDROBREAKER</span>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 text-neutral-500">
+            <Clock size={14} />
+            <span className="text-[10px] font-bold tabular-nums">{time} UTC</span>
+          </div>
+          <button 
+            onClick={onClose}
+            className="flex items-center gap-2 px-4 py-1.5 border border-neutral-800 hover:border-[#FF007F] hover:text-[#FF007F] transition-all group/btn"
+          >
+            <span className="text-[9px] font-bold tracking-[0.2em] uppercase">[ SYS_EXIT ]</span>
+            <X size={14} className="group-hover/btn:rotate-90 transition-transform" />
+          </button>
         </div>
+      </header>
+
+      <div className="flex-grow flex flex-col md:flex-row gap-2 overflow-hidden">
+        {/* SECTION 2: MAIN LOG (60%) */}
+        <section className="flex-[6] border border-neutral-800 bg-[#050505] flex flex-col overflow-hidden relative">
+          <div className="h-10 border-b border-neutral-800 flex items-center px-4 justify-between bg-neutral-950/50">
+            <div className="flex items-center gap-3">
+              <Terminal size={14} className="text-[#FF007F]" />
+              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#FF007F]">FRAGMENT_LYRIC_DECODER</span>
+            </div>
+            <span className="text-[8px] text-neutral-700 font-bold uppercase tracking-[0.2em]">Buffer: 256kbps</span>
+          </div>
+
+          <div 
+            ref={scrollRef}
+            className="flex-grow p-6 overflow-y-auto space-y-3 scrollbar-hide"
+          >
+            <AnimatePresence initial={false}>
+              {lyricLines.map((line, idx) => {
+                // Simulação de "sincronia" baseada em índice para visual apenas
+                const isPast = idx < (progress / 10); 
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: isPast ? 0.3 : 1, x: 0 }}
+                    className="flex gap-4 font-mono text-[10px] md:text-[12px] leading-relaxed group"
+                  >
+                    <span className="text-neutral-700 shrink-0 select-none">[{ (idx * 2).toString().padStart(3, '0') }.{randomInt(0,99).toString().padStart(2, '0')}]</span>
+                    <span className="text-[#7000FF] shrink-0 font-bold tracking-tighter">SIGNAL_RX:</span>
+                    <span className={isPast ? 'text-neutral-600' : 'text-neutral-200 group-hover:text-white transition-colors'}>
+                      {line.toUpperCase()}
+                    </span>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+
+          <div className="h-12 border-t border-neutral-800 bg-neutral-950/50 flex items-center px-4 gap-4">
+             <ChevronRight size={14} className="text-[#FF007F] animate-pulse" />
+             <input 
+               type="text" 
+               placeholder="READY FOR COMMAND..."
+               className="bg-transparent border-none outline-none text-[10px] tracking-[0.2em] font-bold w-full placeholder:text-neutral-800 text-[#FF007F]"
+               autoFocus
+             />
+          </div>
+        </section>
+
+        {/* SECTION 3: DATA STREAM (40%) */}
+        <section className="flex-[4] flex flex-col gap-2 overflow-hidden">
+          
+          {/* Sub 1: Metadata Pair-Value */}
+          <div className="flex-[2] border border-neutral-800 bg-[#080808] p-4 flex flex-col">
+            <div className="flex items-center gap-3 mb-4 border-b border-neutral-900 pb-2">
+              <Database size={14} className="text-[#7000FF]" />
+              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#7000FF]">ARTIFACT_METADATA</span>
+            </div>
+            
+            <div className="space-y-3">
+               {[
+                 { k: "Title", v: currentSong.title },
+                 { k: "Engineers", v: techData?.producers.value || "UNKNOWN" },
+                 { k: "Tempo", v: techData?.tempo.value || "AUTO" },
+                 { k: "Signal_Key", v: techData?.key.value || "NONE" },
+                 { k: "Memory_Node", v: currentSong.id.slice(0, 8) }
+               ].map(item => (
+                 <div key={item.k} className="flex justify-between border-b border-neutral-900/50 pb-1">
+                   <span className="text-[9px] uppercase font-bold text-neutral-600">{item.k}:</span>
+                   <span className="text-[10px] uppercase font-bold text-neutral-300 truncate max-w-[200px]">{item.v}</span>
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          {/* Sub 2: Hex Dump */}
+          <div className="flex-[2] border border-neutral-800 bg-[#050505] p-4 flex flex-col overflow-hidden">
+            <div className="flex items-center gap-3 mb-4">
+              <Code size={14} className="text-[#FF007F]" />
+              <span className="text-[9px] font-bold tracking-[0.4em] uppercase">HEX_CORE_DUMP</span>
+            </div>
+            <div className="flex-grow bg-black p-3 border border-neutral-900 overflow-hidden">
+               <pre className="text-[10px] text-[#7000FF]/60 break-all leading-tight">
+                 {hexTitle}
+               </pre>
+            </div>
+          </div>
+
+          {/* Sub 3: ASCII Visualizer */}
+          <div className="flex-1 border border-neutral-800 bg-[#080808] p-4 flex flex-col justify-center">
+            <div className="flex items-center justify-between mb-4">
+               <span className="text-[8px] font-bold text-neutral-600 tracking-[0.3em]">WAVE_SIGNAL</span>
+               <Activity size={12} className="text-[#FF007F]" />
+            </div>
+            <div className="flex items-end justify-center gap-1 h-12 md:h-16">
+              {visualizerBars.map((v, i) => (
+                <div key={i} className="flex flex-col gap-0.5">
+                  {Array(8).fill(0).map((_, idx) => (
+                    <span 
+                      key={idx}
+                      className={`text-[12px] leading-[6px] transition-colors duration-200 ${8 - idx <= v ? 'text-[#FF007F]' : 'text-neutral-900'}`}
+                    >
+                      {8 - idx <= v ? '█' : '▒'}
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Controls Mini-Bar */}
+          <div className="h-14 border border-neutral-800 bg-neutral-950 flex items-center justify-around">
+             <button onClick={() => togglePlay()} className="p-3 text-neutral-500 hover:text-white transition-colors">
+                {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+             </button>
+             <div className="h-4 w-px bg-neutral-800"></div>
+             <div className="flex items-center gap-2">
+                <Zap size={14} className="text-[#7000FF]" fill="currentColor" />
+                <span className="text-[9px] font-bold tracking-widest text-[#7000FF]">GAS_OS_ACTIVE</span>
+             </div>
+          </div>
+        </section>
       </div>
+
+      {/* Footer System Info */}
+      <footer className="h-8 shrink-0 flex items-center justify-between px-4 bg-neutral-950 border border-neutral-800">
+         <div className="flex gap-6">
+            <span className="text-[7px] font-mono text-neutral-700 tracking-[0.4em] uppercase">Protocol: Goth-Angel-Sinner-V4</span>
+            <span className="text-[7px] font-mono text-neutral-700 tracking-[0.4em] uppercase">Node: SB-ARCHIVE-01</span>
+         </div>
+         <div className="flex items-center gap-2">
+            <ShieldAlert size={10} className="text-[#FF007F]" />
+            <span className="text-[7px] text-[#FF007F] font-bold uppercase tracking-widest">Auth: SandroBreaker</span>
+         </div>
+      </footer>
     </div>
   );
 };
