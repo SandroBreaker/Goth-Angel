@@ -1,5 +1,6 @@
 
-import { useRef, useEffect, useState } from 'react';
+// Fix: Added React to the default import to resolve 'Cannot find namespace React' when using React.FC
+import React, { useRef, useEffect, useState } from 'react';
 import ReactPlayer from 'react-player';
 import { usePlayer } from '../context/PlayerContext.tsx';
 

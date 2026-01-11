@@ -1,5 +1,6 @@
 
-import { useState, Suspense, lazy, useCallback, useEffect } from 'react';
+// Fix: Added React to the default import to resolve 'Cannot find namespace React' when using React.FC
+import React, { useState, Suspense, lazy, useCallback, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
