@@ -1,18 +1,14 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../services/supabaseClient.ts';
 import { Song } from '../types.ts';
 
 const PAGE_SIZE = 24;
 
-/**
- * Garante que o valor retornado seja sempre uma string segura para o React renderizar.
- */
 const ensureString = (val: any): string => {
   if (val === null || val === undefined) return '';
   if (typeof val === 'string') return val;
   if (typeof val === 'object') {
-    // Se for um objeto do Genius, tentamos extrair o campo de texto mais provável
     return val.title || val.name || val.full_title || "Unknown Artifact";
   }
   return String(val);
@@ -32,13 +28,22 @@ export const useSongs = (query: string, filter: string | null) => {
   const [page, setPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  // Use a ref to track the current page for the async fetch function
+  const pageRef = useRef(0);
+
   const fetchSongs = useCallback(async (isLoadMore = false) => {
-    const currentPage = isLoadMore ? page + 1 : 0;
-    if (!isLoadMore) setLoading(true);
+    if (!isLoadMore) {
+      setLoading(true);
+      pageRef.current = 0;
+      setPage(0);
+    } else {
+      pageRef.current += 1;
+      setPage(pageRef.current);
+    }
+    
     setError(null);
 
     try {
-      // producer e bpm removidos do select root para evitar erro 400
       let request = supabase
         .from('songs')
         .select('id, title, image_url, video_url, storage_url, release_date, metadata', { count: 'exact' });
@@ -52,7 +57,7 @@ export const useSongs = (query: string, filter: string | null) => {
         request = request.filter('metadata->>sentiment', 'eq', filter);
       }
 
-      const from = currentPage * PAGE_SIZE;
+      const from = pageRef.current * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
       const { data, error: supabaseError, count } = await request
@@ -64,31 +69,32 @@ export const useSongs = (query: string, filter: string | null) => {
       const newSongs = (data as any[] || []).map(song => ({
         ...song,
         title: ensureString(song.title),
-        album: ensureString(song.metadata?.album || song.album || 'Single')
+        album: ensureString(song.metadata?.album || song.album || 'Single'),
+        // Ensure id is a string to avoid key issues
+        id: String(song.id)
       }));
 
       setSongs(prev => isLoadMore ? [...prev, ...newSongs] : newSongs);
       setHasMore(count ? (from + newSongs.length) < count : false);
-      setPage(currentPage);
     } catch (err: any) {
       setError(stringifyError(err));
     } finally {
       setLoading(false);
     }
-  }, [query, filter, page]);
+  }, [query, filter]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchSongs(false);
     }, 300);
     return () => clearTimeout(timeoutId);
-  }, [query, filter]);
+  }, [query, filter, fetchSongs]);
 
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
     if (!loading && hasMore) {
       fetchSongs(true);
     }
-  };
+  }, [loading, hasMore, fetchSongs]);
 
   return { songs, loading, error, hasMore, loadMore };
 };

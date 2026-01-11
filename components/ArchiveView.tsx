@@ -58,13 +58,14 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
       return String(albumValue).toLowerCase();
     };
     
+    // Removido o .slice(0, 12) para permitir que as categorias cresçam com o carregamento
     const classics = songs.filter(s => {
       const album = getAlbum(s);
       return album.includes("sober") || 
              album.includes("cowys") || 
              album.includes("come over when you're sober") ||
              album.includes("everybody's everything");
-    }).slice(0, 12);
+    });
 
     const soundcloud = songs.filter(s => {
       const album = getAlbum(s);
@@ -74,7 +75,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
              album.includes("lil peep part one") ||
              album.includes("vertigo") ||
              album.includes("california girls");
-    }).slice(0, 12);
+    });
 
     const rare = songs.filter(s => {
       const album = getAlbum(s);
@@ -83,7 +84,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
       
       return (!album || album === "single" || album.includes("unreleased") || album === "") && 
              !isClassic && !isSoundcloud;
-    }).slice(0, 12);
+    });
     
     return [
       { id: 'classics', title: 'The Classics', icon: <Disc size={18} />, data: classics },
@@ -225,12 +226,11 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                     <MotionDiv 
                       variants={containerVariants}
                       initial="hidden"
-                      whileInView="show"
-                      viewport={{ once: true, amount: 0.05 }}
+                      animate="show"
                       className="flex gap-4 md:gap-6 overflow-x-auto px-6 md:px-8 pb-8 snap-x scrollbar-hide"
                     >
                       {cat.data.map((song) => (
-                        <MotionDiv key={song.id} variants={itemVariants} className="w-48 md:w-56 lg:w-64 shrink-0 snap-start will-change-transform">
+                        <MotionDiv key={`cat-${cat.id}-${song.id}`} variants={itemVariants} className="w-48 md:w-56 lg:w-64 shrink-0 snap-start will-change-transform">
                           <SongCard song={song} onClick={() => handleSongSelect(song, cat.data)} />
                         </MotionDiv>
                       ))}
@@ -253,18 +253,18 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                  <div className="h-px flex-grow bg-neutral-900" />
               </div>
               <MotionDiv 
+                key={`archive-grid-${songs.length}`}
                 variants={containerVariants}
                 initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, amount: 0.02 }}
+                animate="show"
                 className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
               >
                 {songs.map((song) => (
-                  <MotionDiv key={song.id} variants={itemVariants} className="will-change-transform">
+                  <MotionDiv key={`archive-${song.id}`} variants={itemVariants} className="will-change-transform">
                     <SongCard song={song} onClick={() => handleSongSelect(song, songs)} />
                   </MotionDiv>
                 ))}
-                {loading && Array.from({ length: 12 }).map((_, i) => (
+                {loading && Array.from({ length: 6 }).map((_, i) => (
                   <MotionDiv key={`skel-${i}`} variants={itemVariants}>
                     <SkeletonCard />
                   </MotionDiv>

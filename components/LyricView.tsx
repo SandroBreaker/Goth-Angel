@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { X, Share2, Calendar, User, Activity, Play, Pause, Lock, ChevronDown, Cpu, Music, Layers, MapPin } from 'lucide-react';
+import { X, Share2, Calendar, User, Activity, Play, Pause, Lock, ChevronDown, Cpu, Music, Layers, MapPin, SkipBack, SkipForward } from 'lucide-react';
 import { Song } from '../types.ts';
 import { usePlayer } from '../context/PlayerContext.tsx';
 import { parseTrackMetadata } from '../utils/metadataParser.ts';
@@ -12,7 +12,18 @@ interface LyricViewProps {
 }
 
 export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
-  const { playSong, currentSong, isPlaying, togglePlay, progress, duration, seek } = usePlayer();
+  const { 
+    playSong, 
+    currentSong, 
+    isPlaying, 
+    togglePlay, 
+    progress, 
+    duration, 
+    seek,
+    nextTrack,
+    prevTrack,
+    queue
+  } = usePlayer();
   const [isSyncing, setIsSyncing] = useState(true);
   
   const MotionDiv = motion.div as any;
@@ -106,19 +117,35 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
             </h1>
 
             <div className="flex flex-col items-center gap-6 md:gap-8">
-               <div className="flex items-center gap-10">
+               <div className="flex items-center gap-6 md:gap-12">
+                  <button 
+                    onClick={prevTrack}
+                    disabled={queue.length <= 1 || !hasDirectAudio}
+                    className="p-3 md:p-5 text-neutral-500 hover:text-white disabled:opacity-20 transition-all duration-300 hover:scale-110 active:scale-90"
+                  >
+                    <SkipBack size={32} fill="currentColor" />
+                  </button>
+
                   {hasDirectAudio ? (
                     <button 
                       onClick={() => isCurrentActive ? togglePlay() : playSong(song)}
-                      className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#FF007F] hover:text-white hover:scale-110 transition-all duration-500 shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95 group"
+                      className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#FF007F] hover:text-white hover:scale-110 transition-all duration-500 shadow-[0_0_50px_rgba(255,255,255,0.15)] active:scale-95 group"
                     >
-                      {isCurrentActive && isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1.5" />}
+                      {isCurrentActive && isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1.5 md:ml-2" />}
                     </button>
                   ) : (
                     <div className="flex items-center gap-4 px-6 py-3 border border-dashed border-neutral-800 text-neutral-600 font-mono text-[9px] md:text-[10px] uppercase tracking-[0.3em]">
                       <Lock size={14} /> Restricted
                     </div>
                   )}
+
+                  <button 
+                    onClick={nextTrack}
+                    disabled={queue.length <= 1 || !hasDirectAudio}
+                    className="p-3 md:p-5 text-neutral-500 hover:text-white disabled:opacity-20 transition-all duration-300 hover:scale-110 active:scale-90"
+                  >
+                    <SkipForward size={32} fill="currentColor" />
+                  </button>
                </div>
 
                {isCurrentActive && hasDirectAudio && (
