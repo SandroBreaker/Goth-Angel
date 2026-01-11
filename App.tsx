@@ -127,7 +127,7 @@ const AppContent: React.FC = () => {
         )}
 
         {currentView === 'timeline' && <Timeline />}
-        {currentView === 'terminal' && <TerminalView />}
+        {currentView === 'terminal' && <TerminalView onClose={() => navigateTo('archive')} />}
         {currentView === 'vault' && <TheVault />}
       </main>
 

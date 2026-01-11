@@ -2,13 +2,17 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlayer } from '../context/PlayerContext.tsx';
-import { Terminal, Cpu, Database, Wifi, ShieldAlert, Code } from 'lucide-react';
+import { Terminal, Cpu, Database, Wifi, ShieldAlert, Code, X } from 'lucide-react';
 
 interface LogEntry {
   id: number;
   text: string;
   type: 'info' | 'error' | 'success' | 'warning';
   timestamp: string;
+}
+
+interface TerminalViewProps {
+  onClose: () => void;
 }
 
 const LOG_MESSAGES = [
@@ -26,7 +30,7 @@ const LOG_MESSAGES = [
   "BYPASSING_ANALOG_LIMITATIONS...",
 ];
 
-export const TerminalView: React.FC = () => {
+export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   const { currentSong } = usePlayer();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -105,14 +109,23 @@ export const TerminalView: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black text-[#00FF41] font-mono selection:bg-[#00FF41]/20 overflow-hidden flex flex-col md:flex-row">
+    <div className="fixed inset-0 z-[200] bg-black text-[#00FF41] font-mono selection:bg-[#00FF41]/20 overflow-hidden flex flex-col md:flex-row animate-in fade-in duration-500">
+      {/* Botão de Fechar Flutuante (Mobile/Geral) */}
+      <button 
+        onClick={onClose}
+        className="absolute top-6 right-6 z-[210] flex items-center gap-3 px-4 py-2 bg-neutral-900/80 border border-neutral-800 hover:border-[#FF007F] hover:text-[#FF007F] transition-all group"
+      >
+        <span className="text-[10px] font-bold tracking-[0.2em] uppercase">[ SYS_EXIT ]</span>
+        <X size={14} className="group-hover:rotate-90 transition-transform" />
+      </button>
+
       {/* Scanline Overlay */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.07] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-50"></div>
       
       {/* Header Mobile Only */}
       <div className="md:hidden p-4 border-b border-neutral-900 bg-black flex items-center justify-between">
-         <span className="text-[10px] tracking-widest font-bold">TERMINAL_V1.0.4</span>
-         <Wifi size={14} className="animate-pulse" />
+         <span className="text-[10px] tracking-widest font-bold text-neutral-500">TERMINAL_V1.0.4</span>
+         <Wifi size={14} className="animate-pulse text-neutral-700" />
       </div>
 
       {/* Left Column: Live Logs */}
@@ -152,9 +165,9 @@ export const TerminalView: React.FC = () => {
             <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#FF007F]">ARTIFACT_DOSSIER_JSON</span>
           </div>
           <div className="flex gap-2">
-            <div className="w-2 h-2 rounded-full bg-red-900" />
-            <div className="w-2 h-2 rounded-full bg-yellow-900" />
-            <div className="w-2 h-2 rounded-full bg-green-900" />
+            <div className="w-2 h-2 rounded-full bg-red-900 opacity-50" />
+            <div className="w-2 h-2 rounded-full bg-yellow-900 opacity-50" />
+            <div className="w-2 h-2 rounded-full bg-green-900 opacity-50" />
           </div>
         </div>
         
