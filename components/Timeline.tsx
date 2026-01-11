@@ -15,7 +15,7 @@ interface NodeData {
   content: {
     title: string;
     description: string;
-    analysis: string; // Detailed summary for the lateral panel
+    analysis: string;
     details?: { heading: string; body: string }[];
   };
   children?: NodeData[];
@@ -178,17 +178,17 @@ const MindMapNode: React.FC<{
   const MotionDiv = motion.div as any;
 
   const nodeColors = [
-    'border-neutral-700 bg-[#1a1c23]', // Root
-    'border-[#7000FF]/30 bg-[#2a2d36]/80', // Depth 1
-    'border-[#FF007F]/30 bg-[#1a1c23]/90', // Depth 2
-    'border-neutral-800 bg-[#121214]/95', // Depth 3+
+    'border-neutral-700 bg-[#1a1c23]',
+    'border-[#7000FF]/30 bg-[#2a2d36]/80',
+    'border-[#FF007F]/30 bg-[#1a1c23]/90',
+    'border-neutral-800 bg-[#121214]/95',
   ];
 
   return (
     <div className="flex flex-col relative items-start">
       <div className="flex items-center group relative">
         {depth > 0 && (
-          <div className="absolute left-0 -translate-x-full h-px bg-neutral-800 w-8" />
+          <div className="absolute left-0 -translate-x-full h-px bg-neutral-800 w-4 md:w-8" />
         )}
         
         <MotionDiv
@@ -199,19 +199,19 @@ const MindMapNode: React.FC<{
             if (node.children) onToggle(node.id);
             onSelect(node);
           }}
-          className={`flex items-center gap-4 px-6 py-3 rounded-none border backdrop-blur-md cursor-pointer transition-all duration-300 ${
+          className={`flex items-center gap-3 md:gap-4 px-4 md:px-6 py-2 md:py-3 rounded-none border backdrop-blur-md cursor-pointer transition-all duration-300 ${
             nodeColors[Math.min(depth, nodeColors.length - 1)]
           } ${isExpanded ? 'border-[#FF007F]/50 ring-1 ring-[#FF007F]/20' : 'hover:border-neutral-500'}`}
         >
           <div className={`${isExpanded ? 'text-[#FF007F]' : 'text-neutral-500'} transition-colors shrink-0`}>
-            {node.icon}
+            {React.cloneElement(node.icon as any, { size: 14 })}
           </div>
-          <span className="font-mono text-[10px] text-neutral-100 tracking-[0.2em] uppercase whitespace-nowrap">
+          <span className="font-mono text-[9px] md:text-[10px] text-neutral-100 tracking-[0.1em] md:tracking-[0.2em] uppercase whitespace-nowrap">
             {node.label}
           </span>
           {node.children && (
             <ChevronRight 
-              size={12} 
+              size={10} 
               className={`text-neutral-600 transition-transform duration-300 ${isExpanded ? 'rotate-90 text-[#FF007F]' : ''}`} 
             />
           )}
@@ -221,10 +221,10 @@ const MindMapNode: React.FC<{
       <AnimatePresence>
         {isExpanded && node.children && (
           <MotionDiv
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="ml-16 mt-4 space-y-4 relative border-l border-neutral-800/50 pl-8"
+            exit={{ opacity: 0, x: 10 }}
+            className="ml-8 md:ml-16 mt-2 md:mt-4 space-y-2 md:space-y-4 relative border-l border-neutral-800/50 pl-4 md:pl-8"
           >
             {node.children.map((child) => (
               <MindMapNode 
@@ -259,7 +259,6 @@ export const Timeline: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-[#050505] overflow-hidden selection:bg-[#FF007F]/30">
-      {/* Structural Grid Background */}
       <div className="absolute inset-0 pointer-events-none opacity-5">
         <svg width="100%" height="100%">
           <defs>
@@ -271,26 +270,23 @@ export const Timeline: React.FC = () => {
         </svg>
       </div>
 
-      {/* Atmospheric Glows */}
-      <div className="absolute top-1/2 left-1/4 w-[800px] h-[800px] bg-[#FF007F]/3 blur-[140px] rounded-full pointer-events-none animate-pulse" />
-      <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-[#7000FF]/3 blur-[140px] rounded-full pointer-events-none animate-pulse delay-700" />
+      <div className="absolute top-1/2 left-1/4 w-[400px] md:w-[800px] h-[400px] md:h-[800px] bg-[#FF007F]/3 blur-[80px] md:blur-[140px] rounded-full pointer-events-none animate-pulse" />
 
-      <div className="max-w-[1800px] mx-auto px-12 pt-32 pb-64">
-        <div className="mb-32 flex flex-col items-start max-w-2xl">
+      <div className="max-w-[1800px] mx-auto px-6 md:px-12 pt-16 md:pt-32 pb-40 md:pb-64">
+        <div className="mb-16 md:mb-32 flex flex-col items-start max-w-2xl">
           <MotionDiv initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
              <div className="inline-flex items-center gap-3 px-3 py-1 border border-[#FF007F]/20 bg-[#FF007F]/5 mb-6">
                <Cpu size={12} className="text-[#FF007F]" />
-               <span className="font-mono text-[9px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">LEGACY_MAPPING_PROTOCOL_V4</span>
+               <span className="font-mono text-[8px] md:text-[9px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">LEGACY_MAPPING_PROTOCOL_V4</span>
              </div>
-             <h2 className="font-serif-classic text-6xl text-white tracking-widest uppercase mb-8 leading-tight">Mapa do<br/><span className="text-[#FF007F]">Legado</span></h2>
-             <p className="font-mono text-[11px] text-neutral-500 uppercase tracking-[0.3em] leading-relaxed">
+             <h2 className="font-serif-classic text-4xl md:text-6xl text-white tracking-widest uppercase mb-6 md:mb-8 leading-tight">Mapa do<br/><span className="text-[#FF007F]">Legado</span></h2>
+             <p className="font-mono text-[9px] md:text-[11px] text-neutral-500 uppercase tracking-[0.2em] md:tracking-[0.3em] leading-relaxed">
                Explore os nós fundamentais da existência artística de Lil Peep. Navegue pelos subníveis para decifrar a arquitetura emocional e técnica de sua obra.
              </p>
           </MotionDiv>
         </div>
 
-        {/* Tree Layout Container - Utilizes more width */}
-        <div className="flex justify-start min-h-[1200px] p-8 overflow-x-auto scrollbar-hide">
+        <div className="flex justify-start min-h-[800px] md:min-h-[1200px] p-4 md:p-8 overflow-x-auto scrollbar-hide">
            <div className="relative flex-grow">
              <MindMapNode 
                node={mindMapTree} 
@@ -303,7 +299,6 @@ export const Timeline: React.FC = () => {
         </div>
       </div>
 
-      {/* Deep Dive Lateral Panel */}
       <AnimatePresence>
         {selectedNode && (
           <MotionDiv
@@ -313,55 +308,52 @@ export const Timeline: React.FC = () => {
             transition={{ type: 'spring', damping: 35, stiffness: 200 }}
             className="fixed top-0 right-0 w-full md:w-[600px] h-full bg-[#0a0a0b] border-l border-neutral-900 z-[300] shadow-[-40px_0_100px_rgba(0,0,0,0.95)] overflow-hidden flex flex-col"
           >
-            {/* Panel Header */}
-            <div className="p-10 border-b border-neutral-900 flex justify-between items-center bg-[#0d0d0f]/50 backdrop-blur-xl">
-              <div className="flex items-center gap-6">
-                <div className="p-3 bg-[#FF007F]/10 border border-[#FF007F]/20 text-[#FF007F]">
-                  {selectedNode.icon}
+            <div className="p-6 md:p-10 border-b border-neutral-900 flex justify-between items-center bg-[#0d0d0f]/50 backdrop-blur-xl">
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="p-2 md:p-3 bg-[#FF007F]/10 border border-[#FF007F]/20 text-[#FF007F]">
+                  {React.cloneElement(selectedNode.icon as any, { size: 18 })}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono text-[9px] text-[#FF007F] tracking-[0.5em] uppercase font-bold">Fragment ID: {selectedNode.id}</span>
-                  <span className="font-mono text-[11px] text-neutral-400 tracking-[0.2em] uppercase">Status: Decifrado</span>
+                  <span className="font-mono text-[8px] md:text-[9px] text-[#FF007F] tracking-[0.3em] md:tracking-[0.5em] uppercase font-bold">Fragment ID: {selectedNode.id}</span>
+                  <span className="font-mono text-[9px] md:text-[11px] text-neutral-400 tracking-[0.2em] uppercase">Status: Decifrado</span>
                 </div>
               </div>
               <button 
                 onClick={() => setSelectedNode(null)}
-                className="p-4 hover:bg-neutral-900 text-neutral-500 hover:text-white transition-all rounded-full group"
+                className="p-3 md:p-4 hover:bg-neutral-900 text-neutral-500 hover:text-white transition-all rounded-full group"
               >
                 <X size={24} className="group-hover:rotate-90 transition-transform" />
               </button>
             </div>
 
-            {/* Panel Content */}
-            <div className="flex-grow overflow-y-auto p-12 space-y-16 custom-scrollbar">
+            <div className="flex-grow overflow-y-auto p-6 md:p-12 space-y-12 md:space-y-16 custom-scrollbar">
               <section>
-                <h2 className="font-serif-classic text-4xl text-white mb-10 tracking-tight leading-tight uppercase border-l-4 border-[#FF007F] pl-8">
+                <h2 className="font-serif-classic text-2xl md:text-4xl text-white mb-6 md:mb-10 tracking-tight leading-tight uppercase border-l-4 border-[#FF007F] pl-6 md:pl-8">
                   {selectedNode.content.title}
                 </h2>
-                <div className="p-10 bg-neutral-950 border border-neutral-900 font-mono text-sm text-neutral-400 leading-relaxed italic uppercase relative overflow-hidden group">
+                <div className="p-6 md:p-10 bg-neutral-950 border border-neutral-900 font-mono text-xs md:text-sm text-neutral-400 leading-relaxed italic uppercase relative overflow-hidden group">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FF007F]/20 to-transparent" />
                   <span className="relative z-10">"{selectedNode.content.description}"</span>
                 </div>
               </section>
 
-              {/* Advanced Context Analysis */}
-              <div className="space-y-12">
-                 <div className="flex items-center gap-6 text-neutral-800">
+              <div className="space-y-10 md:space-y-12">
+                 <div className="flex items-center gap-4 md:gap-6 text-neutral-800">
                     <Activity size={14} className="text-[#7000FF]" />
-                    <span className="font-mono text-[10px] uppercase tracking-[0.6em] font-bold">Análise de Frequência</span>
+                    <span className="font-mono text-[8px] md:text-[10px] uppercase tracking-[0.4em] md:tracking-[0.6em] font-bold">Análise de Frequência</span>
                     <div className="h-px flex-grow bg-neutral-900" />
                  </div>
 
                  <div className="prose prose-invert max-w-none">
-                   <p className="text-neutral-400 font-mono text-xs leading-loose uppercase tracking-widest text-justify">
+                   <p className="text-neutral-400 font-mono text-[10px] md:text-xs leading-loose uppercase tracking-widest text-justify">
                      {selectedNode.content.analysis}
                    </p>
                  </div>
 
                  {selectedNode.children && (
-                   <div className="space-y-6 pt-10">
-                     <span className="font-mono text-[9px] text-neutral-600 uppercase tracking-[0.5em] font-bold">Sub-Nódulos em Conexão:</span>
-                     <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-6 pt-6 md:pt-10">
+                     <span className="font-mono text-[8px] md:text-[9px] text-neutral-600 uppercase tracking-[0.5em] font-bold">Sub-Nódulos em Conexão:</span>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                        {selectedNode.children.map(child => (
                          <button 
                            key={child.id} 
@@ -369,10 +361,10 @@ export const Timeline: React.FC = () => {
                              if (!expandedIds.has(selectedNode.id)) handleToggle(selectedNode.id);
                              setSelectedNode(child);
                            }}
-                           className="p-4 bg-neutral-900/50 border border-neutral-800 hover:border-[#FF007F]/40 transition-all flex items-center gap-3 text-left group/sub"
+                           className="p-3 md:p-4 bg-neutral-900/50 border border-neutral-800 hover:border-[#FF007F]/40 transition-all flex items-center gap-3 text-left group/sub"
                          >
                            <div className="w-1.5 h-1.5 bg-[#FF007F]/40 group-hover/sub:bg-[#FF007F] rounded-full transition-colors" />
-                           <span className="font-mono text-[9px] text-neutral-400 group-hover/sub:text-white uppercase tracking-widest">
+                           <span className="font-mono text-[8px] md:text-[9px] text-neutral-400 group-hover/sub:text-white uppercase tracking-widest">
                              {child.label}
                            </span>
                          </button>
@@ -383,10 +375,9 @@ export const Timeline: React.FC = () => {
               </div>
             </div>
 
-            {/* Panel Footer */}
-            <div className="p-10 bg-[#0d0d0f] border-t border-neutral-900 flex flex-col items-center gap-4">
+            <div className="p-6 md:p-10 bg-[#0d0d0f] border-t border-neutral-900 flex flex-col items-center gap-4">
                <Archive size={40} className="text-neutral-900 mb-2 opacity-30" />
-               <p className="font-mono text-[8px] text-neutral-700 tracking-[0.5em] uppercase text-center leading-relaxed">
+               <p className="font-mono text-[7px] md:text-[8px] text-neutral-700 tracking-[0.3em] md:tracking-[0.5em] uppercase text-center leading-relaxed px-4">
                  Heritage Protected by SandroBreaker Engineering Protocol.<br/>
                  Copyright © 2025 - All Data Streams Preserved.
                </p>
@@ -395,22 +386,16 @@ export const Timeline: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-12 left-12 flex flex-col gap-4 opacity-40">
-         <div className="flex items-center gap-4">
-           <div className="w-4 h-4 bg-[#FF007F] rounded-none border border-white/10" />
-           <span className="font-mono text-[9px] text-white tracking-[0.3em] uppercase">Eixo Emocional</span>
+      <div className="fixed bottom-6 md:bottom-12 left-6 md:left-12 flex flex-col gap-3 md:gap-4 opacity-40">
+         <div className="flex items-center gap-3 md:gap-4">
+           <div className="w-3 h-3 md:w-4 md:h-4 bg-[#FF007F] rounded-none border border-white/10" />
+           <span className="font-mono text-[8px] md:text-[9px] text-white tracking-[0.3em] uppercase">Eixo Emocional</span>
          </div>
-         <div className="flex items-center gap-4">
-           <div className="w-4 h-4 bg-[#7000FF] rounded-none border border-white/10" />
-           <span className="font-mono text-[9px] text-white tracking-[0.3em] uppercase">Eixo Técnico</span>
+         <div className="flex items-center gap-3 md:gap-4">
+           <div className="w-3 h-3 md:w-4 md:h-4 bg-[#7000FF] rounded-none border border-white/10" />
+           <span className="font-mono text-[8px] md:text-[9px] text-white tracking-[0.3em] uppercase">Eixo Técnico</span>
          </div>
-      </div>
-      
-      <div className="fixed bottom-12 right-12 flex flex-col items-end gap-3 opacity-30 animate-pulse pointer-events-none">
-         <span className="font-mono text-[8px] text-white tracking-[0.5em] uppercase">Interact // Expand // Deep Dive</span>
-         <Maximize2 size={16} className="text-[#FF007F]" />
       </div>
     </div>
   );
 };
-

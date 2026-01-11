@@ -17,21 +17,23 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigate 
 }) => {
   return (
-    <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-neutral-800 px-6 py-5 flex flex-col lg:flex-row items-center justify-between gap-6 transition-all">
+    <header className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-neutral-800 px-4 md:px-6 py-4 md:py-5 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6 transition-all">
       <div 
-        className="flex items-center gap-4 cursor-pointer group"
+        className="flex items-center gap-3 md:gap-4 cursor-pointer group w-full lg:w-auto justify-between lg:justify-start"
         onClick={() => onNavigate('archive')}
       >
-        <span className="font-gothic text-5xl neon-text-pink group-hover:scale-105 transition-transform duration-700">G.A.S</span>
-        <div className="hidden sm:block border-l border-neutral-800 pl-4">
-          <h1 className="font-serif-classic text-[13px] tracking-[0.3em] font-bold text-neutral-300 group-hover:text-white transition-colors uppercase">
-            Goth-Angel-Sinner
-          </h1>
-          <p className="text-[10px] font-mono text-[#FF007F]/60 tracking-[0.2em] font-bold">DIGITAL SANCTUARY</p>
+        <div className="flex items-center gap-3">
+          <span className="font-gothic text-4xl md:text-5xl neon-text-pink group-hover:scale-105 transition-transform duration-700">G.A.S</span>
+          <div className="hidden xs:block border-l border-neutral-800 pl-4">
+            <h1 className="font-serif-classic text-[11px] md:text-[13px] tracking-[0.3em] font-bold text-neutral-300 group-hover:text-white transition-colors uppercase">
+              Goth-Angel-Sinner
+            </h1>
+            <p className="text-[8px] md:text-[10px] font-mono text-[#FF007F]/60 tracking-[0.2em] font-bold">DIGITAL SANCTUARY</p>
+          </div>
         </div>
       </div>
 
-      <nav className="flex items-center gap-4 md:gap-8 order-3 lg:order-2">
+      <nav className="flex items-center gap-4 md:gap-8 order-3 lg:order-2 w-full lg:w-auto overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide justify-between lg:justify-center">
         <NavButton 
           active={currentView === 'archive'} 
           onClick={() => onNavigate('archive')}
@@ -65,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="SEARCH MEMORY..."
-          className="w-full bg-neutral-900/50 border border-neutral-800 py-3 pl-12 pr-4 text-[12px] font-mono tracking-widest focus:outline-none focus:border-[#FF007F]/50 focus:ring-1 focus:ring-[#FF007F]/20 transition-all placeholder:text-neutral-600 text-neutral-200"
+          className="w-full bg-neutral-900/50 border border-neutral-800 py-3 pl-12 pr-4 text-[10px] md:text-[12px] font-mono tracking-widest focus:outline-none focus:border-[#FF007F]/50 focus:ring-1 focus:ring-[#FF007F]/20 transition-all placeholder:text-neutral-600 text-neutral-200"
         />
       </div>
     </header>
@@ -77,13 +79,13 @@ const NavButton: React.FC<{ active: boolean; onClick: () => void; icon: React.Re
 }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] transition-all duration-500 hover:text-white group ${
+    className={`flex flex-col md:flex-row items-center gap-1 md:gap-2 text-[8px] md:text-[10px] font-mono font-bold tracking-[0.2em] transition-all duration-500 hover:text-white group shrink-0 ${
       active ? 'text-[#FF007F]' : 'text-neutral-400'
     }`}
   >
     <span className={`${active ? 'text-[#FF007F]' : 'text-neutral-600 group-hover:text-neutral-300'} transition-colors`}>
       {icon}
     </span>
-    <span className="hidden sm:inline uppercase">{label}</span>
+    <span className="uppercase">{label}</span>
   </button>
 );
