@@ -193,7 +193,7 @@ export const GlobalPlayer: React.FC<GlobalPlayerProps> = ({ onExpand, onClose })
 
           {/* Bottom Row: Metadata Grid & Progress */}
           <div className="w-full space-y-4 pt-2 border-t border-neutral-900">
-            <MetadataGrid metadata={currentSong.metadata} />
+            <MetadataGrid song={currentSong} />
             <ProgressSlider />
           </div>
 

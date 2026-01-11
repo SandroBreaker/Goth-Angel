@@ -1,46 +1,56 @@
 
-import { SongMetadata } from '../types.ts';
+import { Song, SongMetadata } from '../types.ts';
+
+export interface FormattedMetadataItem {
+  label: string;
+  value: string;
+}
 
 export interface FormattedMetadata {
-  bpm: string;
-  key: string;
-  producers: string;
-  sample: string;
-  releaseDate: string;
-  location: string;
+  tempo: FormattedMetadataItem;
+  key: FormattedMetadataItem;
+  producers: FormattedMetadataItem;
+  sample: FormattedMetadataItem;
+  location: FormattedMetadataItem;
 }
 
 /**
- * Safely parses the JSONB metadata field from Supabase into a display-ready format.
+ * Analisa os metadados e retorna fallbacks inteligentes caso os dados técnicos estejam faltando.
  */
-export const parseTrackMetadata = (metadata?: SongMetadata): FormattedMetadata => {
-  if (!metadata) {
-    return {
-      bpm: '---',
-      key: 'N/A',
-      producers: 'Unknown Architect',
-      sample: 'Pure Signal',
-      releaseDate: 'Archived',
-      location: 'Digital Void'
-    };
-  }
+export const parseTrackMetadata = (song: Song): FormattedMetadata => {
+  const m = song.metadata || {};
 
-  // Handle Producers (Array or single string)
-  const producersList = metadata.producers 
-    ? metadata.producers.join(', ') 
-    : (metadata.producer || 'Unknown');
+  // 1. TEMPO / FREQUENCY
+  const tempoValue = m.technical?.bpm || m.bpm || song.bpm;
+  const tempo: FormattedMetadataItem = tempoValue 
+    ? { label: 'Tempo', value: `${tempoValue} BPM` }
+    : { label: 'Sentiment', value: (m.sentiment || song.sentiment || 'Atmospheric').toUpperCase() };
 
-  // Handle Sample String Formatting: "Track (Artist)"
-  const sampleInfo = metadata.sample?.original_track
-    ? `${metadata.sample.original_track}${metadata.sample.artist ? ` (${metadata.sample.artist})` : ''}`
-    : 'No Samples Detected';
+  // 2. KEY / CONTEXT
+  const keyValue = m.technical?.key;
+  const key: FormattedMetadataItem = keyValue
+    ? { label: 'Key', value: keyValue }
+    : { label: 'Release', value: song.release_date?.split('-')[0] || 'Unknown' };
 
-  return {
-    bpm: metadata.technical?.bpm?.toString() || metadata.bpm?.toString() || '---',
-    key: metadata.technical?.key || 'N/A',
-    producers: producersList,
-    sample: sampleInfo,
-    releaseDate: metadata.release_info?.date || 'N/A',
-    location: metadata.technical?.location || 'Unknown'
+  // 3. ENGINEERS / ARCHITECTS
+  const producersList = m.producers?.join(', ') || m.producer || song.producer;
+  const producers: FormattedMetadataItem = producersList
+    ? { label: 'Engineers', value: producersList }
+    : { label: 'Author', value: song.writer || m.writer || 'G. Åhr' };
+
+  // 4. GENETIC SAMPLE / ORIGIN
+  const sampleInfo = m.sample?.original_track 
+    ? `${m.sample.original_track}${m.sample.artist ? ` (${m.sample.artist})` : ''}`
+    : null;
+  const sample: FormattedMetadataItem = sampleInfo
+    ? { label: 'Genetic Sample', value: sampleInfo }
+    : { label: 'Archive', value: (song.album || m.album || 'Single Artifact').toUpperCase() };
+
+  // 5. NODE / LOCATION
+  const location: FormattedMetadataItem = {
+    label: 'Node',
+    value: m.technical?.location || (m.genre || 'Digital Sanctuary').toUpperCase()
   };
+
+  return { tempo, key, producers, sample, location };
 };
