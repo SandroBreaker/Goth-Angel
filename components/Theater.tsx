@@ -1,51 +1,107 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+// Fixed: 'film' changed to 'Film' to match lucide-react exports
+import { Play, Film, ExternalLink, Info, Youtube } from 'lucide-react';
 
 const videos = [
-  { id: '3rkJ3L5Ce80', title: 'Awful Things', type: 'Music Video' },
-  { id: 'v_K_A_4vI-o', title: 'Save That Shit', type: 'Music Video' },
-  { id: 'WvV5H_mK6K8', title: 'Life Is Beautiful', type: 'Music Video' },
-  { id: '7o0U9r7KAnU', title: 'The Brightside', type: 'Music Video' },
-  { id: 'S_fE_6fC3tI', title: 'Star Shopping (Live)', type: 'Rare Performance' },
-  { id: '1T66jP6T96Y', title: 'Everybody\'s Everything', type: 'Documentary Trailer' }
+  { id: '3rkJ3L5Ce80', title: 'Benz Truck', type: 'Legacy Visual', duration: '3:48' },
+  { id: 'T19S6z9jGhw', title: 'BeamerBoy', type: 'Lo-Fi Archive', duration: '3:12' },
+  { id: '776zM7li_lI', title: 'Spotlight', type: 'Remastered Fragment', duration: '2:57' },
+  { id: 'Y8-Gis3E9tY', title: 'Star Shopping', type: 'Vocal Track', duration: '2:22' },
+  { id: 'v9Xp5X-lPGA', title: 'Life is Beautiful', type: 'Digital Memorial', duration: '3:27' },
+  { id: 'v-lY4r69Eeo', title: 'Gym Class', type: 'Original Upload', duration: '3:40' }
 ];
 
 export const Theater: React.FC = () => {
   const MotionDiv = motion.div as any;
 
   return (
-    <div className="max-w-6xl mx-auto py-24 px-6">
-      <div className="text-center mb-24">
-        <h2 className="font-serif-classic text-4xl mb-4 tracking-[0.2em] text-white">THEATER</h2>
-        <p className="font-mono text-[10px] text-neutral-600 uppercase tracking-[0.5em]">Visual Archives & Documentaries</p>
+    <div className="max-w-6xl mx-auto py-24 px-6 min-h-screen">
+      <div className="text-center mb-20">
+        <MotionDiv 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-3 mb-4 px-3 py-1 border border-[#FF007F]/20 bg-[#FF007F]/5"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FF007F] animate-pulse"></span>
+          <span className="font-mono text-[8px] text-[#FF007F] tracking-[0.3em] uppercase">Signal Active</span>
+        </MotionDiv>
+        {/* Ajuste de título da seção */}
+        <h2 className="font-serif-classic text-4xl md:text-5xl mb-5 tracking-widest text-white uppercase">THEATER</h2>
+        <p className="font-mono text-[9px] text-neutral-600 uppercase tracking-[0.4em] max-w-lg mx-auto leading-relaxed">
+          Visual archives sourced from high-availability nodes.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-16">
         {videos.map((vid, idx) => (
           <MotionDiv
-            key={idx}
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            className="group"
+            key={vid.id}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: idx * 0.1 }}
+            className="group relative"
           >
-            <div className="aspect-video bg-neutral-900 border border-neutral-800 group-hover:border-[#FF007F]/40 transition-all overflow-hidden relative">
+            <div className="aspect-video bg-neutral-950 border border-neutral-800 group-hover:border-[#FF007F]/40 transition-all duration-700 overflow-hidden relative shadow-2xl">
+              <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10 opacity-30 mix-blend-overlay grain"></div>
+              
+              <div className="absolute inset-0 flex items-center justify-center bg-black pointer-events-none opacity-50 z-0">
+                 <Youtube size={32} className="text-neutral-900" />
+              </div>
+              
               <iframe
-                className="w-full h-full grayscale-[50%] group-hover:grayscale-0 transition-all duration-700"
-                src={`https://www.youtube.com/embed/${vid.id}?controls=1&rel=0`}
+                className="w-full h-full grayscale-[40%] group-hover:grayscale-0 transition-all duration-1000 scale-100 group-hover:scale-[1.01] relative z-1"
+                src={`https://www.youtube.com/embed/${vid.id}?controls=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&theme=dark`}
                 title={vid.title}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
+
+              <div className="absolute bottom-0 left-0 w-full p-2 bg-black/80 backdrop-blur-sm border-t border-white/5 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20">
+                <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></div>
+                   <span className="font-mono text-[8px] text-neutral-400 uppercase tracking-widest">Locked</span>
+                </div>
+                <span className="font-mono text-[8px] text-neutral-500 tabular-nums uppercase tracking-widest">{vid.duration}</span>
+              </div>
             </div>
-            <div className="mt-4 flex justify-between items-center px-1">
-              <h3 className="font-serif-classic text-sm text-neutral-300 group-hover:text-white transition-colors tracking-widest">{vid.title}</h3>
-              <span className="font-mono text-[9px] text-neutral-600 uppercase border border-neutral-900 px-2 py-0.5">{vid.type}</span>
+
+            <div className="mt-5 flex justify-between items-start px-1">
+              <div>
+                <h3 className="font-serif-classic text-base text-neutral-300 group-hover:text-white group-hover:neon-text-pink transition-all duration-500 tracking-widest uppercase mb-1">
+                  {vid.title}
+                </h3>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[8px] text-neutral-600 uppercase tracking-widest flex items-center gap-1.5 font-bold">
+                    <Info size={10} className="text-[#7000FF]" />
+                    {vid.type}
+                  </span>
+                </div>
+              </div>
+              
+              <a 
+                href={`https://youtube.com/watch?v=${vid.id}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 border border-neutral-900 text-neutral-700 hover:text-[#FF007F] hover:border-[#FF007F]/40 transition-all group/link"
+              >
+                <ExternalLink size={12} className="group-hover/link:scale-110 transition-transform" />
+              </a>
+            </div>
+            
+            <div className="absolute -bottom-8 -right-4 font-gothic text-7xl text-white opacity-[0.02] pointer-events-none group-hover:opacity-[0.05] transition-opacity duration-1000">
+              0{idx + 1}
             </div>
           </MotionDiv>
         ))}
+      </div>
+
+      <div className="mt-32 pt-16 border-t border-neutral-900 text-center">
+        <p className="font-mono text-[8px] text-neutral-800 uppercase tracking-[0.6em] mb-4">End of visual transmissions</p>
+        <div className="w-10 h-px bg-neutral-900 mx-auto"></div>
       </div>
     </div>
   );

@@ -9,7 +9,6 @@ export const GlobalAudioEngine: React.FC = () => {
   const { 
     currentSong, 
     isPlaying, 
-    setPlaying, 
     setProgress, 
     setDuration, 
     seekRequest,
@@ -18,7 +17,7 @@ export const GlobalAudioEngine: React.FC = () => {
   
   const playerRef = useRef<any>(null);
 
-  // Fix: Casting ReactPlayer to any to handle React 19 type incompatibilities with legacy player components
+  // Fix: Casting ReactPlayer to any to handle React 19 type incompatibilities
   const Player = ReactPlayer as any;
 
   useEffect(() => {
@@ -33,50 +32,36 @@ export const GlobalAudioEngine: React.FC = () => {
     }
   }, [seekRequest, hasWindow]);
 
-  // Logic: Prioritize direct MP3 URL from Supabase Storage, fallback to YouTube
-  const activeUrl = currentSong?.storage_url || currentSong?.video_url;
+  // Logic: ONLY allow direct MP3 URL from Supabase Storage. video_url is now blocked.
+  const activeUrl = currentSong?.storage_url;
 
   if (!hasWindow || !activeUrl) return null;
 
   return (
     <div className="hidden pointer-events-none absolute opacity-0 w-0 h-0 overflow-hidden" aria-hidden="true">
-      {/* Fix: Using casted Player component to avoid Prop 'url' missing error */}
       <Player
         ref={playerRef}
         url={activeUrl}
         playing={isPlaying}
-        // Throttling progress updates to 500ms for performance
         progressInterval={500} 
-        // Use any to bypass React 19 SyntheticEvent inference issues
         onProgress={(state: any) => {
           setProgress(state.playedSeconds);
           if (isBuffering) setIsBuffering(false);
         }}
         onDuration={(d: any) => setDuration(d)}
-        onEnded={() => nextTrack()} // Trigger auto-play for next item in queue
+        onEnded={() => nextTrack()}
         onBuffer={() => setIsBuffering(true)}
         onBufferEnd={() => setIsBuffering(false)}
         onError={(e: any) => {
-          console.warn('Audio Engine Frequency Error (Source switch or network):', e);
-          // Auto skip if error occurs
+          console.warn('Audio Engine Error:', e);
           setTimeout(() => nextTrack(), 1000);
         }}
-        // Use any to bypass conflicting YouTube playerVars types in current environment
         config={{
           file: {
             forceAudio: true,
             attributes: {
               controlsList: 'nodownload',
               preload: 'auto'
-            }
-          },
-          youtube: {
-            playerVars: { 
-              showinfo: 0, 
-              controls: 0, 
-              modestbranding: 1,
-              rel: 0,
-              origin: typeof window !== "undefined" ? window.location.origin : ""
             }
           }
         } as any}

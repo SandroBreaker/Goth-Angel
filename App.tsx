@@ -8,7 +8,6 @@ import { TheVault } from './components/TheVault.tsx';
 import { Footer } from './components/Footer.tsx';
 import { GlobalAudioEngine } from './components/GlobalAudioEngine.tsx';
 import { GlobalPlayer } from './components/GlobalPlayer.tsx';
-import { ArchivistAI } from './components/ArchivistAI.tsx';
 import { PlayerProvider, usePlayer } from './context/PlayerContext.tsx';
 import { useSongs } from './hooks/useSongs.ts';
 import { supabase } from './services/supabaseClient.ts';
@@ -18,6 +17,13 @@ import { AnimatePresence } from 'framer-motion';
 
 const LyricView = lazy(() => import('./components/LyricView.tsx').then(m => ({ default: m.LyricView })));
 
+const ensureString = (val: any): string => {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') return val.title || val.name || "Artifact";
+  return String(val);
+};
+
 const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('archive');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
@@ -25,38 +31,50 @@ const AppContent: React.FC = () => {
   const [sentimentFilter, setSentimentFilter] = useState<string | null>(null);
 
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
-  const { currentSong } = usePlayer();
+  const { currentSong, stop } = usePlayer();
+
+  const fetchFullSongDetails = useCallback(async (songId: string) => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('songs')
+        .select('lyrics, metadata, release_date, storage_url, video_url, title')
+        .eq('id', songId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      if (data) {
+        setSelectedSong(prev => {
+          if (prev && prev.id === songId) {
+            return { 
+              ...prev, 
+              ...data,
+              title: ensureString(data.title || prev.title),
+              album: ensureString(data.metadata?.album || (data as any).album || prev.album || 'Single')
+            };
+          }
+          return prev;
+        });
+      }
+    } catch (err) {
+      console.warn('Sync Error:', err);
+    }
+  }, []);
 
   useEffect(() => {
-    if (currentView === 'lyrics' && currentSong && currentSong.id !== selectedSong?.id) {
-      setSelectedSong(currentSong);
+    if (currentView === 'lyrics' && currentSong) {
+      if (!selectedSong || currentSong.id !== selectedSong.id) {
+        setSelectedSong(currentSong);
+        fetchFullSongDetails(currentSong.id);
+      }
     }
-  }, [currentSong, currentView, selectedSong]);
+  }, [currentSong, currentView, selectedSong?.id, fetchFullSongDetails]);
 
   const handleSongClick = useCallback(async (song: Song) => {
     setSelectedSong(song);
     setCurrentView('lyrics');
-
-    if (!song.lyrics) {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('songs')
-          .select('lyrics, metadata, release_date, storage_url, video_url')
-          .eq('id', song.id)
-          .single();
-        
-        if (!fetchError && data) {
-          setSelectedSong(prev => prev && prev.id === song.id ? { 
-            ...prev, 
-            ...data,
-            album: data.metadata?.album || prev.album || 'Single'
-          } : prev);
-        }
-      } catch (err) {
-        console.warn('Archive: Could not sync full artifact.', err);
-      }
-    }
-  }, []);
+    fetchFullSongDetails(song.id);
+  }, [fetchFullSongDetails]);
 
   const navigateTo = useCallback((view: ViewState) => {
     setCurrentView(view);
@@ -64,6 +82,17 @@ const AppContent: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, []);
+
+  const handleExpandPlayer = useCallback(() => {
+    if (currentSong) {
+      handleSongClick(currentSong);
+    }
+  }, [currentSong, handleSongClick]);
+
+  const handleCloseEverything = useCallback(() => {
+    stop();
+    navigateTo('archive');
+  }, [stop, navigateTo]);
 
   return (
     <div className="min-h-screen relative z-10 flex flex-col selection:bg-[#FF007F]/30 overflow-x-hidden">
@@ -114,9 +143,8 @@ const AppContent: React.FC = () => {
       </AnimatePresence>
 
       <Footer />
-      <GlobalPlayer />
+      <GlobalPlayer onExpand={handleExpandPlayer} onClose={handleCloseEverything} />
       <GlobalAudioEngine />
-      <ArchivistAI />
     </div>
   );
 };
