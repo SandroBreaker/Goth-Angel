@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { X, Share2, Calendar, User, Activity, Play, Pause, Lock, ChevronDown, Cpu } from 'lucide-react';
+import { X, Share2, Calendar, User, Activity, Play, Pause, Lock, ChevronDown, Cpu, Music, Layers, MapPin } from 'lucide-react';
 import { Song } from '../types.ts';
 import { usePlayer } from '../context/PlayerContext.tsx';
+import { parseTrackMetadata } from '../utils/metadataParser.ts';
 
 interface LyricViewProps {
   song: Song;
@@ -28,29 +29,8 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
     }
   }, [song.lyrics]);
 
-  const metadata = useMemo(() => {
-    const m = song.metadata || {};
-    const sanitize = (val: any): string => {
-      if (!val || val === "null") return "N/A";
-      return typeof val === 'object' ? (val.name || val.title || String(val)) : String(val);
-    };
-
-    const findField = (keys: string[], rootVal?: any) => {
-      if (rootVal && rootVal !== "null") return rootVal;
-      for (const key of keys) {
-        if (m[key]) return m[key];
-        if ((song as any)[key]) return (song as any)[key];
-      }
-      return null;
-    };
-
-    return {
-      producer: sanitize(findField(['producer', 'produced_by', 'prod'], song.producer)),
-      bpm: sanitize(findField(['bpm', 'tempo', 'beats_per_minute'], song.bpm)),
-      year: song.release_date?.split('-')[0] || "ARCHIVED",
-      album: sanitize(song.album || m.album || "Single Artifact")
-    };
-  }, [song]);
+  // Utiliza o parser centralizado para garantir consistência entre o Player Global e o LyricView
+  const techData = useMemo(() => parseTrackMetadata(song), [song]);
 
   const lyricLines = useMemo(() => {
     if (!song.lyrics) return [];
@@ -85,7 +65,9 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
         
         <div className="hidden xs:flex flex-col items-center">
           <span className="font-mono text-[8px] md:text-[9px] text-[#FF007F] tracking-[0.4em] md:tracking-[0.6em] uppercase mb-1 font-bold animate-pulse text-center">System Active</span>
-          <span className="font-serif-classic text-[10px] md:text-[12px] text-neutral-500 tracking-[0.2em] uppercase text-center truncate max-w-[150px] md:max-w-none">{metadata.album}</span>
+          <span className="font-serif-classic text-[10px] md:text-[12px] text-neutral-500 tracking-[0.2em] uppercase text-center truncate max-w-[150px] md:max-w-none">
+            {song.album || song.metadata?.album || 'Single Artifact'}
+          </span>
         </div>
 
         <button 
@@ -163,10 +145,13 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5 mb-12 md:mb-16">
-          <GlassBox icon={<User size={16}/>} label="Producer" value={metadata.producer} />
-          <GlassBox icon={<Activity size={16}/>} label="BPM / Frequency" value={metadata.bpm} />
-          <GlassBox icon={<Calendar size={16}/>} label="Archive Year" value={metadata.year} />
+        {/* Grade de metadados com fallbacks inteligentes replicada aqui */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 mb-12 md:mb-16">
+          <GlassBox icon={<Activity size={16}/>} label={techData.tempo.label} value={techData.tempo.value} />
+          <GlassBox icon={<Music size={16}/>} label={techData.key.label} value={techData.key.value} />
+          <GlassBox icon={<User size={16}/>} label={techData.producers.label} value={techData.producers.value} />
+          <GlassBox icon={<Layers size={16}/>} label={techData.sample.label} value={techData.sample.value} />
+          <GlassBox icon={<MapPin size={16}/>} label={techData.location.label} value={techData.location.value} />
         </section>
 
         <section className="max-w-3xl mx-auto border-t border-neutral-900 pt-12 md:pt-20">
@@ -209,11 +194,14 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
 };
 
 const GlassBox: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="flex items-center gap-4 bg-neutral-900/30 border border-neutral-900 p-4 md:p-6 hover:bg-neutral-800 transition-all group backdrop-blur-md will-change-transform">
-    <div className="text-[#7000FF] group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_6px_#7000FF]">{icon}</div>
-    <div className="border-l border-neutral-800 pl-4 min-w-0">
-      <p className="text-[8px] md:text-[9px] font-mono text-neutral-600 uppercase tracking-[0.2em] mb-1 font-bold">{label}</p>
-      <p className="text-[10px] md:text-[12px] font-mono text-neutral-200 uppercase tracking-widest font-bold group-hover:text-white truncate">{value}</p>
+  <div className="flex items-center gap-4 bg-neutral-900/30 border border-neutral-900 p-4 md:p-6 hover:bg-neutral-800 transition-all group backdrop-blur-md will-change-transform relative overflow-hidden">
+    {/* Efeito de scanline sutil */}
+    <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+    
+    <div className="text-[#7000FF] group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_6px_#7000FF] relative z-10">{icon}</div>
+    <div className="border-l border-neutral-800 pl-4 min-w-0 relative z-10">
+      <p className="text-[8px] md:text-[9px] font-mono text-neutral-600 uppercase tracking-[0.2em] mb-1 font-bold group-hover:text-neutral-500 transition-colors">{label}</p>
+      <p className="text-[10px] md:text-[12px] font-mono text-neutral-200 uppercase tracking-widest font-bold group-hover:text-white truncate transition-colors">{value}</p>
     </div>
   </div>
 );
