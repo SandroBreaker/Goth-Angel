@@ -41,7 +41,7 @@ export interface Song {
   metadata?: SongMetadata;
 }
 
-export type ViewState = 'archive' | 'lyrics' | 'timeline' | 'vault' | 'theater';
+export type ViewState = 'archive' | 'lyrics' | 'timeline' | 'vault' | 'terminal';
 
 export interface AppState {
   currentView: ViewState;

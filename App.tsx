@@ -3,7 +3,7 @@ import React, { useState, Suspense, lazy, useCallback, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
-import { Theater } from './components/Theater.tsx';
+import { TerminalView } from './components/TerminalView.tsx';
 import { TheVault } from './components/TheVault.tsx';
 import { Footer } from './components/Footer.tsx';
 import { GlobalAudioEngine } from './components/GlobalAudioEngine.tsx';
@@ -78,7 +78,7 @@ const AppContent: React.FC = () => {
 
   const navigateTo = useCallback((view: ViewState) => {
     setCurrentView(view);
-    if (view !== 'lyrics') {
+    if (view !== 'lyrics' && view !== 'terminal') {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, []);
@@ -127,7 +127,7 @@ const AppContent: React.FC = () => {
         )}
 
         {currentView === 'timeline' && <Timeline />}
-        {currentView === 'theater' && <Theater />}
+        {currentView === 'terminal' && <TerminalView />}
         {currentView === 'vault' && <TheVault />}
       </main>
 

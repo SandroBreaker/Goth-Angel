@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Archive, Clock, Lock, PlayCircle } from 'lucide-react';
+import { Search, Archive, Clock, Lock, Terminal as TerminalIcon } from 'lucide-react';
 import { ViewState } from '../types.ts';
 
 interface HeaderProps {
@@ -53,10 +53,10 @@ export const Header: React.FC<HeaderProps> = ({
           label="VAULT"
         />
         <NavButton 
-          active={currentView === 'theater'} 
-          onClick={() => onNavigate('theater')}
-          icon={<PlayCircle className="w-4 h-4" />}
-          label="THEATER"
+          active={currentView === 'terminal'} 
+          onClick={() => onNavigate('terminal')}
+          icon={<TerminalIcon className="w-4 h-4" />}
+          label="TERMINAL"
         />
       </nav>
 
