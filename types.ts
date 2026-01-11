@@ -23,7 +23,7 @@ export interface Song {
   };
 }
 
-export type ViewState = 'archive' | 'lyrics' | 'timeline' | 'vault' | 'theater' | 'assistant';
+export type ViewState = 'archive' | 'lyrics' | 'timeline' | 'vault' | 'theater';
 
 export interface AppState {
   currentView: ViewState;

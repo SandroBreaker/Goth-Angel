@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Archive, Clock, Lock, PlayCircle, Cpu } from 'lucide-react';
+import { Search, Archive, Clock, Lock, PlayCircle } from 'lucide-react';
 import { ViewState } from '../types.ts';
 
 interface HeaderProps {
@@ -55,12 +55,6 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onNavigate('theater')}
           icon={<PlayCircle className="w-4 h-4" />}
           label="THEATER"
-        />
-        <NavButton 
-          active={currentView === 'assistant'} 
-          onClick={() => onNavigate('assistant')}
-          icon={<Cpu className="w-4 h-4" />}
-          label="CORE"
         />
       </nav>
 

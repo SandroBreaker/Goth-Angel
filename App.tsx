@@ -5,7 +5,6 @@ import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
 import { Theater } from './components/Theater.tsx';
 import { TheVault } from './components/TheVault.tsx';
-import { AIAssistant } from './components/AIAssistant.tsx';
 import { Footer } from './components/Footer.tsx';
 import { GlobalAudioEngine } from './components/GlobalAudioEngine.tsx';
 import { GlobalPlayer } from './components/GlobalPlayer.tsx';
@@ -130,7 +129,6 @@ const AppContent: React.FC = () => {
         {currentView === 'timeline' && <Timeline />}
         {currentView === 'theater' && <Theater />}
         {currentView === 'vault' && <TheVault />}
-        {currentView === 'assistant' && <AIAssistant />}
       </main>
 
       <AnimatePresence>
