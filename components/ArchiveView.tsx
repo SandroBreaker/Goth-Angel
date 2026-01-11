@@ -49,6 +49,8 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
       const sourceList = directOnly.length > 0 ? directOnly : songs;
       const random = sourceList[Math.floor(Math.random() * Math.min(sourceList.length, 10))];
       setFeaturedSong(random);
+    } else if (songs.length === 0) {
+      setFeaturedSong(null);
     }
   }, [songs, featuredSong]);
 
@@ -58,7 +60,6 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
       return String(albumValue).toLowerCase();
     };
     
-    // Removido o .slice(0, 12) para permitir que as categorias cresçam com o carregamento
     const classics = songs.filter(s => {
       const album = getAlbum(s);
       return album.includes("sober") || 
@@ -140,7 +141,9 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
             transition={{ duration: 0.6 }}
           >
             <AnimatePresence mode="wait">
-              {featuredSong && (
+              {loading && !featuredSong ? (
+                <SkeletonCard variant="featured" />
+              ) : featuredSong && (
                 <MotionDiv
                   key={featuredSong.id}
                   initial={{ opacity: 0 }}
@@ -238,11 +241,20 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                   </div>
                 ))
               ) : (
-                !loading && (
-                  <div className="px-8 py-16 border-y border-neutral-900/50 bg-neutral-950/20 text-center">
-                    <p className="font-mono text-[10px] text-neutral-600 tracking-[0.4em] uppercase">No data segments found.</p>
-                  </div>
+                loading && !isInitialLoad && (
+                   <div className="flex gap-4 md:gap-6 overflow-x-auto px-6 md:px-8 pb-8 scrollbar-hide">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="w-48 md:w-56 lg:w-64 shrink-0">
+                          <SkeletonCard />
+                        </div>
+                      ))}
+                   </div>
                 )
+              )}
+              {!loading && categories.length === 0 && (
+                <div className="px-8 py-16 border-y border-neutral-900/50 bg-neutral-950/20 text-center mx-6 md:mx-8">
+                  <p className="font-mono text-[10px] text-neutral-600 tracking-[0.4em] uppercase">No data segments found.</p>
+                </div>
               )}
             </div>
             
@@ -264,14 +276,14 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                     <SongCard song={song} onClick={() => handleSongSelect(song, songs)} />
                   </MotionDiv>
                 ))}
-                {loading && Array.from({ length: 6 }).map((_, i) => (
-                  <MotionDiv key={`skel-${i}`} variants={itemVariants}>
+                {loading && Array.from({ length: 12 }).map((_, i) => (
+                  <MotionDiv key={`skel-grid-${i}`} variants={itemVariants}>
                     <SkeletonCard />
                   </MotionDiv>
                 ))}
               </MotionDiv>
 
-              {hasMore && !loading && (
+              {hasMore && !loading && songs.length > 0 && (
                 <div className="mt-16 md:mt-20 flex justify-center">
                   <button 
                     onClick={onLoadMore}

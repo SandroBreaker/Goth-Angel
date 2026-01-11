@@ -11,6 +11,7 @@ import { GlobalPlayer } from './components/GlobalPlayer.tsx';
 import { PlayerProvider, usePlayer } from './context/PlayerContext.tsx';
 import { useSongs } from './hooks/useSongs.ts';
 import { supabase } from './services/supabaseClient.ts';
+import { trackAccess } from './services/analytics.ts';
 import { Song, ViewState } from './types.ts';
 import { AlertCircle } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
@@ -32,6 +33,11 @@ const AppContent: React.FC = () => {
 
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
   const { currentSong, stop } = usePlayer();
+
+  // Rastreamento de Acesso e Telemetria
+  useEffect(() => {
+    trackAccess(currentView);
+  }, [currentView]);
 
   const fetchFullSongDetails = useCallback(async (songId: string) => {
     try {
