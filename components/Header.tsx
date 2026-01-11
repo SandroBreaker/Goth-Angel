@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Archive, Clock, Lock, PlayCircle } from 'lucide-react';
+import { Search, Archive, Clock, Lock, PlayCircle, Cpu } from 'lucide-react';
 import { ViewState } from '../types.ts';
 
 interface HeaderProps {
@@ -31,12 +31,12 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      <nav className="flex items-center gap-6 md:gap-10 order-3 lg:order-2">
+      <nav className="flex items-center gap-4 md:gap-8 order-3 lg:order-2">
         <NavButton 
           active={currentView === 'archive'} 
           onClick={() => onNavigate('archive')}
           icon={<Archive className="w-4 h-4" />}
-          label="THE ARCHIVE"
+          label="ARCHIVE"
         />
         <NavButton 
           active={currentView === 'timeline'} 
@@ -48,13 +48,19 @@ export const Header: React.FC<HeaderProps> = ({
           active={currentView === 'vault'} 
           onClick={() => onNavigate('vault')}
           icon={<Lock className="w-4 h-4" />}
-          label="THE VAULT"
+          label="VAULT"
         />
         <NavButton 
           active={currentView === 'theater'} 
           onClick={() => onNavigate('theater')}
           icon={<PlayCircle className="w-4 h-4" />}
           label="THEATER"
+        />
+        <NavButton 
+          active={currentView === 'assistant'} 
+          onClick={() => onNavigate('assistant')}
+          icon={<Cpu className="w-4 h-4" />}
+          label="CORE"
         />
       </nav>
 
@@ -64,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="SEARCH THE MEMORY..."
+          placeholder="SEARCH MEMORY..."
           className="w-full bg-neutral-900/50 border border-neutral-800 py-3 pl-12 pr-4 text-[12px] font-mono tracking-widest focus:outline-none focus:border-[#FF007F]/50 focus:ring-1 focus:ring-[#FF007F]/20 transition-all placeholder:text-neutral-600 text-neutral-200"
         />
       </div>
@@ -77,13 +83,13 @@ const NavButton: React.FC<{ active: boolean; onClick: () => void; icon: React.Re
 }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2.5 text-[11px] font-mono font-bold tracking-[0.2em] transition-all duration-500 hover:text-white group ${
+    className={`flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] transition-all duration-500 hover:text-white group ${
       active ? 'text-[#FF007F]' : 'text-neutral-400'
     }`}
   >
     <span className={`${active ? 'text-[#FF007F]' : 'text-neutral-600 group-hover:text-neutral-300'} transition-colors`}>
       {icon}
     </span>
-    <span className="hidden sm:inline">{label}</span>
+    <span className="hidden sm:inline uppercase">{label}</span>
   </button>
 );

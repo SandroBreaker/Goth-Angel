@@ -28,7 +28,7 @@ const mindMapTree: NodeData = {
   content: {
     title: 'Gustav Elijah Åhr',
     description: 'Pioneiro do emo-rap e fenômeno cultural do SoundCloud.',
-    analysis: 'Gustav Åhr emergiu como o arquiteto de uma nova sensibilidade digital. Sua existência foi um ponto de convergência entre a estética niilista do rock alternativo dos anos 90 e a precisão rítmica do hip-hop contemporâneo. Ele codificou a vulnerabilidade como uma nova forma de poder no rap, transformando traumas pessoais em hinos geracionais que contornaram todos os guardiões da indústria tradicional.'
+    analysis: 'Gustav Elijah Åhr (1996–2017), conhecido mundialmente como Lil Peep, foi o catalisador de um movimento que redefiniu a música alternativa na era digital. Sua persona artística fundiu a vulnerabilidade crua do emo dos anos 2000 com a estética niilista e rítmica do trap moderno. Como um "Kurt Cobain da geração Z", Peep utilizou a internet para construir um santuário para os desajustados, transformando o SoundCloud no epicentro de uma revolução cultural que priorizava a honestidade emocional sobre a perfeição técnica.'
   },
   children: [
     {
@@ -38,7 +38,7 @@ const mindMapTree: NodeData = {
       content: {
         title: 'Arquitetura do Emo-Rap',
         description: 'Fusão estratégica de hip-hop, trap, punk e rock alternativo.',
-        analysis: 'A trajetória musical de Peep foi uma evolução constante de subversão sonora. Iniciando com gravações caseiras rudimentares e evoluindo para produções sofisticadas em Londres, Gus nunca perdeu a crueza que o definiu. Sua carreira provou que a autenticidade emocional supera a perfeição técnica, forçando a indústria a aceitar uma fusão de gêneros que antes era considerada impossível.'
+        analysis: 'A carreira musical de Peep foi uma trajetória meteórica de subversão. Do seu quarto em Long Island para palcos mundiais, ele desmantelou as barreiras entre gêneros. Sua discografia serve como um diário público de sua evolução, desde as primeiras mixtapes experimentais lo-fi até produções de estúdio polidas em Londres. O legado de sua obra reside na sua habilidade única de harmonizar melodias melancólicas com graves distorcidos, criando um som que é simultaneamente nostálgico e futurista.'
       },
       children: [
         {
@@ -46,13 +46,13 @@ const mindMapTree: NodeData = {
           content: { 
             title: 'Identidade Sônica', 
             description: 'Gêneros híbridos e produção lo-fi.',
-            analysis: 'O estilo de Peep é a manifestação física de um filtro lo-fi sobre a realidade. Ele utilizou o ruído e a distorção para comunicar sentimentos de alienação e crueza. Ao fundir elementos melódicos do pop-punk com graves profundos do trap, ele criou um som que é simultaneamente nostálgico e futurista, ressoando profundamente com a Geração Z.'
+            analysis: 'A sonoridade de Peep é caracterizada por uma estética intencionalmente imperfeita. Utilizando o Audacity e microfones baratos em seus primeiros dias, ele criou o "emo-trap" — um subgênero que resgatava a angústia de bandas como Brand New e Taking Back Sunday para o contexto das batidas 808. Sua voz, que oscilava entre o canto melódico suave e o grito gutural punk, tornou-se o instrumento definitivo para expressar a alienação da juventude hiperconectada.'
           },
           children: [
-            { id: 'emo-rap', label: 'Emo Rap', icon: <Activity size={12} />, content: { title: 'Emo Rap', description: 'Gênero que funde a angústia do emo com a cadência do trap.', analysis: 'O epicentro de um novo subgênero. A fusão de guitarras melancólicas com batidas 808 pesadas criou o veículo perfeito para a narrativa de "Crybaby".' } },
-            { id: 'trap', label: 'Trap', icon: <Activity size={12} />, content: { title: 'Trap', description: 'Batidas rítmicas e graves profundos da cultura de Atlanta.', analysis: 'A utilização de batidas de trap agressivas serviu como o esqueleto rítmico necessário para ancorar as letras introspectivas e melancólicas de Peep.' } },
-            { id: 'pop-punk', label: 'Pop-punk', icon: <Activity size={12} />, content: { title: 'Pop-punk', description: 'Melodias cativantes com letras de rebeldia juvenil.', analysis: 'Em COWYS Pt. 1, Gus abraçou plenamente as estruturas do pop-punk dos anos 2000, provando sua versatilidade como compositor e vocalista melódico.' } },
-            { id: 'lo-fi', label: 'Lo-fi', icon: <Activity size={12} />, content: { title: 'Lo-fi', description: 'Estética intencionalmente crua e distorcida (Audacity).', analysis: 'O lo-fi não era apenas uma limitação técnica, mas uma escolha artística. Representa a crueza do SoundCloud, onde a emoção prevalece sobre a limpeza do estúdio profissional.' } },
+            { id: 'emo-rap', label: 'Emo Rap', icon: <Activity size={12} />, content: { title: 'Emo Rap', description: 'Gênero que funde a angústia do emo com a cadência do trap.', analysis: 'O Emo Rap de Peep não era apenas um estilo, mas uma filosofia de vulnerabilidade radical. Ele trouxe temas como depressão e ideação suicida para a linha de frente do hip-hop, humanizando um gênero que muitas vezes celebrava a hiper-masculinidade.' } },
+            { id: 'trap', label: 'Trap', icon: <Activity size={12} />, content: { title: 'Trap', description: 'Batidas rítmicas e graves profundos da cultura de Atlanta.', analysis: 'Apesar de suas raízes no rock, Peep dominava a cadência rítmica do trap. As batidas pesadas serviam como o esqueleto necessário para sustentar suas melodias etéreas, criando um contraste sônico potente que se tornou sua marca registrada.' } },
+            { id: 'pop-punk', label: 'Pop-punk', icon: <Activity size={12} />, content: { title: 'Pop-punk', description: 'Melodias cativantes com letras de rebeldia juvenil.', analysis: 'Em seu álbum COWYS Pt. 1, Peep abraçou plenamente as estruturas do pop-punk dos anos 2000. Suas composições eram hinos geracionais sobre relacionamentos tóxicos e escapismo, canalizando a energia de ídolos como Blink-182.' } },
+            { id: 'lo-fi', label: 'Lo-fi', icon: <Activity size={12} />, content: { title: 'Lo-fi', description: 'Estética intencionalmente crua e distorcida (Audacity).', analysis: 'A produção lo-fi era uma escolha ética e estética. Representava a democratização da música através da internet, onde a crueza da emoção era mais valorizada do que a limpeza do som de estúdio profissional.' } },
           ]
         },
         {
@@ -60,13 +60,13 @@ const mindMapTree: NodeData = {
           content: { 
             title: 'Trabalhos Seminais', 
             description: 'Projetos que definiram o movimento emo-rap.',
-            analysis: 'A discografia de Lil Peep é um mapa de sua psique. Das atmosferas nebulosas de "Part One" à explosão comercial de "COWYS", cada projeto encapsula uma fase de sua breve vida. O relançamento contínuo destas obras garante que seu impacto sônico permaneça fresco no cânone musical moderno.'
+            analysis: 'Cada lançamento de Peep marcou um novo território sônico. De "Part One", que apresentou seu niilismo sonhador, a "Hellboy", que solidificou sua estatura cultural, e finalmente "COWYS Pt. 1", que o lançou ao estrelato global. Sua discografia póstuma, cuidadosamente gerida por sua mãe, Liza Womack, continua a expandir sua narrativa original, preservando a masterização lo-fi que seus fãs tanto amam.'
           },
           children: [
-            { id: 'cowys1', label: "Come Over When You're Sober, Pt. 1", icon: <Disc size={12} />, content: { title: "COWYS Pt. 1", description: "Lançado em 15 de agosto de 2017, marcando sua transição para o pop-punk.", analysis: 'Seu único álbum de estúdio lançado em vida. Representa o pico de sua colaboração com Smokeasac e a transição para uma sonoridade mais refinada e ambiciosa.' } },
-            { id: 'crybaby', label: 'Mixtape Crybaby', icon: <Disc size={12} />, content: { title: "Crybaby", description: "Lançada em 2016, estabelecendo o Gus como o futuro do emo.", analysis: 'A mixtape que definiu o ethos "Crybaby". Com samples de Mineral e Brand New, uniu mundos que a indústria julgava incompatíveis.' } },
-            { id: 'hellboy', label: 'Mixtape Hellboy', icon: <Disc size={12} />, content: { title: "Hellboy", description: "Projeto definitivo que sintetiza a nostalgia dos anos 2000.", analysis: 'Considerada por muitos como sua obra-prima lo-fi. Hellboy solidificou sua posição como o líder indiscutível da nova onda de rap alternativo.' } },
-            { id: 'partone', label: 'Mixtape Lil Peep; Part One', icon: <Disc size={12} />, content: { title: "Part One", description: "Lançada no SoundCloud em 2015, o início do fenômeno.", analysis: 'Onde tudo começou. Um vislumbre puro da experimentação de Peep antes da fama global, focado em melodias melancólicas e produções etéreas.' } },
+            { id: 'cowys1', label: "Come Over When You're Sober, Pt. 1", icon: <Disc size={12} />, content: { title: "COWYS Pt. 1", description: "Lançado em 15 de agosto de 2017, marcando sua transição para o pop-punk.", analysis: 'Seu único álbum de estúdio lançado em vida. Representa o pico de sua colaboração criativa com Smokeasac e uma virada para uma sonoridade mais acessível e ambiciosa, sem sacrificar sua essência sombria.' } },
+            { id: 'crybaby', label: 'Mixtape Crybaby', icon: <Disc size={12} />, content: { title: "Crybaby", description: "Lançada em 2016, estabelecendo o Gus como o futuro do emo.", analysis: 'A mixtape que o tornou um ícone. Com samples de Brand New e Radiohead, Peep criou uma obra-prima de colagem musical que definia o que significava ser um "Crybaby" na era digital.' } },
+            { id: 'hellboy', label: 'Mixtape Hellboy', icon: <Disc size={12} />, content: { title: "Hellboy", description: "Projeto definitivo que sintetiza a nostalgia dos anos 2000.", analysis: 'Considara por muitos como sua maior obra. Hellboy explorou as profundezas de sua depressão e seu estilo de vida rockstar decadente, consolidando seu status como o líder supremo do GBC.' } },
+            { id: 'partone', label: 'Mixtape Lil Peep; Part One', icon: <Disc size={12} />, content: { title: "Part One", description: "Lançada no SoundCloud em 2015, o início do fenômeno.", analysis: 'Onde o mito começou. Gravada inteiramente em seu quarto, esta mixtape apresentou o mundo à sua voz melancólica e aos seus primeiros experimentos com samples de rock obscuro.' } },
           ]
         },
         {
@@ -74,11 +74,11 @@ const mindMapTree: NodeData = {
           content: { 
             title: 'Grupos e Afiliações', 
             description: 'Comunidades criativas fundamentais.',
-            analysis: 'Gus sempre foi um artista comunitário. Seu sucesso está intrinsicamente ligado aos coletivos que o apoiaram. Essas afiliações não eram apenas grupos musicais, mas famílias escolhidas que compartilhavam a mesma ética de independência e rebeldia criativa.'
+            analysis: 'Peep nunca foi um artista isolado. Sua arte floresceu em coletivos que operavam nas franjas da indústria. Estas alianças eram baseadas em uma ética de trabalho "faça você mesmo" e em uma rebeldia compartilhada contra o mainstream. Através do GBC e da Schemaposse, ele ajudou a construir a infraestrutura de uma nova subcultura.'
           },
           children: [
-            { id: 'gbc', label: 'GothBoiClique (GBC)', icon: <Ghost size={12} />, content: { title: "GBC", description: "Uniu-se em 2016, mudando o paradigma do rap alternativo.", analysis: 'A união de Peep com o GBC marcou o nascimento de uma nova subcultura. Juntos, eles definiram a estética e a sonoridade que dominariam o SoundCloud por anos.' } },
-            { id: 'schemaposse', label: 'Schemaposse', icon: <Ghost size={12} />, content: { title: "Schemaposse", description: "Seu primeiro coletivo, fundado por JGRXXN.", analysis: 'O coletivo onde Peep conheceu Ghostemane e outros colaboradores chave. Foi a base de treinamento onde ele refinou seu estilo experimental inicial.' } },
+            { id: 'gbc', label: 'GothBoiClique (GBC)', icon: <Ghost size={12} />, content: { title: "GBC", description: "Uniu-se em 2016, mudando o paradigma do rap alternativo.", analysis: 'O coletivo definitivo. Juntamente com Lil Tracy, Wicca Phase Springs Eternal e outros, Peep formou um supergrupo de rap-gótico que ditou a estética e o som do SoundCloud por anos.' } },
+            { id: 'schemaposse', label: 'Schemaposse', icon: <Ghost size={12} />, content: { title: "Schemaposse", description: "Seu primeiro coletivo, fundado por JGRXXN.", analysis: 'A base de treinamento de Gus. Foi aqui que ele conheceu colaboradores vitais como Ghostemane e começou a levar sua produção musical a sério, saindo de Nova York para o deserto da Califórnia.' } },
           ]
         }
       ]
@@ -90,12 +90,12 @@ const mindMapTree: NodeData = {
       content: {
         title: 'Ética do Sampling',
         description: 'Curadoria sonora que conectou o rap contemporâneo ao rock alternativo.',
-        analysis: 'A arte do sampling em Lil Peep era um ato de curadoria histórica. Ele não apenas usava sons; ele resgatava a angústia de bandas emo dos anos 90 e 2000, validando sua própria dor através de uma linhagem musical estabelecida. Essa prática criou uma ponte geracional única, onde fãs de rap começaram a consumir rock alternativo clássico.'
+        analysis: 'A curadoria de samples em Lil Peep era um ato de reverência histórica. Ele não apenas usava batidas; ele resgatava a melancolia de bandas de post-hardcore, emo e indie rock. Ao samplear grupos como Underoath ou Oasis, ele estava, na verdade, fazendo uma curadoria de sentimentos, validando sua própria angústia através de uma linhagem musical estabelecida e apresentando-a a uma audiência de rap que muitas vezes desconhecia o gênero rock.'
       },
       children: [
-        { id: 'deathcab', label: 'Death Cab for Cutie', icon: <Music size={12} />, content: { title: 'Death Cab for Cutie', description: 'Sample de "Brothers on a Hotel Bed" em Skyscrapers.', analysis: 'O uso de melodias melancólicas do indie rock de Seattle para criar atmosferas etéreas no hip-hop.' } },
-        { id: 'oasis', label: 'Oasis', icon: <Music size={12} />, content: { title: 'Oasis', description: 'Incursões no Britpop e melodias melancólicas.', analysis: 'O sample de "Wonderwall" (via Yesterday) demonstrou sua capacidade de recontextualizar até os maiores hinos do rock mundial.' } },
-        { id: 'underoath', label: 'Underoath', icon: <Music size={12} />, content: { title: 'Underoath', description: 'Influências de post-hardcore integradas ao trap.', analysis: 'Peep trouxe a energia agressiva e melódica do post-hardcore para o trap, criando um som que ressoava com antigos fãs de screamo.' } },
+        { id: 'deathcab', label: 'Death Cab for Cutie', icon: <Music size={12} />, content: { title: 'Death Cab for Cutie', description: 'Sample de "Brothers on a Hotel Bed" em Skyscrapers.', analysis: 'Um exemplo perfeito de como Peep trazia o som introspectivo do indie rock para o trap, transformando um piano melancólico em um hino de isolamento digital.' } },
+        { id: 'oasis', label: 'Oasis', icon: <Music size={12} />, content: { title: 'Oasis', description: 'Incursões no Britpop e melodias melancólicas.', analysis: 'Demonstra a versatilidade de Peep em reinterpretar clássicos do Britpop, injetando uma sensibilidade lo-fi e trap em melodias mundialmente conhecidas.' } },
+        { id: 'underoath', label: 'Underoath', icon: <Music size={12} />, content: { title: 'Underoath', description: 'Influências de post-hardcore integradas ao trap.', analysis: 'Utilizou a energia agressiva do post-hardcore para criar canções que ressoavam com os antigos fãs de Warped Tour, provando que o espírito punk estava vivo no SoundCloud.' } },
       ]
     },
     {
@@ -105,12 +105,12 @@ const mindMapTree: NodeData = {
       content: {
         title: 'Redefinição Estética',
         description: 'Androginia e sensibilidade de gênero fluido desafiando o hip-hop.',
-        analysis: 'O impacto visual de Lil Peep foi tão disruptivo quanto sua música. Ele desafiou as convenções de hiper-masculinidade do hip-hop tradicional através de uma estética de gênero fluido, tatuagens faciais proeminentes e cabelos coloridos. Sua imagem tornou-se o uniforme de uma geração que se recusa a ser rotulada.'
+        analysis: 'Lil Peep foi um pioneiro visual. Sua estética de gênero fluido, tatuagens faciais proeminentes e cabelos neon desafiaram a hiper-masculinidade do hip-hop tradicional. Ele era uma colagem viva de referências góticas, punk e skate-wear, tornando-se uma musa para a alta moda global. Seu estilo não era apenas performático; era uma expressão externa de sua vulnerabilidade interna e rebeldia contra as normas sociais.'
       },
       children: [
-        { id: 'paris-milan', label: 'Desfiles em Paris e Milão', icon: <ExternalLink size={12} />, content: { title: 'Passarelas', description: 'Desfilou para VLONE e Marcelo Burlon em 2017.', analysis: 'Sua presença em semanas de moda europeias sinalizou que a estética do SoundCloud havia se tornado a nova alta costura.' } },
-        { id: 'tattoos', label: 'Tatuagens Faciais', icon: <Star size={12} />, content: { title: 'Crybaby', description: 'Símbolos de vulnerabilidade e compromisso com a arte.', analysis: 'Cada tatuagem era um compromisso: a de "Crybaby" no rosto era uma declaração de que ele nunca poderia ter um emprego normal, forçando o sucesso artístico.' } },
-        { id: 'hair', label: 'Cabelos Coloridos', icon: <Star size={12} />, content: { title: 'Cabelos Neon', description: 'Fusão de estéticas punk, gótica e streetwear.', analysis: 'Do rosa choque ao preto gótico, seu cabelo era uma extensão mutável de sua identidade e estado emocional.' } },
+        { id: 'paris-milan', label: 'Desfiles em Paris e Milão', icon: <ExternalLink size={12} />, content: { title: 'Passarelas', description: 'Desfilou para VLONE e Marcelo Burlon em 2017.', analysis: 'Sua ascensão às passarelas europeias em 2017 marcou o momento em que a cultura do "SoundCloud rap" foi validada pela elite da moda global, reconhecendo-o como o rosto de uma nova rebeldia.' } },
+        { id: 'tattoos', label: 'Tatuagens Faciais', icon: <Star size={12} />, content: { title: 'Crybaby', description: 'Símbolos de vulnerabilidade e compromisso com a arte.', analysis: 'Cada tatuagem no rosto de Gus contava uma história. A de "Crybaby" era um lembrete constante de sua sensibilidade, enquanto as outras serviam como um escudo visual contra o mundo convencional.' } },
+        { id: 'hair', label: 'Cabelos Coloridos', icon: <Star size={12} />, content: { title: 'Cabelos Neon', description: 'Fusão de estéticas punk, gótica e streetwear.', analysis: 'Do rosa choque ao preto e rosa, seu cabelo era uma extensão de sua mutabilidade artística. Ele mudava de cor conforme mudava de fase criativa, inspirando milhões a abraçarem sua própria individualidade.' } },
       ]
     },
     {
@@ -120,12 +120,12 @@ const mindMapTree: NodeData = {
       content: {
         title: 'Ethos de Vulnerabilidade',
         description: 'Uso da plataforma para destigmatizar problemas de saúde mental.',
-        analysis: 'A vida de Gustav Åhr foi vivida em público, com todas as suas fragilidades expostas. Ele utilizou sua fama para humanizar lutas contra a depressão e o uso de substâncias, criando um espaço seguro para que milhões de fãs pudessem falar sobre suas próprias dores. Sua honestidade brutal salvou vidas, enquanto ele mesmo lutava para salvar a sua.'
+        analysis: 'A vida de Gustav Åhr foi vivida com uma honestidade brutal que muitos achavam desconfortável. Ele utilizou sua plataforma para falar abertamente sobre depressão, ansiedade e bissexualidade em uma época em que esses temas ainda eram tabus no rap. Sua coragem em ser vulnerável em público criou um espaço seguro para seus fãs, permitindo que eles se sentissem vistos e menos sozinhos em suas próprias batalhas internas.'
       },
       children: [
-        { id: 'bisexual', label: 'Bissexualidade', icon: <Heart size={12} />, content: { title: 'Bissexualidade', description: 'Assumiu abertamente, quebrando paradigmas na cena rap.', analysis: 'Ao assumir sua bissexualidade no Twitter em 2017, Peep desmantelou preconceitos profundos dentro da comunidade hip-hop.' } },
-        { id: 'depression', label: 'Depressão e Ansiedade', icon: <Activity size={12} />, content: { title: 'Saúde Mental', description: 'Letras confessionais que serviam como diário aberto.', analysis: 'Gus não cantava sobre depressão para glamourizá-la, mas para exorcizá-la, transformando o sofrimento em arte compartilhada.' } },
-        { id: 'substances', label: 'Uso de Substâncias', icon: <Zap size={12} />, content: { title: 'Crise de Opioides', description: 'Automedicação como resposta ao trauma e pressão da fama.', analysis: 'O uso de substâncias era um sintoma de problemas mais profundos, exacerbado por uma indústria que muitas vezes prioriza a produtividade sobre a saúde humana.' } },
+        { id: 'bisexual', label: 'Bissexualidade', icon: <Heart size={12} />, content: { title: 'Bissexualidade', description: 'Assumiu abertamente, quebrando paradigmas na cena rap.', analysis: 'Ao assumir sua bissexualidade no Twitter em 2017, Gus quebrou um dos maiores estigmas do hip-hop, tornando-se um símbolo de aceitação e autenticidade para a comunidade LGBTQ+.' } },
+        { id: 'depression', label: 'Depressão e Ansiedade', icon: <Activity size={12} />, content: { title: 'Saúde Mental', description: 'Letras confessionais que serviam como diário aberto.', analysis: 'Sua música era uma forma de automedicação através da arte. Ele falava sobre a escuridão não para celebrá-la, mas para exorcizá-la, oferecendo conforto a todos que compartilhavam o mesmo peso.' } },
+        { id: 'substances', label: 'Uso de Substâncias', icon: <Zap size={12} />, content: { title: 'Crise de Opioides', description: 'Automedicação como resposta ao trauma e pressão da fama.', analysis: 'A automedicação foi uma resposta trágica à exaustão e às pressões da fama súbita. Seu uso de substâncias era um pedido de socorro silenciado pelas demandas de uma indústria que muitas vezes prioriza a turnê sobre a saúde.' } },
       ]
     },
     {
@@ -135,31 +135,31 @@ const mindMapTree: NodeData = {
       content: {
         title: 'Legado Póstumo',
         description: 'Uma análise das implicações legais e culturais após novembro de 2017.',
-        analysis: 'A morte de Lil Peep não foi apenas o fim de uma vida promissora, mas o início de uma conversa global sobre o "dever de cuidado" na indústria musical. Seu legado é mantido vivo por uma gestão familiar dedicada que foca na preservação da visão artística original do Gus, garantindo que sua voz continue a ecoar para as próximas gerações.'
+        analysis: 'A morte prematura de Peep em 2017 em Tucson, Arizona, enviou ondas de choque através da indústria da música. O que se seguiu foi uma batalha legal e ética sem precedentes liderada por sua mãe, Liza Womack, para recuperar o controle sobre sua arte. Seu legado póstumo transformou-se em uma missão de preservação, garantindo que sua visão original não fosse diluída por interesses corporativos e que a conversa sobre o dever de cuidado da indústria para com os artistas jovens continuasse.'
       },
       children: [
         {
           id: 'incidente', label: 'Incidente em Tucson (2017)', icon: <Skull size={14} />,
-          content: { title: '15 de Novembro', description: 'A tragédia que chocou a indústria musical.', analysis: 'O falecimento de Gus em Tucson foi um choque sísmico que expôs as falhas críticas na segurança e no suporte oferecido a jovens artistas em turnês exaustivas.' },
+          content: { title: '15 de Novembro', description: 'A tragédia que chocou a indústria musical.', analysis: 'O falecimento de Gus no ônibus de turnê foi um momento divisor de águas. Expôs a falta de protocolos de segurança em turnês de jovens artistas e a facilidade com que substâncias adulteradas (contendo fentanil) circulam nos bastidores da indústria.' },
           children: [
-            { id: 'overdose', label: 'Overdose Acidental', icon: <Skull size={12} />, content: { title: 'Overdose', description: 'Falecimento no ônibus de turnê durante a rota de Tucson.', analysis: 'Uma tragédia evitável causada por uma combinação letal de fármacos adulterados.' } },
-            { id: 'fentanyl', label: 'Fentanil e Xanax', icon: <Skull size={12} />, content: { title: 'Substâncias', description: 'Overdose causada pela combinação letal de fármacos.', analysis: 'O fentanil, um opioide sintético potente, foi o principal responsável pela natureza fatal do incidente.' } },
+            { id: 'overdose', label: 'Overdose Acidental', icon: <Skull size={12} />, content: { title: 'Overdose', description: 'Falecimento no ônibus de turnê durante a rota de Tucson.', analysis: 'Um erro trágico e fatal. Gus foi encontrado sem vida por sua equipe em um ônibus de turnê que estava parado há horas, expondo negligências graves em sua supervisão.' } },
+            { id: 'fentanyl', label: 'Fentanil e Xanax', icon: <Skull size={12} />, content: { title: 'Substâncias', description: 'Overdose causada pela combinação letal de fármacos.', analysis: 'A causa oficial foi a combinação de alprazolam e fentanil. O fentanil é um opioide sintético extremamente potente que tem causado uma crise de saúde pública sem precedentes em todo o mundo.' } },
           ]
         },
         {
           id: 'juridico', label: 'Batalha Jurídica', icon: <Scale size={14} />,
-          content: { title: 'Dever de Cuidado', description: 'Processo histórico contra a gestão First Access Entertainment.', analysis: 'O processo movido por Liza Womack contra a FAE tornou-se um marco legal. Ele questionou se gestores musicais têm o dever legal de proteger a saúde de seus clientes, em vez de apenas lucrar com eles.' },
+          content: { title: 'Dever de Cuidado', description: 'Processo histórico contra a gestão First Access Entertainment.', analysis: 'A mãe de Peep moveu um processo histórico que questionou as obrigações legais das agências de gerenciamento. A alegação era de que a gestão falhou em fornecer um ambiente de trabalho seguro e incentivou o uso de drogas para manter o artista "produtivo" em turnê.' },
           children: [
-            { id: 'liza', label: 'Processo de Liza Womack', icon: <Scale size={12} />, content: { title: 'Womack vs FAE', description: 'Processo por negligência e homicídio culposo movido em 2019.', analysis: 'Uma mãe lutando por justiça para seu filho e por mudanças sistêmicas na indústria da música.' } },
-            { id: 'acordo', label: 'Acordo em 2023', icon: <ShieldCheck size={12} />, content: { title: 'Resolução', description: 'Catálogo e arquivos devolvidos integralmente à família.', analysis: 'O acordo final em 2023 garantiu que a família de Gus tivesse controle total sobre seu legado, fotos e músicas inéditas.' } },
+            { id: 'liza', label: 'Processo de Liza Womack', icon: <Scale size={12} />, content: { title: 'Womack vs FAE', description: 'Processo por negligência e homicídio culposo movido em 2019.', analysis: 'Uma batalha de Davi contra Golias. Liza lutou por anos para limpar o nome de seu filho e expor as práticas abusivas de gestão que contribuíram para sua morte.' } },
+            { id: 'acordo', label: 'Acordo em 2023', icon: <ShieldCheck size={12} />, content: { title: 'Resolução', description: 'Catálogo e arquivos devolvidos integralmente à família.', analysis: 'O acordo judicial de 2023 foi uma vitória total para a família. A FAE devolveu todos os direitos das músicas e arquivos originais, permitindo que Liza gerisse o legado de Gus conforme sua visão autêntica.' } },
           ]
         },
         {
           id: 'postumo', label: 'Lançamentos Posthuma', icon: <Archive size={14} />,
-          content: { title: 'Estratégia Póstuma', description: 'Migração de obras originais para plataformas de streaming.', analysis: 'A gestão póstuma tem sido exemplar na migração cuidadosa do catálogo do SoundCloud para plataformas globais, preservando a masterização original sempre que possível.' },
+          content: { title: 'Estratégia Póstuma', description: 'Migração de obras originais para plataformas de streaming.', analysis: 'Ao contrário de muitos lançamentos póstumos oportunistas, a família de Gus focou em relançar seu material original do SoundCloud. Isso garantiu que as mixtapes fundamentais fossem preservadas em sua forma original, com todos os samples licenciados, honrando a estética lo-fi do Gus.' },
           children: [
-            { id: 'cowys2', label: "Come Over When You're Sober, Pt. 2", icon: <Disc size={12} />, content: { title: "COWYS Pt. 2", description: "Primeiro álbum póstumo de estúdio, lançado em 2018.", analysis: 'Finalizado por Smokeasac seguindo as orientações de Gus, tornou-se um sucesso comercial e de crítica.' } },
-            { id: 'diamonds', label: 'Álbum Diamonds', icon: <Disc size={12} />, content: { title: "Diamonds", description: "Lançamento em 2023 após anos de antecipação pelos fãs.", analysis: 'O lendário álbum colaborativo com iLoveMakonnen, finalmente lançado para o público após anos de litígio.' } },
+            { id: 'cowys2', label: "Come Over When You're Sober, Pt. 2", icon: <Disc size={12} />, content: { title: "COWYS Pt. 2", description: "Primeiro álbum póstumo de estúdio, lançado em 2018.", analysis: 'Finalizado pelo produtor Smokeasac, este álbum estreou no topo das paradas mundiais, contendo hinos como "Life is Beautiful", provando a imortalidade comercial da visão do Gus.' } },
+            { id: 'diamonds', label: 'Álbum Diamonds', icon: <Disc size={12} />, content: { title: "Diamonds", description: "Lançamento em 2023 após anos de antecipação pelos fãs.", analysis: 'O lendário álbum colaborativo com iLoveMakonnen. Após anos de disputas legais, finalmente foi lançado em sua forma original, mostrando o Gus explorando sonoridades pop mais brilhantes.' } },
           ]
         }
       ]
@@ -413,3 +413,4 @@ export const Timeline: React.FC = () => {
     </div>
   );
 };
+

@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Share2, Calendar, User, Activity, Play, Pause, Lock, ChevronDown, Cpu, Music } from 'lucide-react';
+import { X, Share2, Calendar, User, Activity, Play, Pause, Lock, ChevronDown, Cpu, Sparkles, Loader2 } from 'lucide-react';
 import { Song } from '../types.ts';
 import { usePlayer } from '../context/PlayerContext.tsx';
+import { GoogleGenAI } from '@google/genai';
 
 interface LyricViewProps {
   song: Song;
@@ -13,6 +14,8 @@ interface LyricViewProps {
 export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   const { playSong, currentSong, isPlaying, togglePlay, progress, duration, seek } = usePlayer();
   const [isSyncing, setIsSyncing] = useState(true);
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const MotionDiv = motion.div as any;
 
@@ -27,6 +30,29 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
       return () => clearTimeout(timer);
     }
   }, [song.lyrics]);
+
+  const fetchAnalysis = useCallback(async () => {
+    if (!song.lyrics || isAnalyzing) return;
+    setIsAnalyzing(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Analyze the lyrics of the song "${song.title}" by Lil Peep. Focus on the emotional depth, specific metaphors, and its place in his legacy. Keep it insightful and gothic in tone. 
+        Lyrics:
+        ${song.lyrics}`,
+        config: {
+          thinkingConfig: { thinkingBudget: 2000 }
+        }
+      });
+      setAnalysis(response.text || "Analysis stream lost.");
+    } catch (err) {
+      console.error(err);
+      setAnalysis("Error: Core reasoning module failed.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [song.lyrics, song.title, isAnalyzing]);
 
   const metadata = useMemo(() => {
     const m = song.metadata || {};
@@ -163,10 +189,47 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-32">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-16">
           <GlassBox icon={<User size={18}/>} label="Producer" value={metadata.producer} />
           <GlassBox icon={<Activity size={18}/>} label="BPM / Frequency" value={metadata.bpm} />
           <GlassBox icon={<Calendar size={18}/>} label="Archive Year" value={metadata.year} />
+        </section>
+
+        {/* AI Analysis Section */}
+        <section className="mb-24">
+           <div className="max-w-3xl mx-auto">
+              {!analysis ? (
+                <button 
+                  onClick={fetchAnalysis}
+                  disabled={isAnalyzing}
+                  className="w-full py-6 bg-neutral-950 border border-neutral-900 flex items-center justify-center gap-4 group hover:border-[#FF007F]/50 transition-all"
+                >
+                  {isAnalyzing ? (
+                    <Loader2 className="w-5 h-5 text-[#FF007F] animate-spin" />
+                  ) : (
+                    <Sparkles className="w-5 h-5 text-[#FF007F]" />
+                  )}
+                  <span className="font-mono text-xs font-bold tracking-[0.4em] text-neutral-400 group-hover:text-white uppercase">
+                    {isAnalyzing ? "Scanning Lyrics..." : "Initiate AI Meaning Analysis"}
+                  </span>
+                </button>
+              ) : (
+                <MotionDiv
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-10 border border-[#FF007F]/20 bg-neutral-950/50 backdrop-blur-md relative"
+                >
+                  <div className="absolute top-0 right-0 p-3">
+                     <Cpu size={14} className="text-[#FF007F] opacity-30" />
+                  </div>
+                  <h4 className="font-mono text-[10px] text-[#FF007F] tracking-[0.6em] uppercase mb-6 font-bold">Decrypted Log: Interpretation</h4>
+                  <div className="prose prose-invert max-w-none font-mono text-sm text-neutral-400 leading-relaxed uppercase tracking-wider italic">
+                    {analysis}
+                  </div>
+                  <button onClick={() => setAnalysis(null)} className="mt-8 text-[9px] font-mono text-neutral-600 hover:text-white uppercase tracking-widest">Clear Fragment</button>
+                </MotionDiv>
+              )}
+           </div>
         </section>
 
         <section className="max-w-3xl mx-auto border-t border-neutral-900 pt-20">
