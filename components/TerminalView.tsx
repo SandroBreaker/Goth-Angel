@@ -21,6 +21,76 @@ interface TerminalViewProps {
   onClose: () => void;
 }
 
+// Componente para a linha com efeito de digitação/decodificação
+const TypewriterLine: React.FC<{ 
+  text: string; 
+  index: number; 
+  isActive: boolean; 
+  isPast: boolean;
+}> = ({ text, index, isActive, isPast }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isDone, setIsDone] = useState(false);
+
+  useEffect(() => {
+    if (isPast) {
+      setDisplayedText(text);
+      setIsDone(true);
+      return;
+    }
+
+    if (!isActive) {
+      setDisplayedText('');
+      setIsDone(false);
+      return;
+    }
+
+    // Lógica de digitação para a linha ativa
+    let currentIdx = 0;
+    setIsDone(false);
+    
+    const interval = setInterval(() => {
+      if (currentIdx < text.length) {
+        setDisplayedText(text.substring(0, currentIdx + 1));
+        currentIdx++;
+      } else {
+        setIsDone(true);
+        clearInterval(interval);
+      }
+    }, 45); // Velocidade de digitação (slow terminal feel)
+
+    return () => clearInterval(interval);
+  }, [isActive, isPast, text]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -5 }}
+      animate={{ 
+        opacity: isPast ? 0.3 : isActive ? 1 : 0.6, 
+        x: 0,
+        scale: isActive ? 1.01 : 1
+      }}
+      className={`flex gap-4 font-mono text-[10px] md:text-[12px] leading-relaxed transition-all ${isActive ? 'text-white' : ''}`}
+    >
+      <span className="text-neutral-700 shrink-0 select-none">
+        [{index.toString().padStart(3, '0')}]
+      </span>
+      <span className={`${isActive ? 'text-[#FF007F]' : 'text-[#7000FF]'} shrink-0 font-bold tracking-tighter`}>
+        SIGNAL_RX:
+      </span>
+      <span className="uppercase tracking-wide break-all">
+        {displayedText}
+        {isActive && !isDone && (
+          <motion.span 
+            animate={{ opacity: [1, 0] }} 
+            transition={{ repeat: Infinity, duration: 0.4 }}
+            className="inline-block ml-1 bg-[#FF007F] w-2 h-3 align-middle"
+          />
+        )}
+      </span>
+    </motion.div>
+  );
+};
+
 const stringToHex = (str: string) => {
   return str
     .split('')
@@ -54,7 +124,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lyricsScrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch lyrics if not present
   useEffect(() => {
     const loadLyrics = async () => {
       if (currentSong && !currentSong.lyrics && !fetchedLyrics && !isFetching) {
@@ -86,7 +155,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     }]);
   };
 
-  // Background activity simulation
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date().toLocaleTimeString('en-GB', { hour12: false }));
@@ -110,9 +178,15 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [logs]);
 
+  // Scroll automático para a linha ativa de letras
   useEffect(() => {
-    if (lyricsScrollRef.current) lyricsScrollRef.current.scrollTop = lyricsScrollRef.current.scrollHeight;
-  }, [currentSong?.lyrics, fetchedLyrics, progress]);
+    if (lyricsScrollRef.current) {
+      const activeEl = lyricsScrollRef.current.querySelector('.text-white');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [progress]);
 
   const handleCommandSubmit = (e: React.FormEvent | React.KeyboardEvent) => {
     if ('key' in e && e.key !== 'Enter') return;
@@ -121,7 +195,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
 
     addLog(`USR_CMD: ${commandInput.toUpperCase()}`, 'success');
     
-    // Easter eggs / Basic commands
     const cmd = commandInput.toLowerCase().trim();
     if (cmd === 'clear') setLogs([]);
     if (cmd === 'help') addLog("AVAILABLE: CLEAR, STATUS, INFO, EXIT", "warning");
@@ -133,7 +206,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   };
 
   const techData = useMemo(() => currentSong ? parseTrackMetadata(currentSong) : null, [currentSong]);
-  const hexTitle = useMemo(() => currentSong ? stringToHex(currentSong.title) : 'NULL', [currentSong]);
   
   const lyricLines = useMemo(() => {
     const raw = currentSong?.lyrics || fetchedLyrics;
@@ -141,7 +213,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     return raw.split('\n').filter(l => l.trim() !== "");
   }, [currentSong, fetchedLyrics, isFetching]);
 
-  // Lyric highlighting logic based on duration
   const activeLineIndex = useMemo(() => {
     if (duration <= 0) return -1;
     const ratio = progress / duration;
@@ -197,30 +268,15 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
             ref={lyricsScrollRef}
             className="flex-grow p-6 overflow-y-auto space-y-3 scrollbar-hide"
           >
-            <AnimatePresence initial={false}>
-              {lyricLines.map((line, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ 
-                    opacity: idx < activeLineIndex ? 0.3 : idx === activeLineIndex ? 1 : 0.6, 
-                    x: 0,
-                    scale: idx === activeLineIndex ? 1.02 : 1
-                  }}
-                  className={`flex gap-4 font-mono text-[10px] md:text-[12px] leading-relaxed transition-colors ${idx === activeLineIndex ? 'text-white' : ''}`}
-                >
-                  <span className="text-neutral-700 shrink-0 select-none">
-                    [{idx.toString().padStart(3, '0')}]
-                  </span>
-                  <span className={`${idx === activeLineIndex ? 'text-[#FF007F]' : 'text-[#7000FF]'} shrink-0 font-bold tracking-tighter`}>
-                    SIGNAL_RX:
-                  </span>
-                  <span className="uppercase tracking-wide">
-                    {line}
-                  </span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            {lyricLines.map((line, idx) => (
+              <TypewriterLine 
+                key={`${currentSong.id}-${idx}`}
+                text={line}
+                index={idx}
+                isActive={idx === activeLineIndex}
+                isPast={idx < activeLineIndex}
+              />
+            ))}
           </div>
 
           <form onSubmit={handleCommandSubmit} className="h-12 border-t border-neutral-800 bg-neutral-950/50 flex items-center px-4 gap-4">
