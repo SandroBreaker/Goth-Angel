@@ -29,9 +29,9 @@ const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('archive');
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sentimentFilter, setSentimentFilter] = useState<string | null>(null);
+  const [sentimentFilters, setSentimentFilters] = useState<string[]>([]);
 
-  const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilter);
+  const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilters);
   const { currentSong, stop } = usePlayer();
 
   // Rastreamento de Acesso e Telemetria

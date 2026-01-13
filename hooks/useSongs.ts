@@ -21,7 +21,7 @@ const stringifyError = (err: any): string => {
   return 'Unspecified Database Error';
 };
 
-export const useSongs = (query: string, filter: string | null) => {
+export const useSongs = (query: string, filter: string | string[] | null) => {
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -48,13 +48,22 @@ export const useSongs = (query: string, filter: string | null) => {
         .from('songs')
         .select('id, title, image_url, video_url, storage_url, release_date, metadata', { count: 'exact' });
 
+      // FILTER: Only show songs with valid storage_url (media exists)
+      request = request.not('storage_url', 'is', null).neq('storage_url', '');
+
       const trimmedQuery = query.trim();
       if (trimmedQuery) {
         request = request.ilike('title', `%${trimmedQuery}%`);
       }
 
       if (filter) {
-        request = request.filter('metadata->>sentiment', 'eq', filter);
+        const filters = Array.isArray(filter) ? filter : [filter];
+        const activeFilters = filters.filter(f => f && f.trim() !== '');
+        
+        if (activeFilters.length > 0) {
+          // PostgREST supports .in() on computed jsonb fields using the ->> operator
+          request = request.in('metadata->>sentiment', activeFilters);
+        }
       }
 
       const from = pageRef.current * PAGE_SIZE;
