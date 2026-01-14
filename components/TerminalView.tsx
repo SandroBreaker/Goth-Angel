@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Terminal, Cpu, Database, Activity, Clock, 
   Wifi, ShieldAlert, Code, X, ChevronRight,
-  Lock, Zap, Play, Pause, Globe, Users
+  Lock, Zap, Play, Pause, Globe, Users,
+  Layers, MessageSquare, BarChart2
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 import { parseTrackMetadata } from '../utils/metadataParser.ts';
@@ -22,7 +23,6 @@ interface TerminalViewProps {
   onClose: () => void;
 }
 
-// Componente para a linha com efeito de digitação/decodificação
 const TypewriterLine: React.FC<{ 
   text: string; 
   index: number; 
@@ -31,7 +31,6 @@ const TypewriterLine: React.FC<{
 }> = ({ text, index, isActive, isPast }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isDone, setIsDone] = useState(false);
-  // Fix: Casting motion components to any to resolve React 19 type incompatibilities
   const MotionDiv = motion.div as any;
   const MotionSpan = motion.span as any;
 
@@ -41,17 +40,13 @@ const TypewriterLine: React.FC<{
       setIsDone(true);
       return;
     }
-
     if (!isActive) {
       setDisplayedText('');
       setIsDone(false);
       return;
     }
-
-    // Lógica de digitação para a linha ativa
     let currentIdx = 0;
     setIsDone(false);
-    
     const interval = setInterval(() => {
       if (currentIdx < text.length) {
         setDisplayedText(text.substring(0, currentIdx + 1));
@@ -60,13 +55,11 @@ const TypewriterLine: React.FC<{
         setIsDone(true);
         clearInterval(interval);
       }
-    }, 45); // Velocidade de digitação (slow terminal feel)
-
+    }, 35);
     return () => clearInterval(interval);
   }, [isActive, isPast, text]);
 
   return (
-    // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
     <MotionDiv
       initial={{ opacity: 0, x: -5 }}
       animate={{ 
@@ -74,22 +67,21 @@ const TypewriterLine: React.FC<{
         x: 0,
         scale: isActive ? 1.01 : 1
       }}
-      className={`flex gap-4 font-mono text-[10px] md:text-[12px] leading-relaxed transition-all ${isActive ? 'text-white' : ''}`}
+      className={`flex gap-2 md:gap-4 font-mono text-[9px] md:text-[12px] leading-relaxed transition-all ${isActive ? 'text-white' : ''}`}
     >
-      <span className="text-neutral-700 shrink-0 select-none">
+      <span className="text-neutral-800 shrink-0 select-none">
         [{index.toString().padStart(3, '0')}]
       </span>
       <span className={`${isActive ? 'text-[#FF007F]' : 'text-[#7000FF]'} shrink-0 font-bold tracking-tighter`}>
-        SIGNAL_RX:
+        SIG:
       </span>
       <span className="uppercase tracking-wide break-all">
         {displayedText}
         {isActive && !isDone && (
-          // Fix: Using MotionSpan (casted to any) to resolve React 19 type incompatibilities
           <MotionSpan 
             animate={{ opacity: [1, 0] }} 
             transition={{ repeat: Infinity, duration: 0.4 }}
-            className="inline-block ml-1 bg-[#FF007F] w-2 h-3 align-middle"
+            className="inline-block ml-1 bg-[#FF007F] w-1.5 h-2.5 md:w-2 md:h-3 align-middle"
           />
         )}
       </span>
@@ -97,73 +89,39 @@ const TypewriterLine: React.FC<{
   );
 };
 
-const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1) + min);
-
-const SYSTEM_MESSAGES = [
-  "BUFFERING_AUDIO_STREAM...",
-  "NEURAL_LINK_ESTABLISHED",
-  "DECRYPTING_VIRTUAL_MEMORY...",
-  "CALIBRATING_SENSORS",
-  "PROTOCOL_GAS_v4_ACTIVE",
-  "SYNCING_WITH_VAULT_NODE_01",
-  "HEARTBEAT_STABLE",
-  "ARCHIVE_INTEGRITY_VERIFIED"
-];
-
 export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
-  const { currentSong, isPlaying, progress, duration, togglePlay, playSong } = usePlayer();
+  const { currentSong, isPlaying, progress, duration, togglePlay } = usePlayer();
   const [time, setTime] = useState(new Date().toISOString());
   const [trafficCount, setTrafficCount] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
   const [lastConnection, setLastConnection] = useState<string>("SEARCHING...");
-  const [visualizerBars, setVisualizerBars] = useState(Array(12).fill(2));
+  const [visualizerBars, setVisualizerBars] = useState(Array(10).fill(2));
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [commandInput, setCommandInput] = useState('');
   const [fetchedLyrics, setFetchedLyrics] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<'decoder' | 'console' | 'stats'>('decoder');
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const lyricsScrollRef = useRef<HTMLDivElement>(null);
+  const MotionDiv = motion.div as any;
 
-  // Monitor Access Logs
   useEffect(() => {
     const fetchAccessStats = async () => {
       try {
-        const { count: totalCount } = await supabase
-          .from('access_logs_goth')
-          .select('*', { count: 'exact', head: true });
-        
+        const { count: totalCount } = await supabase.from('access_logs_goth').select('*', { count: 'exact', head: true });
         if (totalCount !== null) setTrafficCount(totalCount);
-
         const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        const { count: recentCount } = await supabase
-           .from('access_logs_goth')
-           .select('id', { count: 'exact', head: true })
-           .gt('created_at', fiveMinsAgo);
-
+        const { count: recentCount } = await supabase.from('access_logs_goth').select('id', { count: 'exact', head: true }).gt('created_at', fiveMinsAgo);
         if (recentCount !== null) setActiveUsers(recentCount);
-
-        const { data } = await supabase
-          .from('access_logs_goth')
-          .select('platform, timezone, path, created_at')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
+        const { data } = await supabase.from('access_logs_goth').select('platform, timezone, path, created_at').order('created_at', { ascending: false }).limit(1).single();
         if (data) {
           const loc = data.timezone ? data.timezone.split('/')[1] || data.timezone : 'UNKNOWN';
           setLastConnection(`${loc.toUpperCase()} [${data.platform?.toUpperCase().slice(0, 3) || 'WEB'}]`);
-          
-          if (Math.random() > 0.8) {
-             addLog(`INCOMING_CX: ${data.platform?.toUpperCase() || 'USR'} @ ${loc.toUpperCase()} -> ${data.path}`, 'success');
-          }
         }
-      } catch (err) {
-        console.warn('Telemetry sync failed');
-      }
+      } catch (err) { console.warn('Telemetry sync error'); }
     };
-
     fetchAccessStats();
     const interval = setInterval(fetchAccessStats, 10000);
     return () => clearInterval(interval);
@@ -173,18 +131,8 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     const loadLyrics = async () => {
       if (currentSong && !currentSong.lyrics && !fetchedLyrics && !isFetching) {
         setIsFetching(true);
-        const { data } = await supabase
-          .from('songs')
-          .select('lyrics')
-          .eq('id', currentSong.id)
-          .single();
-        
-        if (data?.lyrics) {
-          setFetchedLyrics(data.lyrics);
-          addLog(`DATA_FETCH_SUCCESS: LYRICS_RETRIEVED_FOR_${currentSong.id}`, 'success');
-        } else {
-          addLog(`DATA_FETCH_ERROR: NO_LYRICS_FOUND_IN_VAULT`, 'error');
-        }
+        const { data } = await supabase.from('songs').select('lyrics').eq('id', currentSong.id).single();
+        if (data?.lyrics) setFetchedLyrics(data.lyrics);
         setIsFetching(false);
       }
     };
@@ -193,265 +141,184 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   }, [currentSong]);
 
   const addLog = (text: string, type: LogEntry['type'] = 'info') => {
-    setLogs(prev => {
-      const newLogs = [...prev, {
-        id: Date.now() + Math.random(),
-        text,
-        type,
-        timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false })
-      }];
-      return newLogs.slice(-49);
-    });
+    setLogs(prev => [...prev, { id: Date.now() + Math.random(), text, type, timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false }) }].slice(-40));
   };
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date().toLocaleTimeString('en-GB', { hour12: false }));
-      if (Math.random() > 0.95) {
-        addLog(SYSTEM_MESSAGES[randomInt(0, SYSTEM_MESSAGES.length - 1)]);
-      }
-    }, 1000);
+    const timer = setInterval(() => setTime(new Date().toLocaleTimeString('en-GB', { hour12: false })), 1000);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setVisualizerBars(prev => prev.map(() => isPlaying ? randomInt(1, 8) : randomInt(1, 2)));
+      setVisualizerBars(prev => prev.map(() => isPlaying ? Math.floor(Math.random() * 8) + 1 : 2));
     }, 150);
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [logs]);
-
-  useEffect(() => {
-    if (lyricsScrollRef.current) {
-      const activeEl = lyricsScrollRef.current.querySelector('.text-white');
-      if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  }, [progress]);
-
-  const handleCommandSubmit = async (e: React.FormEvent | React.KeyboardEvent) => {
-    if ('key' in e && e.key !== 'Enter') return;
+  const handleCommandSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commandInput.trim()) return;
-
-    addLog(`USR_CMD: ${commandInput.toUpperCase()}`, 'success');
-    
     const cmd = commandInput.toLowerCase().trim();
+    addLog(`USR_CMD: ${cmd.toUpperCase()}`, 'success');
     if (cmd === 'clear') setLogs([]);
-    if (cmd === 'help') addLog("AVAILABLE: DASHBOARD, CLEAR, STATUS, PLAY, PAUSE, EXIT", "warning");
+    if (cmd === 'dashboard') setIsDashboardOpen(true);
     if (cmd === 'exit') onClose();
-    
-    if (cmd === 'play') {
-      if (!currentSong) {
-        addLog("ERROR: NO_SOURCE_SELECTED. PLEASE SELECT A TRACK FROM THE ARCHIVE.", "error");
-      } else if (!isPlaying) {
-        togglePlay();
-        addLog("PROTOCOL: IGNITING_AUDIO_CORE", "success");
-      }
-    }
-    
-    if (cmd === 'pause') {
-      if (isPlaying) {
-        togglePlay();
-        addLog("PROTOCOL: CORE_SUSPENDED", "warning");
-      }
-    }
-    
-    if (cmd === 'dashboard' || cmd === 'status') {
-      addLog("INITIATING_DEEP_ANALYTICS_OVERLAY...", "info");
-      setIsDashboardOpen(true);
-    }
-
+    if (cmd === 'play' && !isPlaying) togglePlay();
+    if (cmd === 'pause' && isPlaying) togglePlay();
     setCommandInput('');
   };
 
-  const techData = useMemo(() => currentSong ? parseTrackMetadata(currentSong) : null, [currentSong]);
-  
   const lyricLines = useMemo(() => {
     const raw = currentSong?.lyrics || fetchedLyrics;
-    if (!currentSong) return ["SYSTEM_IDLE: AWAITING_DATA_SOURCE", "AWAITING_SIGNAL...", "---------------------------"];
+    if (!currentSong) return ["SYSTEM_IDLE: AWAITING_SIGNAL", "---------------------------"];
     if (!raw) return isFetching ? ["DECRYPTING_SIGNAL..."] : ["WAITING_FOR_DATA_STREAM..."];
     return raw.split('\n').filter(l => l.trim() !== "");
   }, [currentSong, fetchedLyrics, isFetching]);
 
   const activeLineIndex = useMemo(() => {
     if (!currentSong || duration <= 0) return -1;
-    const ratio = progress / duration;
-    return Math.floor(ratio * lyricLines.length);
-  }, [currentSong, progress, duration, lyricLines.length]);
+    return Math.floor((progress / duration) * lyricLines.length);
+  }, [progress, duration, lyricLines.length]);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black text-neutral-400 font-mono selection:bg-[#FF007F]/30 overflow-hidden flex flex-col p-2 md:p-4 gap-2">
-      <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-[210]"></div>
+    <div className="fixed inset-0 z-[200] bg-black text-neutral-400 font-mono selection:bg-[#FF007F]/30 overflow-hidden flex flex-col p-1.5 md:p-4 gap-1.5">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] z-[210]"></div>
 
-      <header className="h-14 shrink-0 border border-neutral-800 bg-neutral-900/20 backdrop-blur-md flex items-center justify-between px-6 relative overflow-hidden">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-[#00FF41] animate-pulse shadow-[0_0_8px_#00FF41]' : 'bg-red-600'}`}></div>
-            <span className="text-[10px] font-bold tracking-[0.3em] uppercase">
-              STATUS: <span className={isPlaying ? 'text-[#00FF41]' : 'text-red-600'}>{isPlaying ? 'CONNECTED' : 'STANDBY'}</span>
+      <header className="h-12 md:h-14 shrink-0 border border-neutral-800 bg-neutral-900/20 backdrop-blur-md flex items-center justify-between px-3 md:px-6">
+        <div className="flex items-center gap-4 md:gap-8">
+          <div className="flex items-center gap-2">
+            <div className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#00FF41] animate-pulse shadow-[0_0_8px_#00FF41]' : 'bg-red-600'}`}></div>
+            <span className="text-[8px] md:text-[10px] font-bold tracking-widest uppercase truncate max-w-[60px] md:max-w-none">
+              {isPlaying ? 'LINKED' : 'IDLE'}
             </span>
           </div>
-          
-          <div className="hidden md:flex items-center gap-6">
-            <div 
-              onClick={() => setIsDashboardOpen(true)}
-              className="flex items-center gap-2 text-neutral-500 hover:text-[#00FF41] transition-colors cursor-pointer group" 
-              title="Click for detailed dashboard"
-            >
-              <Users size={14} className={activeUsers > 0 ? "text-[#00FF41] animate-pulse" : ""} />
-              <span className="text-[9px] font-bold uppercase tracking-widest group-hover:underline">NODES_ONLINE: {activeUsers}</span>
-            </div>
-            <div 
-              onClick={() => setIsDashboardOpen(true)}
-              className="flex items-center gap-2 text-neutral-500 hover:text-[#FF007F] transition-colors cursor-pointer group" 
-              title="Click for deep analytics"
-            >
-              <Globe size={14} />
-              <span className="text-[9px] font-bold uppercase tracking-widest group-hover:underline">NET_TRAFFIC: {trafficCount.toLocaleString()}</span>
-            </div>
+          <div className="hidden sm:flex items-center gap-4">
+             <div className="flex items-center gap-1.5 text-neutral-500">
+               <Users size={12} />
+               <span className="text-[8px] font-bold uppercase tracking-widest">{activeUsers} NODES</span>
+             </div>
+             <div className="flex items-center gap-1.5 text-neutral-500">
+               <Clock size={12} />
+               <span className="text-[8px] font-bold uppercase tracking-widest">{time}</span>
+             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 text-neutral-500">
-            <Clock size={14} />
-            <span className="text-[10px] font-bold tabular-nums">{time} UTC</span>
-          </div>
-          <button 
-            onClick={onClose}
-            className="flex items-center gap-2 px-4 py-1.5 border border-neutral-800 hover:border-[#FF007F] hover:text-[#FF007F] transition-all group/btn"
-          >
-            <span className="text-[9px] font-bold tracking-[0.2em] uppercase">[ SYS_EXIT ]</span>
-            <X size={14} className="group-hover/btn:rotate-90 transition-transform" />
+        <div className="flex items-center gap-2 md:gap-4">
+          <span className="hidden md:block text-[8px] text-[#FF007F] font-bold tracking-[0.4em] uppercase">Security: Active</span>
+          <button onClick={onClose} className="p-2 border border-neutral-800 hover:border-[#FF007F] text-neutral-500 hover:text-white transition-all">
+            <X size={16} />
           </button>
         </div>
       </header>
 
-      <div className="flex-grow flex flex-col md:flex-row gap-2 overflow-hidden">
-        <section className="flex-[6] border border-neutral-800 bg-[#050505] flex flex-col overflow-hidden relative">
-          <div className="h-10 border-b border-neutral-800 flex items-center px-4 justify-between bg-neutral-950/50">
-            <div className="flex items-center gap-3">
-              <Terminal size={14} className="text-[#FF007F]" />
-              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#FF007F]">FRAGMENT_LYRIC_DECODER</span>
+      {/* Abas Mobile */}
+      <nav className="flex md:hidden h-10 border border-neutral-800 bg-neutral-950/40">
+        <MobileTab active={activeSection === 'decoder'} onClick={() => setActiveSection('decoder')} icon={<MessageSquare size={14}/>} label="Dec" />
+        <MobileTab active={activeSection === 'console'} onClick={() => setActiveSection('console')} icon={<Terminal size={14}/>} label="Con" />
+        <MobileTab active={activeSection === 'stats'} onClick={() => setActiveSection('stats')} icon={<BarChart2 size={14}/>} label="Sys" />
+      </nav>
+
+      <div className="flex-grow flex flex-col md:flex-row gap-1.5 overflow-hidden">
+        {/* Lado Esquerdo: Decoder / Lyrics */}
+        <section className={`${activeSection === 'decoder' ? 'flex' : 'hidden'} md:flex flex-[6] border border-neutral-800 bg-[#050505] flex-col overflow-hidden relative`}>
+          <div className="h-9 border-b border-neutral-800 flex items-center px-4 justify-between bg-neutral-950/50">
+            <div className="flex items-center gap-2">
+              <Terminal size={12} className="text-[#FF007F]" />
+              <span className="text-[8px] font-bold tracking-[0.3em] uppercase text-[#FF007F]">SIGNAL_DECODER</span>
             </div>
-            <span className="text-[8px] text-neutral-700 font-bold uppercase tracking-[0.2em]">Buffer: 256kbps</span>
+            <span className="text-[7px] text-neutral-700 font-bold uppercase tracking-widest">v4.0.2_mobile</span>
           </div>
 
-          <div 
-            ref={lyricsScrollRef}
-            className="flex-grow p-6 overflow-y-auto space-y-3 scrollbar-hide"
-          >
+          <div ref={lyricsScrollRef} className="flex-grow p-4 md:p-6 overflow-y-auto space-y-2 md:space-y-3 scrollbar-hide">
             {lyricLines.map((line, idx) => (
               <TypewriterLine 
                 key={currentSong ? `${currentSong.id}-${idx}` : `idle-${idx}`}
                 text={line}
                 index={idx}
-                isActive={idx === activeLineIndex || (!currentSong && idx === 0)}
+                isActive={idx === activeLineIndex}
                 isPast={idx < activeLineIndex}
               />
             ))}
           </div>
 
-          <form onSubmit={handleCommandSubmit} className="h-12 border-t border-neutral-800 bg-neutral-950/50 flex items-center px-4 gap-4">
-             <ChevronRight size={14} className="text-[#FF007F] animate-pulse" />
+          <form onSubmit={handleCommandSubmit} className="h-10 md:h-12 border-t border-neutral-800 bg-neutral-950/50 flex items-center px-4 gap-3">
+             <ChevronRight size={14} className="text-[#FF007F]" />
              <input 
                type="text" 
                value={commandInput}
                onChange={(e) => setCommandInput(e.target.value)}
-               placeholder="ENTER COMMAND (TRY 'DASHBOARD')..."
-               className="bg-transparent border-none outline-none text-[10px] tracking-[0.2em] font-bold w-full placeholder:text-neutral-800 text-[#FF007F]"
-               autoFocus
+               placeholder="SYS_COMMAND..."
+               className="bg-transparent border-none outline-none text-[9px] md:text-[10px] tracking-widest font-bold w-full text-[#FF007F] placeholder:text-neutral-800"
              />
           </form>
         </section>
 
-        <section className="flex-[4] flex flex-col gap-2 overflow-hidden">
-          <div className="flex-[3] border border-neutral-800 bg-[#080808] flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-neutral-900 flex items-center gap-3">
-              <Activity size={14} className="text-[#00FF41]" />
-              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#00FF41]">SYSTEM_LOGS</span>
+        {/* Lado Direito: Logs e Stats */}
+        <section className={`${activeSection !== 'decoder' ? 'flex' : 'hidden'} md:flex flex-[4] flex-col gap-1.5 overflow-hidden`}>
+          
+          {/* Aba de Console em Mobile / Top Section em Desktop */}
+          <div className={`${activeSection === 'console' ? 'flex' : 'hidden md:flex'} flex-[3] border border-neutral-800 bg-[#080808] flex-col overflow-hidden`}>
+            <div className="h-9 p-4 border-b border-neutral-900 flex items-center gap-2 bg-neutral-950/40">
+              <Activity size={12} className="text-[#00FF41]" />
+              <span className="text-[8px] font-bold tracking-widest uppercase text-[#00FF41]">SYSTEM_CONSOLE</span>
             </div>
-            <div ref={scrollRef} className="flex-grow p-4 overflow-y-auto font-mono text-[9px] space-y-1.5 scrollbar-hide">
+            <div className="flex-grow p-3 overflow-y-auto font-mono text-[8px] space-y-1 scrollbar-hide">
               {logs.map(log => (
-                <div key={log.id} className="flex gap-3">
-                  <span className="text-neutral-700">[{log.timestamp}]</span>
-                  <span className={`
-                    ${log.type === 'error' ? 'text-red-500' : ''}
-                    ${log.type === 'warning' ? 'text-yellow-500' : ''}
-                    ${log.type === 'success' ? 'text-green-500' : ''}
-                    ${log.type === 'info' ? 'text-[#00FF41]/60' : ''}
-                  `}>
+                <div key={log.id} className="flex gap-2">
+                  <span className="text-neutral-700 shrink-0">[{log.timestamp}]</span>
+                  <span className={`uppercase tracking-tighter ${log.type === 'error' ? 'text-red-500' : log.type === 'success' ? 'text-green-500' : 'text-[#00FF41]/60'}`}>
                     {log.text}
                   </span>
                 </div>
               ))}
+              {logs.length === 0 && <p className="text-neutral-800 text-[8px] uppercase tracking-widest italic mt-2">No terminal data recorded...</p>}
             </div>
           </div>
 
-          <div className="flex-[2] border border-neutral-800 bg-[#080808] p-4 flex flex-col">
-            <div className="flex items-center gap-3 mb-4 border-b border-neutral-900 pb-2">
-              <Database size={14} className="text-[#7000FF]" />
-              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#7000FF]">ARTIFACT_METADATA</span>
-            </div>
-            
-            <div className="space-y-3">
-               {[
-                 { k: "Title", v: currentSong?.title || "VOID" },
-                 { k: "Memory_Node", v: currentSong?.id.slice(0, 8) || "PENDING" },
-                 { k: "Last_Signal", v: lastConnection },
-                 { k: "Nodes_Active", v: activeUsers.toString() },
-                 { k: "Global_Hits", v: trafficCount.toLocaleString() }
-               ].map(item => (
-                 <div key={item.k} className="flex justify-between border-b border-neutral-900/50 pb-1">
-                   <span className="text-[9px] uppercase font-bold text-neutral-600">{item.k}:</span>
-                   <span className="text-[10px] uppercase font-bold text-neutral-300 truncate max-w-[150px]">{item.v}</span>
-                 </div>
-               ))}
-            </div>
-          </div>
+          {/* Aba de Stats em Mobile / Bottom Section em Desktop */}
+          <div className={`${activeSection === 'stats' ? 'flex' : 'hidden md:flex'} flex-[2] flex-col gap-1.5 overflow-hidden`}>
+            <div className="flex-grow border border-neutral-800 bg-[#080808] p-4 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-3 border-b border-neutral-900 pb-2">
+                <Database size={12} className="text-[#7000FF]" />
+                <span className="text-[8px] font-bold tracking-widest uppercase text-[#7000FF]">TELEMETRY_NODE</span>
+              </div>
+              
+              <div className="space-y-1.5">
+                 <StatRow label="Title" value={currentSong?.title || "IDLE"} />
+                 <StatRow label="Traffic" value={trafficCount.toLocaleString()} />
+                 <StatRow label="Nodes" value={activeUsers.toString()} />
+                 <StatRow label="Loc" value={lastConnection} />
+              </div>
 
-          <div className="flex-1 border border-neutral-800 bg-[#080808] p-4 flex flex-col justify-center">
-            <div className="flex items-center justify-between mb-4">
-               <span className="text-[8px] font-bold text-neutral-600 tracking-[0.3em]">WAVE_SIGNAL</span>
-               <Activity size={12} className="text-[#FF007F]" />
+              <div className="mt-4 flex items-end justify-center gap-1 h-10">
+                {visualizerBars.map((v, i) => (
+                  <div key={i} className="flex flex-col gap-0.5">
+                    {Array(8).fill(0).map((_, idx) => (
+                      <span key={idx} className={`text-[8px] leading-[4px] ${8 - idx <= v ? 'text-[#FF007F]' : 'text-neutral-900'}`}>
+                        {8 - idx <= v ? '█' : '▒'}
+                      </span>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex items-end justify-center gap-1 h-12 md:h-16">
-              {visualizerBars.map((v, i) => (
-                <div key={i} className="flex flex-col gap-0.5">
-                  {Array(8).fill(0).map((_, idx) => (
-                    <span 
-                      key={idx}
-                      className={`text-[12px] leading-[6px] transition-colors duration-200 ${8 - idx <= v ? 'text-[#FF007F]' : 'text-neutral-900'}`}
-                    >
-                      {8 - idx <= v ? '█' : '▒'}
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="h-14 border border-neutral-800 bg-neutral-950 flex items-center justify-around">
-             <button 
-               onClick={() => {
-                 if (currentSong) togglePlay();
-                 else addLog("ERROR: NO_SOURCE_SELECTED", "error");
-               }} 
-               className={`p-3 transition-colors ${currentSong ? 'text-neutral-500 hover:text-white' : 'text-neutral-800 cursor-not-allowed'}`}
-             >
-                {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-             </button>
-             <div className="h-4 w-px bg-neutral-800"></div>
-             <div className="flex items-center gap-2">
-                <Zap size={14} className="text-[#7000FF]" fill="currentColor" />
-                <span className="text-[9px] font-bold tracking-widest text-[#7000FF]">GAS_OS_ACTIVE</span>
-             </div>
+            <div className="h-12 border border-neutral-800 bg-neutral-950 flex items-center justify-around px-4">
+               <button onClick={togglePlay} className={`p-2 transition-colors ${currentSong ? 'text-neutral-500 hover:text-white' : 'text-neutral-800 cursor-not-allowed'}`}>
+                  {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+               </button>
+               <div className="h-4 w-px bg-neutral-800"></div>
+               <button onClick={() => setIsDashboardOpen(true)} className="p-2 text-neutral-500 hover:text-[#7000FF] transition-colors">
+                  <Globe size={16} />
+               </button>
+               <div className="h-4 w-px bg-neutral-800"></div>
+               <div className="flex items-center gap-1">
+                  <Zap size={12} className="text-[#FF007F]" />
+                  <span className="text-[7px] font-bold tracking-widest text-neutral-600">G.A.S_OS</span>
+               </div>
+            </div>
           </div>
         </section>
       </div>
@@ -466,16 +333,28 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
         )}
       </AnimatePresence>
 
-      <footer className="h-8 shrink-0 flex items-center justify-between px-4 bg-neutral-950 border border-neutral-800">
-         <div className="flex gap-6">
-            <span className="text-[7px] font-mono text-neutral-700 tracking-[0.4em] uppercase">Protocol: Goth-Angel-Sinner-V4</span>
-            <span className="text-[7px] font-mono text-neutral-700 tracking-[0.4em] uppercase">Node: SB-ARCHIVE-01</span>
-         </div>
-         <div className="flex items-center gap-2">
-            <ShieldAlert size={10} className="text-[#FF007F]" />
-            <span className="text-[7px] text-[#FF007F] font-bold uppercase tracking-widest">Auth: SandroBreaker</span>
-         </div>
+      <footer className="h-6 shrink-0 flex items-center justify-between px-3 bg-neutral-950 border border-neutral-800">
+         <span className="text-[6px] font-mono text-neutral-800 tracking-widest uppercase">SB_ARCHIVE_TERMINAL_NODE_110196</span>
+         <span className="text-[6px] text-neutral-800 uppercase font-bold tracking-widest">{activeSection.toUpperCase()}_SECTION_ACTIVE</span>
       </footer>
     </div>
   );
 };
+
+const MobileTab = ({ active, onClick, icon, label }: any) => {
+  const MotionDiv = motion.div as any;
+  return (
+    <button onClick={onClick} className={`flex-1 flex items-center justify-center gap-2 border-r last:border-0 border-neutral-800 transition-all ${active ? 'bg-[#FF007F]/10 text-[#FF007F]' : 'text-neutral-600'}`}>
+      {icon}
+      <span className="text-[8px] font-bold uppercase tracking-widest">{label}</span>
+      {active && <MotionDiv layoutId="activeMobileTab" className="absolute bottom-0 h-0.5 bg-[#FF007F] w-full max-w-[40px]" />}
+    </button>
+  );
+};
+
+const StatRow = ({ label, value }: { label: string, value: string }) => (
+  <div className="flex justify-between items-center text-[7px] uppercase font-bold tracking-widest">
+    <span className="text-neutral-700">{label}:</span>
+    <span className="text-neutral-400 truncate max-w-[100px] text-right">{value}</span>
+  </div>
+);

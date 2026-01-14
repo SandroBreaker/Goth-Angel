@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Coffee, Copy, Check, Zap, ShieldCheck, Heart } from 'lucide-react';
+import { X, Copy, Check, Heart, Sparkles, Shield } from 'lucide-react';
 
 interface DonationModalProps {
   onClose: () => void;
@@ -10,7 +10,6 @@ interface DonationModalProps {
 export const DonationModal: React.FC<DonationModalProps> = ({ onClose }) => {
   const [copied, setCopied] = useState(false);
   const pixKey = "11982244907";
-  // Fix: Casting motion.div to any to resolve React 19 type incompatibilities
   const MotionDiv = motion.div as any;
 
   const handleCopy = () => {
@@ -20,86 +19,98 @@ export const DonationModal: React.FC<DonationModalProps> = ({ onClose }) => {
   };
 
   return (
-    // Fix: Using MotionDiv (casted to any) to resolve type errors
     <MotionDiv 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md"
+      className="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl"
       onClick={onClose}
     >
-      {/* Fix: Using MotionDiv (casted to any) to resolve type errors */}
       <MotionDiv 
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="relative w-full max-w-md bg-[#050505] border border-neutral-800 p-8 shadow-[0_0_50px_rgba(255,0,127,0.15)] overflow-hidden"
+        initial={{ scale: 0.9, y: 30, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.9, y: 30, opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="relative w-full max-w-lg bg-[#050505] border-2 border-[#FF007F] p-8 md:p-12 shadow-[0_0_100px_rgba(255,0,127,0.2)] overflow-hidden rounded-sm"
         onClick={e => e.stopPropagation()}
       >
-        {/* Scanline Effect */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-0"></div>
-
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 right-0 p-4 opacity-10 text-[#FF007F]">
+          <Heart size={120} strokeWidth={1} fill="currentColor" />
+        </div>
+        
         <div className="relative z-10">
-          <header className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#FF007F]/10 border border-[#FF007F]/20 text-[#FF007F]">
-                <Coffee size={18} />
+          <header className="flex justify-between items-start mb-10">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-4 text-[#FF007F] mb-2">
+                <Heart size={24} className="fill-[#FF007F]/20" />
+                <h3 className="font-gothic text-4xl md:text-5xl text-white tracking-widest drop-shadow-[0_0_15px_rgba(255,0,127,0.5)]">Support the Legacy</h3>
               </div>
-              <div>
-                <h3 className="text-[11px] font-bold tracking-[0.4em] text-white uppercase">Neural_Funding</h3>
-                <p className="text-[8px] text-neutral-500 uppercase tracking-widest mt-0.5">Support Project Integrity</p>
-              </div>
+              <p className="font-serif-classic text-[10px] md:text-[12px] text-neutral-400 uppercase tracking-[0.3em] font-bold">Maintain the Digital Sanctuary</p>
             </div>
             <button 
               onClick={onClose}
-              className="p-2 hover:bg-neutral-900 text-neutral-500 hover:text-white transition-colors"
+              className="p-3 bg-neutral-900/50 hover:bg-[#FF007F]/20 text-neutral-500 hover:text-white transition-all rounded-full group"
             >
-              <X size={18} />
+              <X size={20} className="group-hover:rotate-90 transition-transform" />
             </button>
           </header>
 
-          <section className="mb-8 space-y-4">
-            <p className="font-mono text-[10px] text-neutral-400 leading-relaxed uppercase tracking-wider text-justify">
-              O G.A.S Archive é um santuário digital gratuito e sem anúncios. Sua contribuição ajuda a manter os servidores de alta performance e a indexação de dados do projeto ativos.
+          <section className="mb-12 space-y-6">
+            <p className="font-serif-classic text-[11px] md:text-[13px] text-neutral-300 leading-relaxed uppercase tracking-wider text-justify border-l-2 border-[#FF007F]/30 pl-6">
+              Este arquivo é um esforço independente para imortalizar a obra de Gustav. Sua contribuição ajuda a cobrir os custos de infraestrutura e a manter este santuário livre de anúncios.
             </p>
-            <div className="h-px w-full bg-neutral-900"></div>
           </section>
 
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <span className="text-[9px] font-bold text-[#FF007F] uppercase tracking-[0.3em]">Chave PIX (Celular)</span>
-              <div className="flex gap-2">
-                <div className="flex-grow bg-neutral-950 border border-neutral-800 p-4 font-mono text-sm text-white tracking-[0.2em] flex items-center justify-center select-all">
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-[#FF007F]">
+                <Sparkles size={14} />
+                <span className="font-serif-classic text-[10px] font-bold uppercase tracking-[0.4em]">Oferenda via PIX</span>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex-grow bg-black border border-neutral-800 p-5 font-mono text-base text-white tracking-[0.3em] flex items-center justify-center select-all shadow-inner">
                   {pixKey}
                 </div>
                 <button 
                   onClick={handleCopy}
-                  className={`px-6 transition-all border flex items-center justify-center gap-2 ${copied ? 'bg-[#00FF41] border-[#00FF41] text-black' : 'bg-[#FF007F]/10 border-[#FF007F]/30 text-[#FF007F] hover:bg-[#FF007F] hover:text-white'}`}
+                  className={`px-8 py-5 transition-all duration-500 border-2 flex items-center justify-center gap-3 group relative overflow-hidden ${
+                    copied 
+                    ? 'bg-[#00FF41] border-[#00FF41] text-black shadow-[0_0_20px_#00FF41]' 
+                    : 'bg-[#FF007F] border-[#FF007F] text-white shadow-[0_0_25px_rgba(255,0,127,0.4)] hover:scale-105 active:scale-95'
+                  }`}
                 >
-                  {copied ? <Check size={16} /> : <Copy size={16} />}
-                  <span className="font-mono text-[9px] font-bold uppercase tracking-widest hidden xs:inline">
-                    {copied ? 'Copied' : 'Copy'}
+                  {copied ? <Check size={18} /> : <Copy size={18} />}
+                  <span className="font-serif-classic text-[11px] font-bold uppercase tracking-widest">
+                    {copied ? 'Copiado' : 'Copiar Chave'}
                   </span>
                 </button>
               </div>
             </div>
 
-            <div className="p-4 bg-neutral-900/40 border border-neutral-800 flex items-start gap-4">
-               <Zap size={16} className="text-[#7000FF] shrink-0 mt-1" />
-               <p className="text-[8px] text-neutral-500 uppercase leading-relaxed tracking-widest">
-                 Qualquer valor via "Buy me a coffee" é direcionado integralmente para a manutenção da infraestrutura técnica (Neural Nodes).
+            <div className="p-6 bg-[#FF007F]/5 border border-[#FF007F]/20 flex items-center gap-5">
+               <Shield size={20} className="text-[#FF007F] shrink-0" />
+               <p className="font-serif-classic text-[9px] text-neutral-400 uppercase leading-relaxed tracking-widest italic">
+                 "Every small gesture ensures that his signal never fades from the web."
                </p>
             </div>
           </section>
 
-          <footer className="mt-10 pt-6 border-t border-neutral-900 flex justify-between items-center opacity-40">
-             <div className="flex items-center gap-2">
-                <ShieldCheck size={12} className="text-neutral-500" />
-                <span className="text-[7px] font-mono text-neutral-500 uppercase tracking-widest">Secure Transfer Protocol</span>
+          <footer className="mt-12 pt-8 border-t border-neutral-900 flex justify-between items-center opacity-60">
+             <div className="flex items-center gap-3">
+                <span className="font-gothic text-2xl text-neutral-600 select-none">Lil Peep</span>
              </div>
-             <Heart size={12} className="text-[#FF007F]" fill="currentColor" />
+             <div className="flex items-center gap-3 font-serif-classic text-[8px] text-neutral-500 uppercase tracking-widest font-bold">
+                <span>All Fragments Preserved</span>
+                <div className="w-1 h-1 bg-[#FF007F] rounded-full animate-pulse" />
+             </div>
           </footer>
         </div>
+
+        {/* Decorative Corners */}
+        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-[#FF007F]/40" />
+        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-[#FF007F]/40" />
       </MotionDiv>
     </MotionDiv>
   );
