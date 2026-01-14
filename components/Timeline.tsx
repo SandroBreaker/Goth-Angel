@@ -5,8 +5,10 @@ import {
   Heart, Music, Star, ShieldCheck, ChevronRight, 
   Zap, Activity, BookOpen, Scale, 
   Archive, User, Maximize2, X, Disc, 
-  Ghost, ExternalLink, Skull, HelpCircle, Film, Cpu
+  Ghost, ExternalLink, Skull, HelpCircle, Film, Cpu,
+  Layers, BarChart3
 } from 'lucide-react';
+import { TimelineHistory } from './TimelineHistory.tsx';
 
 interface NodeData {
   id: string;
@@ -246,6 +248,7 @@ const MindMapNode: React.FC<{
 export const Timeline: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<NodeData | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['root', 'carreira', 'morte']));
+  const [viewMode, setViewMode] = useState<'mapping' | 'chronology'>('mapping');
   const MotionDiv = motion.div as any;
 
   const handleToggle = (id: string) => {
@@ -280,23 +283,55 @@ export const Timeline: React.FC = () => {
                <span className="font-mono text-[8px] md:text-[9px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">LEGACY_MAPPING_PROTOCOL_V4</span>
              </div>
              <h2 className="font-serif-classic text-4xl md:text-6xl text-white tracking-widest uppercase mb-6 md:mb-8 leading-tight">Mapa do<br/><span className="text-[#FF007F]">Legado</span></h2>
-             <p className="font-mono text-[9px] md:text-[11px] text-neutral-500 uppercase tracking-[0.2em] md:tracking-[0.3em] leading-relaxed">
-               Explore os nós fundamentais da existência artística de Lil Peep. Navegue pelos subníveis para decifrar a arquitetura emocional e técnica de sua obra.
-             </p>
+             
+             {/* View Mode Selector */}
+             <div className="flex gap-4 mt-8 p-1 bg-neutral-900/50 border border-neutral-800 self-start">
+                <button 
+                  onClick={() => setViewMode('mapping')}
+                  className={`flex items-center gap-2 px-4 py-2 font-mono text-[9px] tracking-widest uppercase transition-all ${viewMode === 'mapping' ? 'bg-[#FF007F] text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                >
+                  <Layers size={14} /> [ MAPPING_MODE ]
+                </button>
+                <button 
+                  onClick={() => setViewMode('chronology')}
+                  className={`flex items-center gap-2 px-4 py-2 font-mono text-[9px] tracking-widest uppercase transition-all ${viewMode === 'chronology' ? 'bg-[#FF007F] text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+                >
+                  <BarChart3 size={14} /> [ CHRONOLOGY_MODE ]
+                </button>
+             </div>
           </MotionDiv>
         </div>
 
-        <div className="flex justify-start min-h-[800px] md:min-h-[1200px] p-4 md:p-8 overflow-x-auto scrollbar-hide">
-           <div className="relative flex-grow">
-             <MindMapNode 
-               node={mindMapTree} 
-               depth={0} 
-               onSelect={setSelectedNode} 
-               expandedIds={expandedIds}
-               onToggle={handleToggle}
-             />
-           </div>
-        </div>
+        <AnimatePresence mode="wait">
+          {viewMode === 'mapping' ? (
+            <MotionDiv 
+              key="mapping"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              className="flex justify-start min-h-[800px] md:min-h-[1200px] p-4 md:p-8 overflow-x-auto scrollbar-hide"
+            >
+               <div className="relative flex-grow">
+                 <MindMapNode 
+                   node={mindMapTree} 
+                   depth={0} 
+                   onSelect={setSelectedNode} 
+                   expandedIds={expandedIds}
+                   onToggle={handleToggle}
+                 />
+               </div>
+            </MotionDiv>
+          ) : (
+            <MotionDiv
+              key="chronology"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <TimelineHistory />
+            </MotionDiv>
+          )}
+        </AnimatePresence>
       </div>
 
       <AnimatePresence>
