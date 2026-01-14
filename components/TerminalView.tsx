@@ -9,6 +9,7 @@ import {
 import { usePlayer } from '../context/PlayerContext.tsx';
 import { parseTrackMetadata } from '../utils/metadataParser.ts';
 import { supabase } from '../services/supabaseClient.ts';
+import { DashboardView } from './DashboardView.tsx';
 
 interface LogEntry {
   id: number;
@@ -115,6 +116,7 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   const [commandInput, setCommandInput] = useState('');
   const [fetchedLyrics, setFetchedLyrics] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const lyricsScrollRef = useRef<HTMLDivElement>(null);
@@ -256,13 +258,8 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     }
     
     if (cmd === 'dashboard' || cmd === 'status') {
-      addLog("GENERATING_ACCESS_REPORT...", "info");
-      setTimeout(() => {
-        addLog(`[REPORT] TOTAL_LIFETIME_HITS: ${trafficCount.toLocaleString()}`, "success");
-        addLog(`[REPORT] NODES_ONLINE_5M: ${activeUsers}`, "success");
-        addLog(`[REPORT] LAST_KNOWN_VECTOR: ${lastConnection}`, "warning");
-        addLog(`[REPORT] SYSTEM_LOAD: 2.4%`, "info");
-      }, 500);
+      addLog("INITIATING_DEEP_ANALYTICS_OVERLAY...", "info");
+      setIsDashboardOpen(true);
     }
 
     setCommandInput('');
@@ -297,13 +294,21 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
           </div>
           
           <div className="hidden md:flex items-center gap-6">
-            <div className="flex items-center gap-2 text-neutral-500 hover:text-[#00FF41] transition-colors cursor-help" title="Active users in last 5 min">
+            <div 
+              onClick={() => setIsDashboardOpen(true)}
+              className="flex items-center gap-2 text-neutral-500 hover:text-[#00FF41] transition-colors cursor-pointer group" 
+              title="Click for detailed dashboard"
+            >
               <Users size={14} className={activeUsers > 0 ? "text-[#00FF41] animate-pulse" : ""} />
-              <span className="text-[9px] font-bold uppercase tracking-widest">NODES_ONLINE: {activeUsers}</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest group-hover:underline">NODES_ONLINE: {activeUsers}</span>
             </div>
-            <div className="flex items-center gap-2 text-neutral-500 hover:text-[#FF007F] transition-colors cursor-help" title="Total unique signals detected">
+            <div 
+              onClick={() => setIsDashboardOpen(true)}
+              className="flex items-center gap-2 text-neutral-500 hover:text-[#FF007F] transition-colors cursor-pointer group" 
+              title="Click for deep analytics"
+            >
               <Globe size={14} />
-              <span className="text-[9px] font-bold uppercase tracking-widest">NET_TRAFFIC: {trafficCount.toLocaleString()}</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest group-hover:underline">NET_TRAFFIC: {trafficCount.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -445,6 +450,16 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
           </div>
         </section>
       </div>
+
+      <AnimatePresence>
+        {isDashboardOpen && (
+          <DashboardView 
+            onClose={() => setIsDashboardOpen(false)} 
+            totalHits={trafficCount}
+            activeNodes={activeUsers}
+          />
+        )}
+      </AnimatePresence>
 
       <footer className="h-8 shrink-0 flex items-center justify-between px-4 bg-neutral-950 border border-neutral-800">
          <div className="flex gap-6">
