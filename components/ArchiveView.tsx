@@ -222,7 +222,9 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                           {cat.icon}
                           <span className="font-mono text-[9px] md:text-[10px] font-bold tracking-[0.3em] uppercase">Era {idx + 1}</span>
                         </div>
-                        <h3 className="font-serif-classic text-xl md:text-2xl lg:text-3xl text-white tracking-widest uppercase">{cat.title}</h3>
+                        <h3 className="font-serif-classic text-xl md:text-2xl lg:text-3xl text-white tracking-widest uppercase">
+                          {cat.title} <span className="opacity-40 text-[0.6em] ml-2 align-middle">({cat.data.length})</span>
+                        </h3>
                       </div>
                     </div>
 
@@ -261,7 +263,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
             <div className="mt-20 md:mt-32 px-6 md:px-8 pt-16 border-t border-neutral-800">
               <div className="flex items-center gap-4 mb-10 md:mb-12">
                  <div className="h-px flex-grow bg-neutral-900" />
-                 <h3 className="font-serif-classic text-lg md:text-xl text-neutral-400 tracking-[0.2em] uppercase font-bold text-center">Full Archive</h3>
+                 <h3 className="font-serif-classic text-lg md:text-xl text-neutral-400 tracking-[0.2em] uppercase font-bold text-center">Full Archive ({songs.length})</h3>
                  <div className="h-px flex-grow bg-neutral-900" />
               </div>
               <MotionDiv 
