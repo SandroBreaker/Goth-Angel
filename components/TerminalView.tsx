@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Terminal, Cpu, Database, Activity, Clock, 
   Wifi, ShieldAlert, Code, X, ChevronRight,
-  Lock, Zap, Play, Pause
+  Lock, Zap, Play, Pause, Globe, Users
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 import { parseTrackMetadata } from '../utils/metadataParser.ts';
@@ -91,15 +91,6 @@ const TypewriterLine: React.FC<{
   );
 };
 
-const stringToHex = (str: string) => {
-  return str
-    .split('')
-    .map(c => c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'))
-    .join(' ')
-    .match(/.{1,24}/g)
-    ?.join('\n') || '0x00';
-};
-
 const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1) + min);
 
 const SYSTEM_MESSAGES = [
@@ -108,13 +99,17 @@ const SYSTEM_MESSAGES = [
   "DECRYPTING_VIRTUAL_MEMORY...",
   "CALIBRATING_SENSORS",
   "PROTOCOL_GAS_v4_ACTIVE",
-  "SYNCING_WITH_VAULT_NODE_01"
+  "SYNCING_WITH_VAULT_NODE_01",
+  "HEARTBEAT_STABLE",
+  "ARCHIVE_INTEGRITY_VERIFIED"
 ];
 
 export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
-  const { currentSong, isPlaying, progress, duration, togglePlay } = usePlayer();
+  const { currentSong, isPlaying, progress, duration, togglePlay, playSong } = usePlayer();
   const [time, setTime] = useState(new Date().toISOString());
-  const [heap, setHeap] = useState(randomInt(40, 52));
+  const [trafficCount, setTrafficCount] = useState(0);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [lastConnection, setLastConnection] = useState<string>("SEARCHING...");
   const [visualizerBars, setVisualizerBars] = useState(Array(12).fill(2));
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [commandInput, setCommandInput] = useState('');
@@ -123,6 +118,49 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const lyricsScrollRef = useRef<HTMLDivElement>(null);
+
+  // Monitor Access Logs
+  useEffect(() => {
+    const fetchAccessStats = async () => {
+      try {
+        const { count: totalCount } = await supabase
+          .from('access_logs_goth')
+          .select('*', { count: 'exact', head: true });
+        
+        if (totalCount !== null) setTrafficCount(totalCount);
+
+        const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const { count: recentCount } = await supabase
+           .from('access_logs_goth')
+           .select('id', { count: 'exact', head: true })
+           .gt('created_at', fiveMinsAgo);
+
+        if (recentCount !== null) setActiveUsers(recentCount);
+
+        const { data } = await supabase
+          .from('access_logs_goth')
+          .select('platform, timezone, path, created_at')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data) {
+          const loc = data.timezone ? data.timezone.split('/')[1] || data.timezone : 'UNKNOWN';
+          setLastConnection(`${loc.toUpperCase()} [${data.platform?.toUpperCase().slice(0, 3) || 'WEB'}]`);
+          
+          if (Math.random() > 0.8) {
+             addLog(`INCOMING_CX: ${data.platform?.toUpperCase() || 'USR'} @ ${loc.toUpperCase()} -> ${data.path}`, 'success');
+          }
+        }
+      } catch (err) {
+        console.warn('Telemetry sync failed');
+      }
+    };
+
+    fetchAccessStats();
+    const interval = setInterval(fetchAccessStats, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const loadLyrics = async () => {
@@ -143,22 +181,25 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
         setIsFetching(false);
       }
     };
-    loadLyrics();
+    if (currentSong) loadLyrics();
+    else setFetchedLyrics(null);
   }, [currentSong]);
 
   const addLog = (text: string, type: LogEntry['type'] = 'info') => {
-    setLogs(prev => [...prev.slice(-49), {
-      id: Date.now() + Math.random(),
-      text,
-      type,
-      timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false })
-    }]);
+    setLogs(prev => {
+      const newLogs = [...prev, {
+        id: Date.now() + Math.random(),
+        text,
+        type,
+        timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false })
+      }];
+      return newLogs.slice(-49);
+    });
   };
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date().toLocaleTimeString('en-GB', { hour12: false }));
-      if (Math.random() > 0.8) setHeap(randomInt(40, 55));
       if (Math.random() > 0.95) {
         addLog(SYSTEM_MESSAGES[randomInt(0, SYSTEM_MESSAGES.length - 1)]);
       }
@@ -167,9 +208,8 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   }, []);
 
   useEffect(() => {
-    if (!isPlaying) return;
     const interval = setInterval(() => {
-      setVisualizerBars(prev => prev.map(() => randomInt(1, 8)));
+      setVisualizerBars(prev => prev.map(() => isPlaying ? randomInt(1, 8) : randomInt(1, 2)));
     }, 150);
     return () => clearInterval(interval);
   }, [isPlaying]);
@@ -178,7 +218,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [logs]);
 
-  // Scroll automático para a linha ativa de letras
   useEffect(() => {
     if (lyricsScrollRef.current) {
       const activeEl = lyricsScrollRef.current.querySelector('.text-white');
@@ -188,7 +227,7 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     }
   }, [progress]);
 
-  const handleCommandSubmit = (e: React.FormEvent | React.KeyboardEvent) => {
+  const handleCommandSubmit = async (e: React.FormEvent | React.KeyboardEvent) => {
     if ('key' in e && e.key !== 'Enter') return;
     e.preventDefault();
     if (!commandInput.trim()) return;
@@ -197,10 +236,34 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     
     const cmd = commandInput.toLowerCase().trim();
     if (cmd === 'clear') setLogs([]);
-    if (cmd === 'help') addLog("AVAILABLE: CLEAR, STATUS, INFO, EXIT", "warning");
+    if (cmd === 'help') addLog("AVAILABLE: DASHBOARD, CLEAR, STATUS, PLAY, PAUSE, EXIT", "warning");
     if (cmd === 'exit') onClose();
-    if (cmd === 'play') if (!isPlaying) togglePlay();
-    if (cmd === 'pause') if (isPlaying) togglePlay();
+    
+    if (cmd === 'play') {
+      if (!currentSong) {
+        addLog("ERROR: NO_SOURCE_SELECTED. PLEASE SELECT A TRACK FROM THE ARCHIVE.", "error");
+      } else if (!isPlaying) {
+        togglePlay();
+        addLog("PROTOCOL: IGNITING_AUDIO_CORE", "success");
+      }
+    }
+    
+    if (cmd === 'pause') {
+      if (isPlaying) {
+        togglePlay();
+        addLog("PROTOCOL: CORE_SUSPENDED", "warning");
+      }
+    }
+    
+    if (cmd === 'dashboard' || cmd === 'status') {
+      addLog("GENERATING_ACCESS_REPORT...", "info");
+      setTimeout(() => {
+        addLog(`[REPORT] TOTAL_LIFETIME_HITS: ${trafficCount.toLocaleString()}`, "success");
+        addLog(`[REPORT] NODES_ONLINE_5M: ${activeUsers}`, "success");
+        addLog(`[REPORT] LAST_KNOWN_VECTOR: ${lastConnection}`, "warning");
+        addLog(`[REPORT] SYSTEM_LOAD: 2.4%`, "info");
+      }, 500);
+    }
 
     setCommandInput('');
   };
@@ -209,17 +272,16 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   
   const lyricLines = useMemo(() => {
     const raw = currentSong?.lyrics || fetchedLyrics;
+    if (!currentSong) return ["SYSTEM_IDLE: AWAITING_DATA_SOURCE", "AWAITING_SIGNAL...", "---------------------------"];
     if (!raw) return isFetching ? ["DECRYPTING_SIGNAL..."] : ["WAITING_FOR_DATA_STREAM..."];
     return raw.split('\n').filter(l => l.trim() !== "");
   }, [currentSong, fetchedLyrics, isFetching]);
 
   const activeLineIndex = useMemo(() => {
-    if (duration <= 0) return -1;
+    if (!currentSong || duration <= 0) return -1;
     const ratio = progress / duration;
     return Math.floor(ratio * lyricLines.length);
-  }, [progress, duration, lyricLines.length]);
-
-  if (!currentSong) return null;
+  }, [currentSong, progress, duration, lyricLines.length]);
 
   return (
     <div className="fixed inset-0 z-[200] bg-black text-neutral-400 font-mono selection:bg-[#FF007F]/30 overflow-hidden flex flex-col p-2 md:p-4 gap-2">
@@ -233,9 +295,16 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
               STATUS: <span className={isPlaying ? 'text-[#00FF41]' : 'text-red-600'}>{isPlaying ? 'CONNECTED' : 'STANDBY'}</span>
             </span>
           </div>
-          <div className="hidden md:flex items-center gap-2 text-neutral-600">
-            <Cpu size={14} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">HEAP: {heap}MB</span>
+          
+          <div className="hidden md:flex items-center gap-6">
+            <div className="flex items-center gap-2 text-neutral-500 hover:text-[#00FF41] transition-colors cursor-help" title="Active users in last 5 min">
+              <Users size={14} className={activeUsers > 0 ? "text-[#00FF41] animate-pulse" : ""} />
+              <span className="text-[9px] font-bold uppercase tracking-widest">NODES_ONLINE: {activeUsers}</span>
+            </div>
+            <div className="flex items-center gap-2 text-neutral-500 hover:text-[#FF007F] transition-colors cursor-help" title="Total unique signals detected">
+              <Globe size={14} />
+              <span className="text-[9px] font-bold uppercase tracking-widest">NET_TRAFFIC: {trafficCount.toLocaleString()}</span>
+            </div>
           </div>
         </div>
 
@@ -270,10 +339,10 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
           >
             {lyricLines.map((line, idx) => (
               <TypewriterLine 
-                key={`${currentSong.id}-${idx}`}
+                key={currentSong ? `${currentSong.id}-${idx}` : `idle-${idx}`}
                 text={line}
                 index={idx}
-                isActive={idx === activeLineIndex}
+                isActive={idx === activeLineIndex || (!currentSong && idx === 0)}
                 isPast={idx < activeLineIndex}
               />
             ))}
@@ -285,7 +354,7 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
                type="text" 
                value={commandInput}
                onChange={(e) => setCommandInput(e.target.value)}
-               placeholder="ENTER COMMAND..."
+               placeholder="ENTER COMMAND (TRY 'DASHBOARD')..."
                className="bg-transparent border-none outline-none text-[10px] tracking-[0.2em] font-bold w-full placeholder:text-neutral-800 text-[#FF007F]"
                autoFocus
              />
@@ -323,10 +392,11 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
             
             <div className="space-y-3">
                {[
-                 { k: "Title", v: currentSong.title },
-                 { k: "Engineers", v: techData?.producers.value || "UNKNOWN" },
-                 { k: "Tempo", v: techData?.tempo.value || "AUTO" },
-                 { k: "Memory_Node", v: currentSong.id.slice(0, 8) }
+                 { k: "Title", v: currentSong?.title || "VOID" },
+                 { k: "Memory_Node", v: currentSong?.id.slice(0, 8) || "PENDING" },
+                 { k: "Last_Signal", v: lastConnection },
+                 { k: "Nodes_Active", v: activeUsers.toString() },
+                 { k: "Global_Hits", v: trafficCount.toLocaleString() }
                ].map(item => (
                  <div key={item.k} className="flex justify-between border-b border-neutral-900/50 pb-1">
                    <span className="text-[9px] uppercase font-bold text-neutral-600">{item.k}:</span>
@@ -358,7 +428,13 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
           </div>
 
           <div className="h-14 border border-neutral-800 bg-neutral-950 flex items-center justify-around">
-             <button onClick={() => togglePlay()} className="p-3 text-neutral-500 hover:text-white transition-colors">
+             <button 
+               onClick={() => {
+                 if (currentSong) togglePlay();
+                 else addLog("ERROR: NO_SOURCE_SELECTED", "error");
+               }} 
+               className={`p-3 transition-colors ${currentSong ? 'text-neutral-500 hover:text-white' : 'text-neutral-800 cursor-not-allowed'}`}
+             >
                 {isPlaying ? <Pause size={18} /> : <Play size={18} />}
              </button>
              <div className="h-4 w-px bg-neutral-800"></div>
