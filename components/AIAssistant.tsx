@@ -11,7 +11,7 @@ interface Message {
 
 export const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'ARCHIVE_CORE: Connection established. I am the custodian of the G.A.S Sanctuary. What fragment of memory do you seek?' }
+    { role: 'assistant', content: 'NÚCLEO_DO_ARQUIVO: Conexão estabelecida. Eu sou o custodiante do Santuário G.A.S. Que fragmento de memória você busca?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -39,19 +39,20 @@ export const AIAssistant: React.FC = () => {
         model: 'gemini-3-flash-preview',
         contents: userMessage,
         config: {
-          systemInstruction: `You are the "Memory Core" of the Goth-Angel-Sinner Archive. 
-          Your persona is gothic, technical, respectful, and deeply knowledgeable about Lil Peep (Gustav Åhr).
-          Your responses should be formatted in a terminal-like style, using technical metaphors (e.g., "Scanning logs...", "Fragment located").
-          Focus on providing accurate facts about his music, life, and legacy while maintaining the aesthetic of the archive.`,
+          systemInstruction: `Você é o "Núcleo de Memória" do Arquivo Goth-Angel-Sinner. 
+          Sua persona é gótica, técnica, respeitosa e profundamente conhecedora de Lil Peep (Gustav Åhr).
+          Suas respostas devem ser formatadas em estilo de terminal, usando metáforas técnicas (ex: "Escaneando logs...", "Fragmento localizado").
+          Responda sempre em Português do Brasil.
+          Foque em fornecer fatos precisos sobre sua música, vida e legado, mantendo a estética melancólica e tecnológica do arquivo.`,
           temperature: 0.7,
         }
       });
 
-      const aiText = response.text || "SIGNAL_LOST: Internal processing error.";
+      const aiText = response.text || "SINAL_PERDIDO: Erro de processamento interno.";
       setMessages(prev => [...prev, { role: 'assistant', content: aiText }]);
     } catch (err) {
       console.error(err);
-      setMessages(prev => [...prev, { role: 'assistant', content: "ERROR: Connection to the neural link was interrupted." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "ERRO: A conexão com o link neural foi interrompida." }]);
     } finally {
       setIsLoading(false);
     }
@@ -67,8 +68,8 @@ export const AIAssistant: React.FC = () => {
         >
           <Cpu size={32} className="text-[#FF007F] animate-pulse" />
         </MotionDiv>
-        <h2 className="font-serif-classic text-4xl text-white tracking-widest uppercase mb-4">Memory Core</h2>
-        <p className="font-mono text-[9px] text-neutral-500 tracking-[0.4em] uppercase">Neural Interface: V2.5.0_PRO</p>
+        <h2 className="font-serif-classic text-4xl text-white tracking-widest uppercase mb-4">Núcleo de Memória</h2>
+        <p className="font-mono text-[9px] text-neutral-500 tracking-[0.4em] uppercase">Interface Neural: V2.5.0_PRO</p>
       </div>
 
       <div className="flex-grow bg-neutral-950 border border-neutral-900 flex flex-col overflow-hidden relative shadow-2xl">
@@ -100,7 +101,6 @@ export const AIAssistant: React.FC = () => {
               </div>
               <div className="flex gap-1 items-center px-4">
                  {[0,1,2].map(i => (
-                   // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
                    <MotionDiv 
                      key={i}
                      animate={{ opacity: [0.2, 1, 0.2] }}
@@ -119,7 +119,7 @@ export const AIAssistant: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
-            placeholder="INPUT QUERY..."
+            placeholder="INSERIR CONSULTA..."
             className="flex-grow bg-neutral-900 border border-neutral-800 px-6 py-4 font-mono text-xs tracking-widest text-white focus:outline-none focus:border-[#FF007F]/50 transition-all placeholder:text-neutral-700"
           />
           <button 
@@ -134,10 +134,10 @@ export const AIAssistant: React.FC = () => {
 
       <div className="mt-12 flex justify-center gap-8 opacity-20">
          <div className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-widest text-white">
-            <Terminal size={10} /> Neural Link
+            <Terminal size={10} /> Link Neural
          </div>
          <div className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-widest text-white">
-            <Sparkles size={10} /> Generative Pulse
+            <Sparkles size={10} /> Pulso Generativo
          </div>
       </div>
     </div>

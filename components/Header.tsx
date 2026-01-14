@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
             <h1 className="font-serif-classic text-[11px] md:text-[13px] tracking-[0.3em] font-bold text-neutral-300 group-hover:text-white transition-colors uppercase">
               Goth-Angel-Sinner
             </h1>
-            <p className="text-[8px] md:text-[10px] font-mono text-[#FF007F]/60 tracking-[0.2em] font-bold">DIGITAL SANCTUARY</p>
+            <p className="text-[8px] md:text-[10px] font-mono text-[#FF007F]/60 tracking-[0.2em] font-bold">SANTUÁRIO DIGITAL</p>
           </div>
         </div>
       </div>
@@ -38,19 +38,19 @@ export const Header: React.FC<HeaderProps> = ({
           active={currentView === 'archive'} 
           onClick={() => onNavigate('archive')}
           icon={<Archive className="w-4 h-4" />}
-          label="ARCHIVE"
+          label="ARQUIVO"
         />
         <NavButton 
           active={currentView === 'timeline'} 
           onClick={() => onNavigate('timeline')}
           icon={<Clock className="w-4 h-4" />}
-          label="TIMELINE"
+          label="LINHA DO TEMPO"
         />
         <NavButton 
           active={currentView === 'vault'} 
           onClick={() => onNavigate('vault')}
           icon={<Lock className="w-4 h-4" />}
-          label="VAULT"
+          label="COFRE"
         />
         <NavButton 
           active={currentView === 'terminal'} 
@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="SEARCH MEMORY..."
+          placeholder="BUSCAR MEMÓRIA..."
           className="w-full bg-neutral-900/50 border border-neutral-800 py-3 pl-12 pr-4 text-[10px] md:text-[12px] font-mono tracking-widest focus:outline-none focus:border-[#FF007F]/50 focus:ring-1 focus:ring-[#FF007F]/20 transition-all placeholder:text-neutral-600 text-neutral-200"
         />
       </div>

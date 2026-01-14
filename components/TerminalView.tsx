@@ -5,7 +5,8 @@ import {
   Terminal, Cpu, Database, Activity, Clock, 
   Wifi, ShieldAlert, Code, X, ChevronRight,
   Lock, Zap, Play, Pause, Globe, Users,
-  Layers, MessageSquare, BarChart2, Bot
+  Layers, MessageSquare, BarChart2, Bot,
+  Heart, Radio, Server
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 import { supabase } from '../services/supabaseClient.ts';
@@ -60,7 +61,7 @@ const TypewriterLine: React.FC<{
         setIsDone(true);
         clearInterval(interval);
       }
-    }, 35);
+    }, 25);
     return () => clearInterval(interval);
   }, [isActive, isPast, text]);
 
@@ -68,25 +69,25 @@ const TypewriterLine: React.FC<{
     <MotionDiv
       initial={{ opacity: 0, x: -5 }}
       animate={{ 
-        opacity: isPast ? 0.3 : isActive ? 1 : 0.6, 
+        opacity: isPast ? 0.2 : isActive ? 1 : 0.4, 
         x: 0,
-        scale: isActive ? 1.01 : 1
+        scale: isActive ? 1.02 : 1
       }}
-      className={`flex gap-2 md:gap-4 font-mono text-[9px] md:text-[12px] leading-relaxed transition-all ${isActive ? 'text-white' : ''}`}
+      className={`flex gap-3 md:gap-5 font-mono text-[10px] md:text-[13px] leading-relaxed transition-all ${isActive ? 'text-white' : ''}`}
     >
-      <span className="text-neutral-800 shrink-0 select-none">
-        [{index.toString().padStart(3, '0')}]
+      <span className="text-neutral-800 shrink-0 select-none font-bold">
+        {index.toString().padStart(2, '0')}
       </span>
-      <span className={`${isActive ? 'text-[#FF007F]' : 'text-[#7000FF]'} shrink-0 font-bold tracking-tighter`}>
-        SIG:
+      <span className={`${isActive ? 'text-[#FF007F]' : 'text-[#7000FF]/40'} shrink-0 font-bold tracking-tighter`}>
+        {isActive ? '●' : '○'}
       </span>
-      <span className="uppercase tracking-wide break-all">
+      <span className={`uppercase tracking-wide break-all ${isActive ? 'drop-shadow-[0_0_8px_rgba(255,0,127,0.5)]' : ''}`}>
         {displayedText}
         {isActive && !isDone && (
           <MotionSpan 
             animate={{ opacity: [1, 0] }} 
             transition={{ repeat: Infinity, duration: 0.4 }}
-            className="inline-block ml-1 bg-[#FF007F] w-1.5 h-2.5 md:w-2 md:h-3 align-middle"
+            className="inline-block ml-1 bg-[#FF007F] w-2 h-3.5 align-middle"
           />
         )}
       </span>
@@ -96,10 +97,10 @@ const TypewriterLine: React.FC<{
 
 export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   const { currentSong, isPlaying, progress, duration, togglePlay } = usePlayer();
-  const [time, setTime] = useState(new Date().toISOString());
+  const [time, setTime] = useState(new Date().toLocaleTimeString('pt-BR'));
   const [trafficCount, setTrafficCount] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
-  const [lastConnection, setLastConnection] = useState<string>("SEARCHING...");
+  const [lastConnection, setLastConnection] = useState<string>("BUSCANDO...");
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [commandInput, setCommandInput] = useState('');
   const [fetchedLyrics, setFetchedLyrics] = useState<string | null>(null);
@@ -123,27 +124,27 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
           .from('access_logs_goth')
           .select('platform, timezone, path, created_at, user_agent')
           .order('created_at', { ascending: false })
-          .limit(5);
+          .limit(10);
 
         if (recentLogs && recentLogs.length > 0) {
           const main = recentLogs[0];
-          const loc = main.timezone ? main.timezone.split('/')[1] || main.timezone : 'UNKNOWN';
-          setLastConnection(`${loc.toUpperCase()} [${main.platform?.toUpperCase().slice(0, 3) || 'WEB'}]`);
+          const loc = main.timezone ? main.timezone.split('/')[1] || main.timezone : 'DESCONHECIDO';
+          setLastConnection(`${loc.toUpperCase()} via ${main.platform?.toUpperCase() || 'WEB'}`);
 
           const newEntries: LogEntry[] = recentLogs.map(l => {
             const bot = isBotUA(l.user_agent);
             return {
               id: Math.random(),
-              text: `${bot ? '[BOT_SCAN]' : 'REQ_NODE'} FROM ${l.timezone?.split('/')[1] || 'UNK'} -> /${l.path.toUpperCase()}`,
+              text: `${bot ? 'SONDA_BOT' : 'SINAL'} RECUPERADO EM ${l.timezone?.split('/')[1] || 'UNK'} • /${l.path.toUpperCase()}`,
               type: bot ? 'bot' : 'info',
-              timestamp: new Date(l.created_at).toLocaleTimeString('en-GB', { hour12: false })
+              timestamp: new Date(l.created_at).toLocaleTimeString('pt-BR', { hour12: false })
             };
           });
           
           setLogs(prev => {
             const existingIds = new Set(prev.map(e => e.text + e.timestamp));
             const uniqueNew = newEntries.filter(e => !existingIds.has(e.text + e.timestamp));
-            return [...prev, ...uniqueNew].slice(-40);
+            return [...prev, ...uniqueNew].slice(-50);
           });
         }
       } catch (err) { console.warn('Telemetry sync error'); }
@@ -167,11 +168,11 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   }, [currentSong]);
 
   const addLog = (text: string, type: LogEntry['type'] = 'info') => {
-    setLogs(prev => [...prev, { id: Date.now() + Math.random(), text, type, timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false }) }].slice(-40));
+    setLogs(prev => [...prev, { id: Date.now() + Math.random(), text, type, timestamp: new Date().toLocaleTimeString('pt-BR', { hour12: false }) }].slice(-50));
   };
 
   useEffect(() => {
-    const timer = setInterval(() => setTime(new Date().toLocaleTimeString('en-GB', { hour12: false })), 1000);
+    const timer = setInterval(() => setTime(new Date().toLocaleTimeString('pt-BR', { hour12: false })), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -179,10 +180,10 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     e.preventDefault();
     if (!commandInput.trim()) return;
     const cmd = commandInput.toLowerCase().trim();
-    addLog(`USR_CMD: ${cmd.toUpperCase()}`, 'success');
-    if (cmd === 'clear') setLogs([]);
-    if (cmd === 'dashboard') setIsDashboardOpen(true);
-    if (cmd === 'exit') onClose();
+    addLog(`REQUISIÇÃO_USUÁRIO: ${cmd.toUpperCase()}`, 'success');
+    if (cmd === 'limpar' || cmd === 'clear') setLogs([]);
+    if (cmd === 'dashboard' || cmd === 'painel') setIsDashboardOpen(true);
+    if (cmd === 'sair' || cmd === 'exit') onClose();
     if (cmd === 'play' && !isPlaying) togglePlay();
     if (cmd === 'pause' && isPlaying) togglePlay();
     setCommandInput('');
@@ -190,8 +191,8 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
 
   const lyricLines = useMemo(() => {
     const raw = currentSong?.lyrics || fetchedLyrics;
-    if (!currentSong) return ["SYSTEM_IDLE: AWAITING_SIGNAL", "---------------------------"];
-    if (!raw) return isFetching ? ["DECRYPTING_SIGNAL..."] : ["WAITING_FOR_DATA_STREAM..."];
+    if (!currentSong) return ["NÚCLEO_OCIOSO: AGUARDANDO_CONEXÃO", "POR_FAVOR_SELECIONE_UM_ARTEFATO"];
+    if (!raw) return isFetching ? ["DECRIPTANDO_SINAL_VOCAL..."] : ["NENHUMA_TRANSCRIÇÃO_LOCALIZADA_NO_COFRE"];
     return raw.split('\n').filter(l => l.trim() !== "");
   }, [currentSong, fetchedLyrics, isFetching]);
 
@@ -201,53 +202,66 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   }, [progress, duration, lyricLines.length]);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black text-neutral-400 font-mono selection:bg-[#FF007F]/30 overflow-hidden flex flex-col p-1.5 md:p-4 gap-1.5">
+    <div className="fixed inset-0 z-[200] bg-black text-neutral-400 font-mono selection:bg-[#FF007F]/30 overflow-hidden flex flex-col p-2 md:p-6 gap-2">
       <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] z-[210]"></div>
 
-      <header className="h-12 md:h-14 shrink-0 border border-neutral-800 bg-neutral-900/20 backdrop-blur-md flex items-center justify-between px-3 md:px-6">
-        <div className="flex items-center gap-4 md:gap-8">
-          <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#00FF41] animate-pulse shadow-[0_0_8px_#00FF41]' : 'bg-red-600'}`}></div>
-            <span className="text-[8px] md:text-[10px] font-bold tracking-widest uppercase truncate max-w-[60px] md:max-w-none">
-              {isPlaying ? 'LINKED' : 'IDLE'}
-            </span>
+      <header className="h-14 md:h-16 shrink-0 border border-neutral-800 bg-neutral-900/20 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 shadow-2xl">
+        <div className="flex items-center gap-6 md:gap-12">
+          <div className="flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-[#FF007F] animate-pulse shadow-[0_0_12px_#FF007F]' : 'bg-neutral-800'}`}></div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white">Núcleo G.A.S</span>
+              <span className="text-[7px] text-neutral-600 font-bold uppercase tracking-widest">{isPlaying ? 'TRANSMITINDO' : 'ESCUTANDO'}</span>
+            </div>
           </div>
-          <div className="hidden sm:flex items-center gap-4">
-             <div className="flex items-center gap-1.5 text-neutral-500">
-               <Users size={12} />
-               <span className="text-[8px] font-bold uppercase tracking-widest">{activeUsers} NODES</span>
+          <div className="hidden lg:flex items-center gap-8 border-l border-neutral-800 pl-8">
+             <div className="flex flex-col">
+               <span className="text-[7px] text-neutral-500 font-bold uppercase tracking-widest mb-0.5">Nós Ativos</span>
+               <span className="text-[10px] text-white font-bold">{activeUsers} TERMINAIS</span>
              </div>
-             <div className="flex items-center gap-1.5 text-neutral-500">
-               <Clock size={12} />
-               <span className="text-[8px] font-bold uppercase tracking-widest">{time}</span>
+             <div className="flex flex-col">
+               <span className="text-[7px] text-neutral-500 font-bold uppercase tracking-widest mb-0.5">Tempo Mestre</span>
+               <span className="text-[10px] text-white font-bold">{time}</span>
              </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
-          <span className="hidden md:block text-[8px] text-[#FF007F] font-bold tracking-[0.4em] uppercase">Security: Active</span>
-          <button onClick={onClose} className="p-2 border border-neutral-800 hover:border-[#FF007F] text-neutral-500 hover:text-white transition-all">
-            <X size={16} />
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-3 px-3 py-1 bg-[#FF007F]/5 border border-[#FF007F]/20">
+             <ShieldAlert size={12} className="text-[#FF007F]" />
+             <span className="text-[8px] text-[#FF007F] font-bold tracking-[0.2em] uppercase">Integridade Segura</span>
+          </div>
+          <button onClick={onClose} className="p-3 bg-neutral-900/50 hover:bg-[#FF007F]/20 text-neutral-500 hover:text-white transition-all rounded-full group">
+            <X size={20} className="group-hover:rotate-90 transition-transform" />
           </button>
         </div>
       </header>
 
-      <nav className="flex md:hidden h-10 border border-neutral-800 bg-neutral-950/40">
-        <MobileTab active={activeSection === 'decoder'} onClick={() => setActiveSection('decoder')} icon={<MessageSquare size={14}/>} label="Dec" />
-        <MobileTab active={activeSection === 'console'} onClick={() => setActiveSection('console')} icon={<Terminal size={14}/>} label="Con" />
-        <MobileTab active={activeSection === 'stats'} onClick={() => setActiveSection('stats')} icon={<BarChart2 size={14}/>} label="Sys" />
+      <nav className="flex md:hidden h-12 border border-neutral-800 bg-neutral-950/40 divide-x divide-neutral-800">
+        <MobileTab active={activeSection === 'decoder'} onClick={() => setActiveSection('decoder')} icon={<MessageSquare size={16}/>} label="Vocal" />
+        <MobileTab active={activeSection === 'console'} onClick={() => setActiveSection('console')} icon={<Radio size={16}/>} label="Ecos" />
+        <MobileTab active={activeSection === 'stats'} onClick={() => setActiveSection('stats')} icon={<Activity size={16}/>} label="Pulso" />
       </nav>
 
-      <div className="flex-grow flex flex-col md:flex-row gap-1.5 overflow-hidden">
-        <section className={`${activeSection === 'decoder' ? 'flex' : 'hidden'} md:flex flex-[6] border border-neutral-800 bg-[#050505] flex-col overflow-hidden relative`}>
-          <div className="h-9 border-b border-neutral-800 flex items-center px-4 justify-between bg-neutral-950/50">
-            <div className="flex items-center gap-2">
-              <Terminal size={12} className="text-[#FF007F]" />
-              <span className="text-[8px] font-bold tracking-[0.3em] uppercase text-[#FF007F]">SIGNAL_DECODER</span>
+      <div className="flex-grow flex flex-col md:flex-row gap-2 overflow-hidden">
+        {/* Fragmentos Vocais (Letras) */}
+        <section className={`${activeSection === 'decoder' ? 'flex' : 'hidden'} md:flex flex-[6] border border-neutral-800 bg-[#050505] flex-col overflow-hidden relative shadow-inner`}>
+          <div className="h-10 border-b border-neutral-800 flex items-center px-6 justify-between bg-neutral-950/80">
+            <div className="flex items-center gap-3">
+              <span className="font-gothic text-lg text-[#FF007F]">V</span>
+              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-white">Fragmentos_Vocais</span>
             </div>
+            {currentSong && (
+               <div className="flex items-center gap-3">
+                  <span className="text-[8px] text-neutral-600 font-bold uppercase tracking-widest truncate max-w-[100px]">{currentSong.title}</span>
+                  <div className="h-1 w-12 bg-neutral-900 rounded-full overflow-hidden">
+                     <div className="h-full bg-[#FF007F]" style={{ width: `${(progress/duration)*100}%` }} />
+                  </div>
+               </div>
+            )}
           </div>
 
-          <div ref={lyricsScrollRef} className="flex-grow p-4 md:p-6 overflow-y-auto space-y-2 md:space-y-3 scrollbar-hide">
+          <div ref={lyricsScrollRef} className="flex-grow p-6 md:p-10 overflow-y-auto space-y-4 md:space-y-6 scrollbar-hide">
             {lyricLines.map((line, idx) => (
               <TypewriterLine 
                 key={currentSong ? `${currentSong.id}-${idx}` : `idle-${idx}`}
@@ -259,65 +273,74 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
             ))}
           </div>
 
-          <form onSubmit={handleCommandSubmit} className="h-10 md:h-12 border-t border-neutral-800 bg-neutral-950/50 flex items-center px-4 gap-3">
-             <ChevronRight size={14} className="text-[#FF007F]" />
+          <form onSubmit={handleCommandSubmit} className="h-14 border-t border-neutral-800 bg-neutral-950/80 flex items-center px-6 gap-4 group">
+             <ChevronRight size={18} className="text-[#FF007F] group-focus-within:translate-x-1 transition-transform" />
              <input 
                type="text" 
                value={commandInput}
                onChange={(e) => setCommandInput(e.target.value)}
-               placeholder="SYS_COMMAND..."
-               className="bg-transparent border-none outline-none text-[9px] md:text-[10px] tracking-widest font-bold w-full text-[#FF007F] placeholder:text-neutral-800"
+               placeholder="DECIFRAR SINAL DA MEMÓRIA..."
+               className="bg-transparent border-none outline-none text-[10px] md:text-[12px] tracking-[0.2em] font-bold w-full text-[#FF007F] placeholder:text-neutral-800 uppercase"
              />
           </form>
         </section>
 
-        <section className={`${activeSection !== 'decoder' ? 'flex' : 'hidden'} md:flex flex-[4] flex-col gap-1.5 overflow-hidden`}>
+        {/* Setores Laterais */}
+        <section className={`${activeSection !== 'decoder' ? 'flex' : 'hidden'} md:flex flex-[4] flex-col gap-2 overflow-hidden`}>
+          {/* Ecos de Conexão (Console) */}
           <div className={`${activeSection === 'console' ? 'flex' : 'hidden md:flex'} flex-[3] border border-neutral-800 bg-[#080808] flex-col overflow-hidden`}>
-            <div className="h-9 p-4 border-b border-neutral-900 flex items-center gap-2 bg-neutral-950/40">
-              <Activity size={12} className="text-[#00FF41]" />
-              <span className="text-[8px] font-bold tracking-widest uppercase text-[#00FF41]">SYSTEM_CONSOLE</span>
+            <div className="h-10 p-4 border-b border-neutral-900 flex items-center gap-3 bg-neutral-950/80">
+              <Radio size={14} className="text-[#00FF41]" />
+              <span className="font-gothic text-sm text-[#00FF41] mr-1">E</span>
+              <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#00FF41]">Ecos_de_Conexão</span>
             </div>
-            <div className="flex-grow p-3 overflow-y-auto font-mono text-[8px] space-y-1.5 scrollbar-hide">
+            <div className="flex-grow p-4 overflow-y-auto font-mono text-[9px] space-y-2.5 scrollbar-hide">
               {logs.map(log => (
-                <div key={log.id} className="flex gap-2 items-start">
-                  <span className="text-neutral-700 shrink-0">[{log.timestamp}]</span>
-                  <div className="flex items-center gap-1.5">
-                    {log.type === 'bot' && <Bot size={10} className="text-[#FFB800] shrink-0" />}
-                    <span className={`uppercase tracking-tighter leading-none ${log.type === 'error' ? 'text-red-500' : log.type === 'success' ? 'text-green-500' : log.type === 'bot' ? 'text-[#FFB800]' : 'text-[#00FF41]/60'}`}>
+                <div key={log.id} className="flex gap-3 items-start group">
+                  <span className="text-neutral-800 shrink-0 font-bold">[{log.timestamp}]</span>
+                  <div className="flex items-center gap-2">
+                    {log.type === 'bot' ? <Bot size={12} className="text-[#FFB800] shrink-0" /> : <div className="w-1 h-1 rounded-full bg-neutral-800 mt-1" />}
+                    <span className={`uppercase tracking-tighter leading-tight ${log.type === 'error' ? 'text-red-500' : log.type === 'success' ? 'text-green-500' : log.type === 'bot' ? 'text-[#FFB800]' : 'text-neutral-400 group-hover:text-white transition-colors'}`}>
                       {log.text}
                     </span>
                   </div>
                 </div>
               ))}
-              {logs.length === 0 && <p className="text-neutral-800 text-[8px] uppercase tracking-widest italic mt-2">No terminal data recorded...</p>}
+              {logs.length === 0 && <p className="text-neutral-800 text-[9px] uppercase tracking-widest italic mt-4 text-center">Escaneando frequências neurais...</p>}
             </div>
           </div>
 
-          <div className={`${activeSection === 'stats' ? 'flex' : 'hidden md:flex'} flex-[2] flex-col gap-1.5 overflow-hidden`}>
-            <div className="flex-grow border border-neutral-800 bg-[#080808] p-4 flex flex-col justify-between">
-              <div className="flex items-center gap-2 mb-3 border-b border-neutral-900 pb-2">
-                <Database size={12} className="text-[#7000FF]" />
-                <span className="text-[8px] font-bold tracking-widest uppercase text-[#7000FF]">TELEMETRY_NODE</span>
+          {/* Pulso do Arquivo (Stats) */}
+          <div className={`${activeSection === 'stats' ? 'flex' : 'hidden md:flex'} flex-[2] flex-col gap-2 overflow-hidden`}>
+            <div className="flex-grow border border-neutral-800 bg-[#080808] p-6 flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute -right-4 -bottom-4 opacity-[0.03] text-white">
+                <Database size={120} />
+              </div>
+
+              <div className="flex items-center gap-3 mb-6 border-b border-neutral-900 pb-3">
+                <Server size={14} className="text-[#7000FF]" />
+                <span className="font-gothic text-sm text-[#7000FF] mr-1">P</span>
+                <span className="text-[9px] font-bold tracking-[0.4em] uppercase text-[#7000FF]">Pulso_do_Arquivo</span>
               </div>
               
-              <div className="space-y-1.5">
-                 <StatRow label="Title" value={currentSong?.title || "IDLE"} />
-                 <StatRow label="Traffic" value={trafficCount.toLocaleString()} />
-                 <StatRow label="Nodes" value={activeUsers.toString()} />
-                 <StatRow label="Loc" value={lastConnection} />
+              <div className="space-y-3 relative z-10">
+                 <StatRow label="Artefato" value={currentSong?.title || "OCIOSO"} />
+                 <StatRow label="Alcance Total" value={`${trafficCount.toLocaleString()} SINAIS`} />
+                 <StatRow label="Nós ao Vivo" value={`${activeUsers} TERMINAIS`} />
+                 <StatRow label="Fonte" value={lastConnection} />
               </div>
             </div>
 
-            <div className="h-12 border border-neutral-800 bg-neutral-950 flex items-center justify-around px-4">
-               <button onClick={togglePlay} className={`p-2 transition-colors ${currentSong ? 'text-neutral-500 hover:text-white' : 'text-neutral-800 cursor-not-allowed'}`}>
-                  {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+            <div className="h-14 border border-neutral-800 bg-neutral-950 flex items-center justify-around px-6">
+               <button onClick={togglePlay} className={`p-3 transition-all ${currentSong ? 'text-neutral-500 hover:text-[#FF007F] hover:scale-110' : 'text-neutral-800 cursor-not-allowed'}`}>
+                  {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                </button>
-               <button onClick={() => setIsDashboardOpen(true)} className="p-2 text-neutral-500 hover:text-[#7000FF] transition-colors">
-                  <Globe size={16} />
+               <button onClick={() => setIsDashboardOpen(true)} className="p-3 text-neutral-500 hover:text-[#7000FF] transition-all hover:scale-110">
+                  <Globe size={18} />
                </button>
-               <div className="flex items-center gap-1">
-                  <Zap size={12} className="text-[#FF007F]" />
-                  <span className="text-[7px] font-bold tracking-widest text-neutral-600">G.A.S_OS</span>
+               <div className="flex items-center gap-2 border-l border-neutral-800 pl-6 ml-2">
+                  <Zap size={14} className="text-[#FF007F]" />
+                  <span className="text-[8px] font-bold tracking-[0.3em] text-neutral-500 uppercase">G.A.S_v4</span>
                </div>
             </div>
           </div>
@@ -340,17 +363,17 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
 const MobileTab = ({ active, onClick, icon, label }: any) => {
   const MotionDiv = motion.div as any;
   return (
-    <button onClick={onClick} className={`flex-1 flex items-center justify-center gap-2 border-r last:border-0 border-neutral-800 transition-all ${active ? 'bg-[#FF007F]/10 text-[#FF007F]' : 'text-neutral-600'}`}>
+    <button onClick={onClick} className={`flex-1 flex flex-col items-center justify-center gap-1 transition-all relative ${active ? 'bg-[#FF007F]/5 text-[#FF007F]' : 'text-neutral-600'}`}>
       {icon}
       <span className="text-[8px] font-bold uppercase tracking-widest">{label}</span>
-      {active && <MotionDiv layoutId="activeMobileTab" className="absolute bottom-0 h-0.5 bg-[#FF007F] w-full max-w-[40px]" />}
+      {active && <MotionDiv layoutId="activeMobileTab" className="absolute bottom-0 h-0.5 bg-[#FF007F] w-full" />}
     </button>
   );
 };
 
 const StatRow = ({ label, value }: { label: string, value: string }) => (
-  <div className="flex justify-between items-center text-[7px] uppercase font-bold tracking-widest">
-    <span className="text-neutral-700">{label}:</span>
-    <span className="text-neutral-400 truncate max-w-[100px] text-right">{value}</span>
+  <div className="flex justify-between items-center text-[8px] md:text-[9px] uppercase font-bold tracking-widest border-b border-neutral-900/50 pb-1.5">
+    <span className="text-neutral-600">{label}</span>
+    <span className="text-neutral-300 truncate max-w-[140px] text-right">{value}</span>
   </div>
 );

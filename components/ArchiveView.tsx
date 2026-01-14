@@ -88,9 +88,9 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
     });
     
     return [
-      { id: 'classics', title: 'The Classics', icon: <Disc size={18} />, data: classics },
-      { id: 'soundcloud', title: 'Soundcloud Era', icon: <Ghost size={18} />, data: soundcloud },
-      { id: 'rare', title: 'Rare & Unreleased', icon: <Layers size={18} />, data: rare }
+      { id: 'classics', title: 'Os Clássicos', icon: <Disc size={18} />, data: classics },
+      { id: 'soundcloud', title: 'Era Soundcloud', icon: <Ghost size={18} />, data: soundcloud },
+      { id: 'rare', title: 'Raros & Não Lançados', icon: <Layers size={18} />, data: rare }
     ].filter(cat => cat.data.length > 0);
   }, [songs]);
 
@@ -129,8 +129,8 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
               </div>
             </div>
             <div className="flex flex-col items-center gap-3 px-6 text-center">
-              <span className="font-mono text-[12px] md:text-[14px] text-[#FF007F] tracking-[0.6em] md:tracking-[0.8em] uppercase animate-pulse font-bold">Scanning Archive</span>
-              <span className="font-mono text-[8px] md:text-[10px] text-neutral-500 tracking-[0.4em] uppercase">Reconstructing Digital Memory...</span>
+              <span className="font-mono text-[12px] md:text-[14px] text-[#FF007F] tracking-[0.6em] md:tracking-[0.8em] uppercase animate-pulse font-bold">Escaneando Arquivo</span>
+              <span className="font-mono text-[8px] md:text-[10px] text-neutral-500 tracking-[0.4em] uppercase">Reconstruindo Memória Digital...</span>
             </div>
           </MotionDiv>
         ) : (
@@ -174,7 +174,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                     <div className="flex-1 text-center md:text-left px-4">
                       <MotionDiv initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
                         <div className="inline-block px-4 py-1.5 border border-[#FF007F]/40 bg-[#FF007F]/10 mb-6 md:mb-8">
-                           <span className="font-mono text-[9px] md:text-[10px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">Spotlight</span>
+                           <span className="font-mono text-[9px] md:text-[10px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">Destaque</span>
                         </div>
                         <h2 className="font-gothic text-3xl sm:text-4xl md:text-5xl lg:text-7xl mb-8 md:mb-10 neon-text-pink leading-tight tracking-tighter drop-shadow-[0_10px_30px_rgba(255,0,127,0.3)]">
                           {featuredSong.title}
@@ -186,7 +186,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                             className="group relative inline-flex items-center gap-3 md:gap-4 px-6 md:px-8 py-3 md:py-4 bg-neutral-950 border-2 border-neutral-800 text-white hover:border-[#FF007F] transition-all overflow-hidden"
                           >
                             <div className="absolute inset-0 bg-[#FF007F]/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
-                            <span className="relative z-10 font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] uppercase">Explore</span>
+                            <span className="relative z-10 font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] uppercase">Explorar</span>
                             <Sparkles size={14} className="relative z-10 text-[#FF007F]" />
                           </button>
 
@@ -196,7 +196,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                             className={`group relative inline-flex items-center gap-3 md:gap-4 px-6 md:px-8 py-3 md:py-4 transition-all border-2 overflow-hidden ${isFeaturedPlayable ? 'bg-white text-black border-white hover:bg-black hover:text-white' : 'bg-neutral-900 text-neutral-600 border-neutral-800 cursor-not-allowed'}`}
                           >
                             <span className="relative z-10 font-mono text-[10px] md:text-[11px] font-bold tracking-[0.2em] uppercase">
-                              {!isFeaturedPlayable ? 'Locked' : isFeaturedPlaying ? 'Active' : 'Ignite'}
+                              {!isFeaturedPlayable ? 'Bloqueado' : isFeaturedPlaying ? 'Ativo' : 'Ignorar'}
                             </span>
                             {isFeaturedPlayable ? (
                               <Play size={14} className="relative z-10" fill="currentColor" />
@@ -255,7 +255,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
               )}
               {!loading && categories.length === 0 && (
                 <div className="px-8 py-16 border-y border-neutral-900/50 bg-neutral-950/20 text-center mx-6 md:mx-8">
-                  <p className="font-mono text-[10px] text-neutral-600 tracking-[0.4em] uppercase">No data segments found.</p>
+                  <p className="font-mono text-[10px] text-neutral-600 tracking-[0.4em] uppercase">Nenhum segmento de dados encontrado.</p>
                 </div>
               )}
             </div>
@@ -263,7 +263,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
             <div className="mt-20 md:mt-32 px-6 md:px-8 pt-16 border-t border-neutral-800">
               <div className="flex items-center gap-4 mb-10 md:mb-12">
                  <div className="h-px flex-grow bg-neutral-900" />
-                 <h3 className="font-serif-classic text-lg md:text-xl text-neutral-400 tracking-[0.2em] uppercase font-bold text-center">Full Archive ({songs.length})</h3>
+                 <h3 className="font-serif-classic text-lg md:text-xl text-neutral-400 tracking-[0.2em] uppercase font-bold text-center">Arquivo Completo ({songs.length})</h3>
                  <div className="h-px flex-grow bg-neutral-900" />
               </div>
               <MotionDiv 
@@ -291,7 +291,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({ songs, loading, hasMor
                     onClick={onLoadMore}
                     className="group flex flex-col items-center gap-3 md:gap-4 text-neutral-500 hover:text-[#FF007F] transition-all"
                   >
-                    <span className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.4em] uppercase">More Artifacts</span>
+                    <span className="font-mono text-[10px] md:text-[11px] font-bold tracking-[0.4em] uppercase">Mais Artefatos</span>
                     <div className="p-3 md:p-4 border border-neutral-900 rounded-full group-hover:border-[#FF007F]/40 animate-bounce transition-colors">
                       <ArrowDown size={18} />
                     </div>
