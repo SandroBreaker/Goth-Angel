@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Activity, Calendar, Award, Disc, Skull, Heart, Star, TrendingUp } from 'lucide-react';
@@ -64,7 +63,9 @@ const timelineData: TimelineEvent[] = [
 ];
 
 export const TimelineHistory: React.FC = () => {
+  // Fix: Casting motion.div and motion.path to any to resolve React 19 type incompatibilities
   const MotionDiv = motion.div as any;
+  const MotionPath = motion.path as any;
 
   // Gerar coordenadas para o gráfico de linha SVG
   const generatePath = () => {
@@ -95,7 +96,7 @@ export const TimelineHistory: React.FC = () => {
            <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
            
            <svg viewBox="0 0 1000 150" className="w-full h-full drop-shadow-[0_0_15px_rgba(255,0,127,0.5)]">
-             <motion.path 
+             <MotionPath 
                initial={{ pathLength: 0 }}
                animate={{ pathLength: 1 }}
                transition={{ duration: 3, ease: "easeInOut" }}

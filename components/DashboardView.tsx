@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -28,7 +27,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
   const [activeTab, setActiveTab] = useState<'geo' | 'tech' | 'traffic' | 'history'>('geo');
   const [rawLogs, setRawLogs] = useState<AccessData[]>([]);
   const [loading, setLoading] = useState(true);
+  // Fix: Casting motion.div and motion.path to any to resolve React 19 type incompatibilities
   const MotionDiv = motion.div as any;
+  const MotionPath = motion.path as any;
 
   useEffect(() => {
     const fetchFullMetrics = async () => {
@@ -144,7 +145,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
                 <div className="mb-10 relative w-full aspect-[16/5] bg-neutral-950/40 border border-neutral-900 overflow-hidden">
                    <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
                    <svg viewBox="0 0 1000 150" className="w-full h-full drop-shadow-[0_0_20px_rgba(255,0,127,0.4)]">
-                     <motion.path initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.5 }} d={generatePath()} fill="none" stroke="#FF007F" strokeWidth="2" strokeLinecap="round" />
+                     <MotionPath initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.5 }} d={generatePath()} fill="none" stroke="#FF007F" strokeWidth="2" strokeLinecap="round" />
                      {trafficHistory.map((e, i) => (
                        <circle key={i} cx={50 + i * (900/(trafficHistory.length-1))} cy={150 - (e.intensity/100)*100} r="3" fill="#FF007F" className="animate-pulse" />
                      ))}
@@ -270,17 +271,21 @@ const MetricBox = ({ label, sub, value, icon, color, description }: any) => (
   </div>
 );
 
-const TabButton = ({ active, onClick, icon, label, sub }: any) => (
-  <button onClick={onClick} className={`w-full flex items-center gap-4 px-6 py-5 text-left border-b border-neutral-900 transition-all group relative overflow-hidden ${active ? 'bg-[#FF007F]/10 text-white' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/[0.02]'}`}>
-    {active && <motion.div layoutId="tabMarker" className="absolute left-0 top-0 bottom-0 w-1 bg-[#FF007F] shadow-[0_0_15px_#FF007F]" />}
-    <div className={active ? 'text-[#FF007F]' : 'text-neutral-700'}>{icon}</div>
-    <div className="flex flex-col">
-      <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{label}</span>
-      <span className="text-[8px] text-neutral-600 uppercase tracking-widest font-bold mt-0.5">{sub}</span>
-    </div>
-    <ChevronRight size={12} className={`ml-auto transition-transform ${active ? 'translate-x-0 opacity-100' : '-translate-x-2 opacity-0'}`} />
-  </button>
-);
+const TabButton = ({ active, onClick, icon, label, sub }: any) => {
+  // Fix: Casting motion.div to any to resolve React 19 type incompatibilities
+  const MotionDiv = motion.div as any;
+  return (
+    <button onClick={onClick} className={`w-full flex items-center gap-4 px-6 py-5 text-left border-b border-neutral-900 transition-all group relative overflow-hidden ${active ? 'bg-[#FF007F]/10 text-white' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/[0.02]'}`}>
+      {active && <MotionDiv layoutId="tabMarker" className="absolute left-0 top-0 bottom-0 w-1 bg-[#FF007F] shadow-[0_0_15px_#FF007F]" />}
+      <div className={active ? 'text-[#FF007F]' : 'text-neutral-700'}>{icon}</div>
+      <div className="flex flex-col">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{label}</span>
+        <span className="text-[8px] text-neutral-600 uppercase tracking-widest font-bold mt-0.5">{sub}</span>
+      </div>
+      <ChevronRight size={12} className={`ml-auto transition-transform ${active ? 'translate-x-0 opacity-100' : '-translate-x-2 opacity-0'}`} />
+    </button>
+  );
+};
 
 const SectionTitle = ({ title, subtitle, explanation }: any) => (
   <div className="mb-12 border-l-2 border-[#FF007F]/40 pl-6 md:pl-8">

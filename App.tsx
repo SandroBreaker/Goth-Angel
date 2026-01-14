@@ -16,6 +16,7 @@ import { trackAccess } from './services/analytics.ts';
 import { Song, ViewState } from './types.ts';
 import { AlertCircle, Heart } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
 
 const LyricView = lazy(() => import('./components/LyricView.tsx').then(m => ({ default: m.LyricView })));
 
@@ -207,6 +208,7 @@ const App: React.FC = () => {
   return (
     <PlayerProvider>
       <AppContent />
+      <Analytics />
     </PlayerProvider>
   );
 };
