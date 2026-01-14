@@ -1,5 +1,6 @@
 
 import React, { useState, Suspense, lazy, useCallback, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
@@ -106,6 +107,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen relative z-10 flex flex-col selection:bg-[#FF007F]/30 overflow-x-hidden">
+      <Analytics />
       <Header 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
