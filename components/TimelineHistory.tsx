@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Activity, Calendar, Award, Disc, Skull, Heart, Star } from 'lucide-react';
+import { Zap, Activity, Calendar, Award, Disc, Skull, Heart, Star, TrendingUp } from 'lucide-react';
 
 interface TimelineEvent {
   year: string;
@@ -66,8 +66,73 @@ const timelineData: TimelineEvent[] = [
 export const TimelineHistory: React.FC = () => {
   const MotionDiv = motion.div as any;
 
+  // Gerar coordenadas para o gráfico de linha SVG
+  const generatePath = () => {
+    const width = 1000;
+    const height = 150;
+    const padding = 50;
+    const step = (width - padding * 2) / (timelineData.length - 1);
+    
+    return timelineData.map((event, i) => {
+      const x = padding + i * step;
+      const y = height - (event.intensity / 100) * (height - padding);
+      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ');
+  };
+
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6">
+    <div className="max-w-4xl mx-auto py-8 px-6">
+      {/* SIGNAL FREQUENCY LINE CHART */}
+      <section className="mb-24 md:mb-32">
+        <div className="flex items-center gap-4 mb-8">
+           <TrendingUp size={16} className="text-[#FF007F]" />
+           <span className="font-mono text-[10px] text-[#FF007F] uppercase tracking-[0.5em] font-bold">Signal_Frequency_Mapping</span>
+           <div className="h-px flex-grow bg-neutral-900" />
+        </div>
+        
+        <div className="relative w-full aspect-[10/3] md:aspect-[10/2] bg-neutral-950/40 border border-neutral-900 overflow-hidden">
+           {/* Grid Lines */}
+           <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+           
+           <svg viewBox="0 0 1000 150" className="w-full h-full drop-shadow-[0_0_15px_rgba(255,0,127,0.5)]">
+             <motion.path 
+               initial={{ pathLength: 0 }}
+               animate={{ pathLength: 1 }}
+               transition={{ duration: 3, ease: "easeInOut" }}
+               d={generatePath()} 
+               fill="none" 
+               stroke="#FF007F" 
+               strokeWidth="2" 
+             />
+             {/* Data Points on Line */}
+             {timelineData.map((event, i) => {
+               const width = 1000;
+               const height = 150;
+               const padding = 50;
+               const step = (width - padding * 2) / (timelineData.length - 1);
+               const x = padding + i * step;
+               const y = height - (event.intensity / 100) * (height - padding);
+               return (
+                 <circle 
+                   key={i} 
+                   cx={x} 
+                   cy={y} 
+                   r="3" 
+                   fill="#FF007F" 
+                   className="animate-pulse"
+                 />
+               );
+             })}
+           </svg>
+           
+           <div className="absolute bottom-2 left-6 right-6 flex justify-between font-mono text-[7px] text-neutral-600 uppercase tracking-widest font-bold">
+              <span>Origin_Node</span>
+              <span>Legacy_Peak</span>
+              <span>Immortal_Persistence</span>
+           </div>
+        </div>
+      </section>
+
       <div className="relative">
         {/* Central Signal Line */}
         <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#FF007F]/0 via-[#FF007F]/30 to-transparent md:-translate-x-1/2" />
@@ -108,7 +173,7 @@ export const TimelineHistory: React.FC = () => {
                 {/* Signal Intensity Chart */}
                 <div className="space-y-2">
                   <div className="flex justify-between font-mono text-[8px] text-neutral-600 tracking-widest uppercase font-bold">
-                    <span>Signal_Strength</span>
+                    <span>Intensity_Log</span>
                     <span>{event.intensity}%</span>
                   </div>
                   <div className="h-1 bg-neutral-900 overflow-hidden">

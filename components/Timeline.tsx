@@ -8,7 +8,6 @@ import {
   Ghost, ExternalLink, Skull, HelpCircle, Film, Cpu,
   Layers, BarChart3
 } from 'lucide-react';
-import { TimelineHistory } from './TimelineHistory.tsx';
 
 interface NodeData {
   id: string;
@@ -68,7 +67,7 @@ const mindMapTree: NodeData = {
             { id: 'cowys1', label: "Come Over When You're Sober, Pt. 1", icon: <Disc size={12} />, content: { title: "COWYS Pt. 1", description: "Lançado em 15 de agosto de 2017, marcando sua transição para o pop-punk.", analysis: 'Seu único álbum de estúdio lançado em vida. Representa o pico de sua colaboração criativa com Smokeasac e uma virada para uma sonoridade mais acessível e ambiciosa, sem sacrificar sua essência sombria.' } },
             { id: 'crybaby', label: 'Mixtape Crybaby', icon: <Disc size={12} />, content: { title: "Crybaby", description: "Lançada em 2016, estabelecendo o Gus como o futuro do emo.", analysis: 'A mixtape que o tornou um ícone. Com samples de Brand New e Radiohead, Peep criou uma obra-prima de colagem musical que definia o que significava ser um "Crybaby" na era digital.' } },
             { id: 'hellboy', label: 'Mixtape Hellboy', icon: <Disc size={12} />, content: { title: "Hellboy", description: "Projeto definitivo que sintetiza a nostalgia dos anos 2000.", analysis: 'Considara por muitos como sua maior obra. Hellboy explorou as profundezas de sua depressão e seu estilo de vida rockstar decadente, consolidando seu status como o líder supremo do GBC.' } },
-            { id: 'partone', label: 'Mixtape Lil Peep; Part One', icon: <Disc size={12} />, content: { title: "Part One", description: "Lançada no SoundCloud em 2015, o início do fenômeno.", analysis: 'Onde o mito começou. Gravada inteiramente em seu quarto, esta mixtape apresentou o mundo à sua voz melancólica e aos seus primeiros experimentos com samples de rock obscuro.' } },
+            { id: 'partone', label: 'Mixtape Lil Peep; Part One', icon: <Disc size={12} />, content: { title: "Part One", description: "Lançada no SoundCloud em 2015, o início do fenômeno.", analysis: 'Onde o mito começou. Gravada inteiramente em seu quarto, esta mixtape apresentou o mundo à sua voz melancólica e aos seus primeiros experimentos com samples de rock obsucro.' } },
           ]
         },
         {
@@ -248,7 +247,6 @@ const MindMapNode: React.FC<{
 export const Timeline: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<NodeData | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['root', 'carreira', 'morte']));
-  const [viewMode, setViewMode] = useState<'mapping' | 'chronology'>('mapping');
   const MotionDiv = motion.div as any;
 
   const handleToggle = (id: string) => {
@@ -283,55 +281,23 @@ export const Timeline: React.FC = () => {
                <span className="font-mono text-[8px] md:text-[9px] text-[#FF007F] tracking-[0.4em] uppercase font-bold">LEGACY_MAPPING_PROTOCOL_V4</span>
              </div>
              <h2 className="font-serif-classic text-4xl md:text-6xl text-white tracking-widest uppercase mb-6 md:mb-8 leading-tight">Mapa do<br/><span className="text-[#FF007F]">Legado</span></h2>
-             
-             {/* View Mode Selector */}
-             <div className="flex gap-4 mt-8 p-1 bg-neutral-900/50 border border-neutral-800 self-start">
-                <button 
-                  onClick={() => setViewMode('mapping')}
-                  className={`flex items-center gap-2 px-4 py-2 font-mono text-[9px] tracking-widest uppercase transition-all ${viewMode === 'mapping' ? 'bg-[#FF007F] text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
-                >
-                  <Layers size={14} /> [ MAPPING_MODE ]
-                </button>
-                <button 
-                  onClick={() => setViewMode('chronology')}
-                  className={`flex items-center gap-2 px-4 py-2 font-mono text-[9px] tracking-widest uppercase transition-all ${viewMode === 'chronology' ? 'bg-[#FF007F] text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
-                >
-                  <BarChart3 size={14} /> [ CHRONOLOGY_MODE ]
-                </button>
-             </div>
+             <p className="font-mono text-[10px] md:text-[12px] text-neutral-500 uppercase tracking-widest max-w-xl leading-relaxed">
+               Explore as conexões neurais, influências e marcos que definiram a arquitetura do Goth-Angel-Sinner.
+             </p>
           </MotionDiv>
         </div>
 
-        <AnimatePresence mode="wait">
-          {viewMode === 'mapping' ? (
-            <MotionDiv 
-              key="mapping"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.02 }}
-              className="flex justify-start min-h-[800px] md:min-h-[1200px] p-4 md:p-8 overflow-x-auto scrollbar-hide"
-            >
-               <div className="relative flex-grow">
-                 <MindMapNode 
-                   node={mindMapTree} 
-                   depth={0} 
-                   onSelect={setSelectedNode} 
-                   expandedIds={expandedIds}
-                   onToggle={handleToggle}
-                 />
-               </div>
-            </MotionDiv>
-          ) : (
-            <MotionDiv
-              key="chronology"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <TimelineHistory />
-            </MotionDiv>
-          )}
-        </AnimatePresence>
+        <div className="flex justify-start min-h-[800px] md:min-h-[1200px] p-4 md:p-8 overflow-x-auto scrollbar-hide">
+          <div className="relative flex-grow">
+            <MindMapNode 
+              node={mindMapTree} 
+              depth={0} 
+              onSelect={setSelectedNode} 
+              expandedIds={expandedIds}
+              onToggle={handleToggle}
+            />
+          </div>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -384,29 +350,6 @@ export const Timeline: React.FC = () => {
                      {selectedNode.content.analysis}
                    </p>
                  </div>
-
-                 {selectedNode.children && (
-                   <div className="space-y-6 pt-6 md:pt-10">
-                     <span className="font-mono text-[8px] md:text-[9px] text-neutral-600 uppercase tracking-[0.5em] font-bold">Sub-Nódulos em Conexão:</span>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                       {selectedNode.children.map(child => (
-                         <button 
-                           key={child.id} 
-                           onClick={() => {
-                             if (!expandedIds.has(selectedNode.id)) handleToggle(selectedNode.id);
-                             setSelectedNode(child);
-                           }}
-                           className="p-3 md:p-4 bg-neutral-900/50 border border-neutral-800 hover:border-[#FF007F]/40 transition-all flex items-center gap-3 text-left group/sub"
-                         >
-                           <div className="w-1.5 h-1.5 bg-[#FF007F]/40 group-hover/sub:bg-[#FF007F] rounded-full transition-colors" />
-                           <span className="font-mono text-[8px] md:text-[9px] text-neutral-400 group-hover/sub:text-white uppercase tracking-widest">
-                             {child.label}
-                           </span>
-                         </button>
-                       ))}
-                     </div>
-                   </div>
-                 )}
               </div>
             </div>
 
@@ -420,17 +363,6 @@ export const Timeline: React.FC = () => {
           </MotionDiv>
         )}
       </AnimatePresence>
-
-      <div className="fixed bottom-6 md:bottom-12 left-6 md:left-12 flex flex-col gap-3 md:gap-4 opacity-40">
-         <div className="flex items-center gap-3 md:gap-4">
-           <div className="w-3 h-3 md:w-4 md:h-4 bg-[#FF007F] rounded-none border border-white/10" />
-           <span className="font-mono text-[8px] md:text-[9px] text-white tracking-[0.3em] uppercase">Eixo Emocional</span>
-         </div>
-         <div className="flex items-center gap-3 md:gap-4">
-           <div className="w-3 h-3 md:w-4 md:h-4 bg-[#7000FF] rounded-none border border-white/10" />
-           <span className="font-mono text-[8px] md:text-[9px] text-white tracking-[0.3em] uppercase">Eixo Técnico</span>
-         </div>
-      </div>
     </div>
   );
 };
