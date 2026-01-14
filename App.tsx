@@ -1,5 +1,6 @@
 
 import React, { useState, Suspense, lazy, useCallback, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
 import { Timeline } from './components/Timeline.tsx';
@@ -199,6 +200,7 @@ const AppContent: React.FC = () => {
 
       <GlobalPlayer onExpand={handleExpandPlayer} onClose={handleCloseEverything} />
       <GlobalAudioEngine />
+      <Analytics />
     </div>
   );
 };
