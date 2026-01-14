@@ -100,7 +100,8 @@ export const AIAssistant: React.FC = () => {
               </div>
               <div className="flex gap-1 items-center px-4">
                  {[0,1,2].map(i => (
-                   <motion.div 
+                   // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
+                   <MotionDiv 
                      key={i}
                      animate={{ opacity: [0.2, 1, 0.2] }}
                      transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}

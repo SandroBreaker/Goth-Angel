@@ -31,6 +31,9 @@ const TypewriterLine: React.FC<{
 }> = ({ text, index, isActive, isPast }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isDone, setIsDone] = useState(false);
+  // Fix: Casting motion components to any to resolve React 19 type incompatibilities
+  const MotionDiv = motion.div as any;
+  const MotionSpan = motion.span as any;
 
   useEffect(() => {
     if (isPast) {
@@ -63,7 +66,8 @@ const TypewriterLine: React.FC<{
   }, [isActive, isPast, text]);
 
   return (
-    <motion.div
+    // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
+    <MotionDiv
       initial={{ opacity: 0, x: -5 }}
       animate={{ 
         opacity: isPast ? 0.3 : isActive ? 1 : 0.6, 
@@ -81,14 +85,15 @@ const TypewriterLine: React.FC<{
       <span className="uppercase tracking-wide break-all">
         {displayedText}
         {isActive && !isDone && (
-          <motion.span 
+          // Fix: Using MotionSpan (casted to any) to resolve React 19 type incompatibilities
+          <MotionSpan 
             animate={{ opacity: [1, 0] }} 
             transition={{ repeat: Infinity, duration: 0.4 }}
             className="inline-block ml-1 bg-[#FF007F] w-2 h-3 align-middle"
           />
         )}
       </span>
-    </motion.div>
+    </MotionDiv>
   );
 };
 

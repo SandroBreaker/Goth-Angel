@@ -6,6 +6,7 @@ import { Timeline } from './components/Timeline.tsx';
 import { TerminalView } from './components/TerminalView.tsx';
 import { TheVault } from './components/TheVault.tsx';
 import { Footer } from './components/Footer.tsx';
+import { DonationModal } from './components/DonationModal.tsx';
 import { GlobalAudioEngine } from './components/GlobalAudioEngine.tsx';
 import { GlobalPlayer } from './components/GlobalPlayer.tsx';
 import { PlayerProvider, usePlayer } from './context/PlayerContext.tsx';
@@ -13,8 +14,8 @@ import { useSongs } from './hooks/useSongs.ts';
 import { supabase } from './services/supabaseClient.ts';
 import { trackAccess } from './services/analytics.ts';
 import { Song, ViewState } from './types.ts';
-import { AlertCircle } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { AlertCircle, Coffee } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const LyricView = lazy(() => import('./components/LyricView.tsx').then(m => ({ default: m.LyricView })));
 
@@ -30,6 +31,7 @@ const AppContent: React.FC = () => {
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sentimentFilters, setSentimentFilters] = useState<string[]>([]);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   const { songs, loading, error, hasMore, loadMore } = useSongs(searchQuery, sentimentFilters);
   const { currentSong, stop } = usePlayer();
@@ -100,6 +102,8 @@ const AppContent: React.FC = () => {
     navigateTo('archive');
   }, [stop, navigateTo]);
 
+  const MotionDiv = motion.div as any;
+
   return (
     <div className="min-h-screen relative z-10 flex flex-col selection:bg-[#FF007F]/30 overflow-x-hidden">
       <Header 
@@ -149,6 +153,46 @@ const AppContent: React.FC = () => {
       </AnimatePresence>
 
       <Footer />
+
+      {/* Floating CTA Button */}
+      <AnimatePresence>
+        {currentView !== 'terminal' && currentView !== 'lyrics' && (
+          <MotionDiv
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            className={`fixed z-[140] right-6 md:right-10 transition-all duration-500 ${currentSong ? 'bottom-40 md:bottom-48' : 'bottom-10'}`}
+          >
+            <button 
+              onClick={() => setIsSupportModalOpen(true)}
+              className="group relative flex items-center gap-4 px-6 py-4 bg-[#050505] border border-[#FF007F]/40 shadow-[0_0_30px_rgba(255,0,127,0.1)] hover:shadow-[0_0_50px_rgba(255,0,127,0.3)] hover:border-[#FF007F] transition-all duration-500 overflow-hidden"
+            >
+              {/* Pulsing Glow Background */}
+              <MotionDiv 
+                animate={{ opacity: [0.1, 0.3, 0.1] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute inset-0 bg-[#FF007F]"
+              />
+              
+              <Coffee size={18} className="relative z-10 text-[#FF007F] group-hover:rotate-12 transition-transform" />
+              <div className="flex flex-col items-start relative z-10">
+                <span className="font-mono text-[10px] font-bold text-white uppercase tracking-[0.3em]">Support_Project</span>
+                <span className="font-mono text-[7px] text-[#FF007F] uppercase tracking-[0.2em] font-bold opacity-60">Buy me a coffee</span>
+              </div>
+              
+              {/* Scanline inside button */}
+              <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] z-0"></div>
+            </button>
+          </MotionDiv>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isSupportModalOpen && (
+          <DonationModal onClose={() => setIsSupportModalOpen(false)} />
+        )}
+      </AnimatePresence>
+
       <GlobalPlayer onExpand={handleExpandPlayer} onClose={handleCloseEverything} />
       <GlobalAudioEngine />
     </div>

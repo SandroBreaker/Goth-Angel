@@ -27,6 +27,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
   const [activeTab, setActiveTab] = useState<'geo' | 'tech' | 'traffic'>('geo');
   const [rawLogs, setRawLogs] = useState<AccessData[]>([]);
   const [loading, setLoading] = useState(true);
+  // Fix: Casting motion.div to any to resolve React 19 type incompatibilities
+  const MotionDiv = motion.div as any;
 
   useEffect(() => {
     const fetchFullMetrics = async () => {
@@ -67,7 +69,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
   }, [rawLogs]);
 
   return (
-    <motion.div 
+    // Fix: Using MotionDiv (casted to any) to resolve type errors
+    <MotionDiv 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -173,7 +176,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
         <main className="flex-grow p-6 md:p-10 overflow-y-auto custom-scrollbar bg-[#050505]">
           <AnimatePresence mode="wait">
             {activeTab === 'geo' && (
-              <motion.div key="geo" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
+              <MotionDiv key="geo" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <SectionTitle 
                   title="Geographic Signal Origin" 
                   subtitle="De onde vêm as conexões?"
@@ -184,11 +188,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
                     <BarStat key={name} label={name.replace('_', ' ')} value={count} total={rawLogs.length} color="#FF007F" />
                   )) : <p className="text-neutral-700 text-[10px] uppercase">Aguardando telemetria...</p>}
                 </div>
-              </motion.div>
+              </MotionDiv>
             )}
 
             {activeTab === 'tech' && (
-              <motion.div key="tech" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
+              <MotionDiv key="tech" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <SectionTitle 
                   title="User Environment Analysis" 
                   subtitle="Quais dispositivos estão sendo usados?"
@@ -210,11 +215,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
                      </div>
                   </div>
                 </div>
-              </motion.div>
+              </MotionDiv>
             )}
 
             {activeTab === 'traffic' && (
-              <motion.div key="traffic" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
+              <MotionDiv key="traffic" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <SectionTitle 
                   title="Neural Navigation Flow" 
                   subtitle="Quais caminhos os fãs mais percorrem?"
@@ -225,7 +231,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
                     <BarStat key={name} label={`Fragment Section: /${name.toUpperCase()}`} value={count} total={rawLogs.length} color="#00FF41" />
                   ))}
                 </div>
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
         </main>
@@ -238,7 +244,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
         </div>
         <span>Node: SB-ANALYTICS-PRIMARY</span>
       </footer>
-    </motion.div>
+    </MotionDiv>
   );
 };
 
@@ -293,6 +299,8 @@ const SectionTitle = ({ title, subtitle, explanation }: any) => (
 
 const BarStat = ({ label, value, total, color }: any) => {
   const percentage = (value / total) * 100;
+  // Fix: Casting motion.div to any to resolve React 19 type incompatibilities
+  const MotionDiv = motion.div as any;
   return (
     <div className="space-y-3 group">
       <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest">
@@ -300,7 +308,8 @@ const BarStat = ({ label, value, total, color }: any) => {
         <span className="text-neutral-400">{value} SINAIS <span className="text-neutral-700 ml-2">({percentage.toFixed(1)}%)</span></span>
       </div>
       <div className="h-2.5 bg-neutral-900 relative overflow-hidden">
-        <motion.div 
+        {/* Fix: Using MotionDiv (casted to any) to resolve type errors */}
+        <MotionDiv 
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 1.2, ease: "easeOut" }}

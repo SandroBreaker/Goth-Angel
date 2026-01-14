@@ -6,6 +6,9 @@ import { Song } from '../types.ts';
 import { usePlayer } from '../context/PlayerContext.tsx';
 import { parseTrackMetadata } from '../utils/metadataParser.ts';
 
+// Fix: Casting motion.div to any to resolve React 19 type incompatibilities
+const MotionDiv = motion.div as any;
+
 interface LyricViewProps {
   song: Song;
   onClose: () => void;
@@ -27,11 +30,6 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
   const [isSyncing, setIsSyncing] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  const MotionDiv = motion.div as any;
-
-  const isCurrentActive = currentSong?.id === song.id;
-  const hasDirectAudio = !!song.storage_url;
-
   useEffect(() => {
     if (song.lyrics) {
       setIsSyncing(false);
@@ -47,6 +45,9 @@ export const LyricView: React.FC<LyricViewProps> = ({ song, onClose }) => {
     if (!song.lyrics) return [];
     return song.lyrics.split('\n');
   }, [song.lyrics]);
+
+  const isCurrentActive = currentSong?.id === song.id;
+  const hasDirectAudio = !!song.storage_url;
 
   // Lógica de Sincronização: Mapeamento Linear do Progresso para a Linha
   const activeLineIndex = useMemo(() => {
@@ -263,7 +264,8 @@ const GlassBox: React.FC<{ icon: React.ReactNode; label: string; value: string }
 const LoaderAnimation = () => (
   <div className="flex gap-2">
     {[0, 1, 2].map(i => (
-      <motion.div 
+      // Fix: Using MotionDiv (casted to any) to resolve React 19 type incompatibilities
+      <MotionDiv 
         key={i}
         animate={{ height: [8, 20, 8], opacity: [0.3, 1, 0.3] }}
         transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.2 }}
