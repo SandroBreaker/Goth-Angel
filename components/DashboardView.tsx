@@ -205,7 +205,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
                        <span className="text-[8px] text-[#FF007F] font-bold uppercase tracking-widest block mb-2">Live_Telemetria:</span>
                        <div className="font-mono text-[7px] text-neutral-500 uppercase leading-none space-y-1">
                           {rawLogs.slice(0, 4).map((l, idx) => (
-                            <p key={idx}>>> REQ_FROM_{l.timezone.slice(-10)} // PLT:_{l.platform.slice(0, 8)} // CORES:_{l.hardware_concurrency}</p>
+                            <p key={idx}>{" >> "} REQ_FROM_{l.timezone.slice(-10)} // PLT:_{l.platform.slice(0, 8)} // CORES:_{l.hardware_concurrency}</p>
                           ))}
                        </div>
                     </div>
