@@ -5,23 +5,28 @@ import {
   Terminal, Cpu, Database, Activity, Clock, 
   Wifi, ShieldAlert, Code, X, ChevronRight,
   Lock, Zap, Play, Pause, Globe, Users,
-  Layers, MessageSquare, BarChart2
+  Layers, MessageSquare, BarChart2, Bot
 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
-import { parseTrackMetadata } from '../utils/metadataParser.ts';
 import { supabase } from '../services/supabaseClient.ts';
 import { DashboardView } from './DashboardView.tsx';
 
 interface LogEntry {
   id: number;
   text: string;
-  type: 'info' | 'error' | 'success' | 'warning';
+  type: 'info' | 'error' | 'success' | 'warning' | 'bot';
   timestamp: string;
 }
 
 interface TerminalViewProps {
   onClose: () => void;
 }
+
+const isBotUA = (ua?: string) => {
+  if (!ua) return false;
+  const botPatterns = ['bot', 'spider', 'crawl', 'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider', 'yandexbot', 'applebot', 'facebot', 'twitterbot', 'discordbot'];
+  return botPatterns.some(pattern => ua.toLowerCase().includes(pattern));
+};
 
 const TypewriterLine: React.FC<{ 
   text: string; 
@@ -95,7 +100,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   const [trafficCount, setTrafficCount] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
   const [lastConnection, setLastConnection] = useState<string>("SEARCHING...");
-  const [visualizerBars, setVisualizerBars] = useState(Array(10).fill(2));
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [commandInput, setCommandInput] = useState('');
   const [fetchedLyrics, setFetchedLyrics] = useState<string | null>(null);
@@ -103,7 +107,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'decoder' | 'console' | 'stats'>('decoder');
   
-  const scrollRef = useRef<HTMLDivElement>(null);
   const lyricsScrollRef = useRef<HTMLDivElement>(null);
   const MotionDiv = motion.div as any;
 
@@ -115,10 +118,33 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
         const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
         const { count: recentCount } = await supabase.from('access_logs_goth').select('id', { count: 'exact', head: true }).gt('created_at', fiveMinsAgo);
         if (recentCount !== null) setActiveUsers(recentCount);
-        const { data } = await supabase.from('access_logs_goth').select('platform, timezone, path, created_at').order('created_at', { ascending: false }).limit(1).single();
-        if (data) {
-          const loc = data.timezone ? data.timezone.split('/')[1] || data.timezone : 'UNKNOWN';
-          setLastConnection(`${loc.toUpperCase()} [${data.platform?.toUpperCase().slice(0, 3) || 'WEB'}]`);
+        
+        const { data: recentLogs } = await supabase
+          .from('access_logs_goth')
+          .select('platform, timezone, path, created_at, user_agent')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (recentLogs && recentLogs.length > 0) {
+          const main = recentLogs[0];
+          const loc = main.timezone ? main.timezone.split('/')[1] || main.timezone : 'UNKNOWN';
+          setLastConnection(`${loc.toUpperCase()} [${main.platform?.toUpperCase().slice(0, 3) || 'WEB'}]`);
+
+          const newEntries: LogEntry[] = recentLogs.map(l => {
+            const bot = isBotUA(l.user_agent);
+            return {
+              id: Math.random(),
+              text: `${bot ? '[BOT_SCAN]' : 'REQ_NODE'} FROM ${l.timezone?.split('/')[1] || 'UNK'} -> /${l.path.toUpperCase()}`,
+              type: bot ? 'bot' : 'info',
+              timestamp: new Date(l.created_at).toLocaleTimeString('en-GB', { hour12: false })
+            };
+          });
+          
+          setLogs(prev => {
+            const existingIds = new Set(prev.map(e => e.text + e.timestamp));
+            const uniqueNew = newEntries.filter(e => !existingIds.has(e.text + e.timestamp));
+            return [...prev, ...uniqueNew].slice(-40);
+          });
         }
       } catch (err) { console.warn('Telemetry sync error'); }
     };
@@ -148,13 +174,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
     const timer = setInterval(() => setTime(new Date().toLocaleTimeString('en-GB', { hour12: false })), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVisualizerBars(prev => prev.map(() => isPlaying ? Math.floor(Math.random() * 8) + 1 : 2));
-    }, 150);
-    return () => clearInterval(interval);
-  }, [isPlaying]);
 
   const handleCommandSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,7 +232,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
         </div>
       </header>
 
-      {/* Abas Mobile */}
       <nav className="flex md:hidden h-10 border border-neutral-800 bg-neutral-950/40">
         <MobileTab active={activeSection === 'decoder'} onClick={() => setActiveSection('decoder')} icon={<MessageSquare size={14}/>} label="Dec" />
         <MobileTab active={activeSection === 'console'} onClick={() => setActiveSection('console')} icon={<Terminal size={14}/>} label="Con" />
@@ -221,14 +239,12 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
       </nav>
 
       <div className="flex-grow flex flex-col md:flex-row gap-1.5 overflow-hidden">
-        {/* Lado Esquerdo: Decoder / Lyrics */}
         <section className={`${activeSection === 'decoder' ? 'flex' : 'hidden'} md:flex flex-[6] border border-neutral-800 bg-[#050505] flex-col overflow-hidden relative`}>
           <div className="h-9 border-b border-neutral-800 flex items-center px-4 justify-between bg-neutral-950/50">
             <div className="flex items-center gap-2">
               <Terminal size={12} className="text-[#FF007F]" />
               <span className="text-[8px] font-bold tracking-[0.3em] uppercase text-[#FF007F]">SIGNAL_DECODER</span>
             </div>
-            <span className="text-[7px] text-neutral-700 font-bold uppercase tracking-widest">v4.0.2_mobile</span>
           </div>
 
           <div ref={lyricsScrollRef} className="flex-grow p-4 md:p-6 overflow-y-auto space-y-2 md:space-y-3 scrollbar-hide">
@@ -255,29 +271,28 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
           </form>
         </section>
 
-        {/* Lado Direito: Logs e Stats */}
         <section className={`${activeSection !== 'decoder' ? 'flex' : 'hidden'} md:flex flex-[4] flex-col gap-1.5 overflow-hidden`}>
-          
-          {/* Aba de Console em Mobile / Top Section em Desktop */}
           <div className={`${activeSection === 'console' ? 'flex' : 'hidden md:flex'} flex-[3] border border-neutral-800 bg-[#080808] flex-col overflow-hidden`}>
             <div className="h-9 p-4 border-b border-neutral-900 flex items-center gap-2 bg-neutral-950/40">
               <Activity size={12} className="text-[#00FF41]" />
               <span className="text-[8px] font-bold tracking-widest uppercase text-[#00FF41]">SYSTEM_CONSOLE</span>
             </div>
-            <div className="flex-grow p-3 overflow-y-auto font-mono text-[8px] space-y-1 scrollbar-hide">
+            <div className="flex-grow p-3 overflow-y-auto font-mono text-[8px] space-y-1.5 scrollbar-hide">
               {logs.map(log => (
-                <div key={log.id} className="flex gap-2">
+                <div key={log.id} className="flex gap-2 items-start">
                   <span className="text-neutral-700 shrink-0">[{log.timestamp}]</span>
-                  <span className={`uppercase tracking-tighter ${log.type === 'error' ? 'text-red-500' : log.type === 'success' ? 'text-green-500' : 'text-[#00FF41]/60'}`}>
-                    {log.text}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {log.type === 'bot' && <Bot size={10} className="text-[#FFB800] shrink-0" />}
+                    <span className={`uppercase tracking-tighter leading-none ${log.type === 'error' ? 'text-red-500' : log.type === 'success' ? 'text-green-500' : log.type === 'bot' ? 'text-[#FFB800]' : 'text-[#00FF41]/60'}`}>
+                      {log.text}
+                    </span>
+                  </div>
                 </div>
               ))}
               {logs.length === 0 && <p className="text-neutral-800 text-[8px] uppercase tracking-widest italic mt-2">No terminal data recorded...</p>}
             </div>
           </div>
 
-          {/* Aba de Stats em Mobile / Bottom Section em Desktop */}
           <div className={`${activeSection === 'stats' ? 'flex' : 'hidden md:flex'} flex-[2] flex-col gap-1.5 overflow-hidden`}>
             <div className="flex-grow border border-neutral-800 bg-[#080808] p-4 flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-3 border-b border-neutral-900 pb-2">
@@ -291,29 +306,15 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
                  <StatRow label="Nodes" value={activeUsers.toString()} />
                  <StatRow label="Loc" value={lastConnection} />
               </div>
-
-              <div className="mt-4 flex items-end justify-center gap-1 h-10">
-                {visualizerBars.map((v, i) => (
-                  <div key={i} className="flex flex-col gap-0.5">
-                    {Array(8).fill(0).map((_, idx) => (
-                      <span key={idx} className={`text-[8px] leading-[4px] ${8 - idx <= v ? 'text-[#FF007F]' : 'text-neutral-900'}`}>
-                        {8 - idx <= v ? '█' : '▒'}
-                      </span>
-                    ))}
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div className="h-12 border border-neutral-800 bg-neutral-950 flex items-center justify-around px-4">
                <button onClick={togglePlay} className={`p-2 transition-colors ${currentSong ? 'text-neutral-500 hover:text-white' : 'text-neutral-800 cursor-not-allowed'}`}>
                   {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                </button>
-               <div className="h-4 w-px bg-neutral-800"></div>
                <button onClick={() => setIsDashboardOpen(true)} className="p-2 text-neutral-500 hover:text-[#7000FF] transition-colors">
                   <Globe size={16} />
                </button>
-               <div className="h-4 w-px bg-neutral-800"></div>
                <div className="flex items-center gap-1">
                   <Zap size={12} className="text-[#FF007F]" />
                   <span className="text-[7px] font-bold tracking-widest text-neutral-600">G.A.S_OS</span>
@@ -332,11 +333,6 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ onClose }) => {
           />
         )}
       </AnimatePresence>
-
-      <footer className="h-6 shrink-0 flex items-center justify-between px-3 bg-neutral-950 border border-neutral-800">
-         <span className="text-[6px] font-mono text-neutral-800 tracking-widest uppercase">SB_ARCHIVE_TERMINAL_NODE_110196</span>
-         <span className="text-[6px] text-neutral-800 uppercase font-bold tracking-widest">{activeSection.toUpperCase()}_SECTION_ACTIVE</span>
-      </footer>
     </div>
   );
 };

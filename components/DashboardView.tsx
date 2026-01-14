@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, Cpu, Activity, Layout, 
   MapPin, Monitor, Users,
-  Layers, Zap, X, ChevronRight, BarChart3, Info, TrendingUp, HardDrive, Terminal as TerminalIcon, MousePointer2
+  Layers, Zap, X, ChevronRight, BarChart3, Info, TrendingUp, HardDrive, Terminal as TerminalIcon, MousePointer2,
+  ShieldCheck, AlertCircle
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient.ts';
 
@@ -15,6 +17,7 @@ interface AccessData {
   hardware_concurrency: number;
   screen_resolution: string;
   created_at: string;
+  user_agent?: string;
 }
 
 interface DashboardViewProps {
@@ -23,11 +26,16 @@ interface DashboardViewProps {
   activeNodes: number;
 }
 
+const isBot = (ua?: string) => {
+  if (!ua) return false;
+  const botPatterns = ['bot', 'spider', 'crawl', 'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider', 'yandexbot', 'applebot', 'facebot', 'twitterbot', 'discordbot'];
+  return botPatterns.some(pattern => ua.toLowerCase().includes(pattern));
+};
+
 export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits, activeNodes }) => {
   const [activeTab, setActiveTab] = useState<'geo' | 'tech' | 'traffic' | 'history'>('geo');
   const [rawLogs, setRawLogs] = useState<AccessData[]>([]);
   const [loading, setLoading] = useState(true);
-  // Fix: Casting motion.div and motion.path to any to resolve React 19 type incompatibilities
   const MotionDiv = motion.div as any;
   const MotionPath = motion.path as any;
 
@@ -36,7 +44,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
       setLoading(true);
       const { data } = await supabase
         .from('access_logs_goth')
-        .select('timezone, platform, path, device_memory, hardware_concurrency, screen_resolution, created_at')
+        .select('timezone, platform, path, device_memory, hardware_concurrency, screen_resolution, created_at, user_agent')
         .order('created_at', { ascending: false })
         .limit(200);
       
@@ -50,9 +58,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
     const geo: Record<string, number> = {};
     const tech: Record<string, number> = {};
     const paths: Record<string, number> = {};
+    let botCount = 0;
     const hardware: { cores: number[], memory: number[] } = { cores: [], memory: [] };
 
     rawLogs.forEach(log => {
+      const currentIsBot = isBot(log.user_agent);
+      if (currentIsBot) botCount++;
+      
       const tz = log.timezone?.split('/')[1] || log.timezone || 'Unknown';
       geo[tz] = (geo[tz] || 0) + 1;
       const plt = log.platform || 'Unknown';
@@ -71,11 +83,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
       tech: Object.entries(tech).sort((a, b) => b[1] - a[1]).slice(0, 8),
       paths: Object.entries(paths).sort((a, b) => b[1] - a[1]).slice(0, 8),
       avgCores,
-      avgMemory
+      avgMemory,
+      botCount,
+      humanPercentage: rawLogs.length > 0 ? Math.round(((rawLogs.length - botCount) / rawLogs.length) * 100) : 100
     };
   }, [rawLogs]);
 
-  // Simulated temporal data for the Signal History graph
   const trafficHistory = useMemo(() => {
     return Array.from({ length: 15 }).map((_, i) => ({
       intensity: Math.floor(Math.random() * 60) + 20,
@@ -120,10 +133,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 border-b border-neutral-800 bg-neutral-950/20">
-         <MetricBox label="Global_Hits" sub="Total Requests" description="Volume total de acessos." value={totalHits.toLocaleString()} icon={<Globe size={14}/>} color="#FF007F" />
-         <MetricBox label="Active_Nodes" sub="Real-time" description="Terminais ativos no sistema." value={activeNodes.toString()} icon={<Users size={14}/>} color="#00FF41" />
-         <MetricBox label="Latency_Avg" sub="Response Time" description="Atraso médio do servidor." value="42ms" icon={<Zap size={14}/>} color="#7000FF" />
-         <MetricBox label="Security_Lvl" sub="Encryption" description="Integridade dos logs." value="AES-256" icon={<TrendingUp size={14}/>} color="#FFB800" />
+         <MetricBox label="Global_Hits" sub="Total Raw Signals" description="Volume total de acessos (incluindo Bots)." value={totalHits.toLocaleString()} icon={<Globe size={14}/>} color="#FF007F" />
+         <MetricBox label="Signal_Purity" sub="Human Detection" description="Porcentagem de acessos identificados como humanos." value={`${stats.humanPercentage}%`} icon={<ShieldCheck size={14}/>} color="#00FF41" />
+         <MetricBox label="Active_Nodes" sub="Real-time Pulse" description="Terminais ativos no sistema no momento." value={activeNodes.toString()} icon={<Users size={14}/>} color="#7000FF" />
+         <MetricBox label="Signal_Noise" sub="Bot Activity" description="Crawlers e sondas detectadas (ex: Google, Bing)." value={stats.botCount.toString()} icon={<AlertCircle size={14}/>} color="#FFB800" />
       </div>
 
       <div className="flex-grow flex flex-col lg:flex-row overflow-hidden">
@@ -137,6 +150,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
         <main className="flex-grow p-5 md:p-10 overflow-y-auto custom-scrollbar bg-[#050505] relative">
           <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
           
+          <div className="mb-6 flex items-center gap-3 p-4 bg-[#FF007F]/5 border border-[#FF007F]/20 rounded-sm">
+            <Info size={16} className="text-[#FF007F] shrink-0" />
+            <p className="text-[10px] text-neutral-400 uppercase tracking-widest leading-relaxed">
+              <span className="text-[#FF007F] font-bold">Nota de Engenharia:</span> A detecção de Bots agora é processada em tempo real via análise de User-Agent, eliminando a dependência de colunas específicas no banco de dados.
+            </p>
+          </div>
+
           <AnimatePresence mode="wait">
             {activeTab === 'history' ? (
               <MotionDiv key="history" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
@@ -150,29 +170,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
                        <circle key={i} cx={50 + i * (900/(trafficHistory.length-1))} cy={150 - (e.intensity/100)*100} r="3" fill="#FF007F" className="animate-pulse" />
                      ))}
                    </svg>
-                   <div className="absolute bottom-2 left-6 right-6 flex justify-between text-[7px] text-neutral-600 font-bold uppercase tracking-widest">
-                      <span>{trafficHistory[0].label}</span>
-                      <span>Signal_Flow_Live</span>
-                      <span>Now</span>
-                   </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="p-5 border border-neutral-900 bg-neutral-950/50 flex flex-col gap-3">
-                    <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Request Rate</span>
-                    <span className="text-xl text-[#FF007F] font-bold tracking-tighter">~{Math.floor(activeNodes * 1.5)} REQ/SEC</span>
-                    <div className="h-1 w-full bg-neutral-900"><div className="h-full bg-[#FF007F] w-[45%]" /></div>
-                  </div>
-                  <div className="p-5 border border-neutral-900 bg-neutral-950/50 flex flex-col gap-3">
-                    <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Server Uptime</span>
-                    <span className="text-xl text-[#00FF41] font-bold tracking-tighter">14d 06h 22m</span>
-                    <div className="h-1 w-full bg-neutral-900"><div className="h-full bg-[#00FF41] w-[99%]" /></div>
-                  </div>
                 </div>
               </MotionDiv>
             ) : activeTab === 'geo' ? (
               <MotionDiv key="geo" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-                <SectionTitle title="Geographic Node Distribution" subtitle="Origem dos Sinais" explanation="Análise da localização geográfica dos usuários com base no Timezone do sistema local." />
+                <SectionTitle title="Geographic Node Distribution" subtitle="Origem dos Sinais" explanation="Análise da localização geográfica baseada no Timezone. Grandes volumes em polos de tecnologia indicam tráfego de Crawlers." />
                 <div className="grid gap-5 mt-8 max-w-4xl">
                   {stats.geo.length > 0 ? stats.geo.map(([name, count]) => (
                     <BarStat key={name} label={name.replace('_', ' ')} value={count} total={rawLogs.length} color="#FF007F" icon={<MapPin size={10}/>} />
@@ -183,7 +185,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
               </MotionDiv>
             ) : activeTab === 'tech' ? (
               <MotionDiv key="tech" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-                <SectionTitle title="Hardware Environment Audit" subtitle="Especificações Técnicas" explanation="Relatório agregado sobre o poder de processamento e recursos dos dispositivos conectados." />
+                <SectionTitle title="Hardware Environment Audit" subtitle="Especificações Técnicas" explanation="Relatório agregado sobre o poder de processamento reportado pelos dispositivos conectados." />
                 <div className="grid md:grid-cols-2 gap-10 mt-8">
                   <div className="space-y-5">
                     <div className="flex items-center gap-2 mb-4 text-[#7000FF]">
@@ -194,61 +196,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onClose, totalHits
                       <BarStat key={name} label={name} value={count} total={rawLogs.length} color="#7000FF" icon={<Monitor size={10}/>} />
                     ))}
                   </div>
-                  <div className="space-y-6">
-                    <div className="p-6 border border-neutral-900 bg-neutral-950/30 space-y-8 relative">
-                      <div className="absolute top-0 right-0 p-2 text-neutral-800"><HardDrive size={24} /></div>
-                      <SimpleMetric label="Avg_Logical_Cores" value={`${stats.avgCores} Threads`} hint="Média de CPUs lógicas detectadas." icon={<Cpu size={12}/>} />
-                      <SimpleMetric label="Avg_Memory_Bank" value={`${stats.avgMemory}GB RAM`} hint="Média de memória RAM reportada." icon={<Layers size={12}/>} />
-                      <SimpleMetric label="Global_Resolution" value="1080p Avg" hint="Densidade de pixels dominante." icon={<Monitor size={12}/>} />
-                    </div>
-
-                    <div className="p-4 border border-[#FF007F]/20 bg-[#FF007F]/5">
-                       <span className="text-[8px] text-[#FF007F] font-bold uppercase tracking-widest block mb-2">Live_Telemetria:</span>
-                       <div className="font-mono text-[7px] text-neutral-500 uppercase leading-none space-y-1">
-                          {rawLogs.slice(0, 4).map((l, idx) => (
-                            <p key={idx}>{" >> "} REQ_FROM_{l.timezone.slice(-10)} // PLT:_{l.platform.slice(0, 8)} // CORES:_{l.hardware_concurrency}</p>
-                          ))}
-                       </div>
-                    </div>
-                  </div>
                 </div>
               </MotionDiv>
             ) : (
               <MotionDiv key="traffic" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-                <SectionTitle title="Neural Sector Navigation" subtitle="Fluxo de Movimentação" explanation="Identificação das áreas mais acessadas da aplicação para otimização de cache e entrega." />
+                <SectionTitle title="Neural Sector Navigation" subtitle="Fluxo de Movimentação" explanation="Identificação das áreas mais acessadas da aplicação." />
                 <div className="grid gap-5 mt-8 max-w-4xl">
                   {stats.paths.map(([name, count]) => (
                     <BarStat key={name} label={`Sector_ID: /${name.toUpperCase()}`} value={count} total={rawLogs.length} color="#00FF41" icon={<MousePointer2 size={10}/>} />
                   ))}
-                  
-                  <div className="mt-12 p-6 border border-neutral-900 bg-neutral-900/10 grid grid-cols-2 md:grid-cols-3 gap-8">
-                     <div className="flex flex-col gap-2">
-                        <span className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest">Top Performance</span>
-                        <span className="text-xs text-white font-bold tracking-widest uppercase">Archive_Sector</span>
-                     </div>
-                     <div className="flex flex-col gap-2">
-                        <span className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest">Latency Floor</span>
-                        <span className="text-xs text-white font-bold tracking-widest uppercase">Terminal_Sync</span>
-                     </div>
-                     <div className="flex flex-col gap-2">
-                        <span className="text-[9px] text-neutral-600 font-bold uppercase tracking-widest">Active Cache</span>
-                        <span className="text-xs text-white font-bold tracking-widest uppercase">Metadata_Grid</span>
-                     </div>
-                  </div>
                 </div>
               </MotionDiv>
             )}
           </AnimatePresence>
         </main>
       </div>
-      
-      <footer className="h-8 md:h-10 border-t border-neutral-800 bg-neutral-950 flex items-center justify-between px-6 shrink-0">
-         <span className="text-[7px] md:text-[8px] text-neutral-700 uppercase tracking-widest font-bold">End of Telemetry Stream // SB-ARCHIVE-MONITOR-01</span>
-         <div className="flex items-center gap-2">
-            <div className="w-1 h-1 bg-[#00FF41] rounded-full animate-pulse" />
-            <span className="text-[7px] md:text-[8px] text-neutral-500 uppercase tracking-widest font-bold">Signal: Nominal</span>
-         </div>
-      </footer>
     </MotionDiv>
   );
 };
@@ -263,7 +225,6 @@ const MetricBox = ({ label, sub, value, icon, color, description }: any) => (
     </div>
     <span className="text-xl md:text-3xl font-bold tracking-tighter mb-1 transition-all group-hover:scale-105 origin-left" style={{ color, textShadow: `0 0 10px ${color}40` }}>{value}</span>
     <span className="text-[8px] font-bold text-neutral-500 uppercase tracking-widest mb-2 opacity-60">{sub}</span>
-    
     <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-center pointer-events-none">
        <span className="text-[7px] text-white font-bold uppercase tracking-widest mb-1">{label} Info:</span>
        <p className="text-[7px] text-neutral-400 uppercase leading-none">{description}</p>
@@ -272,7 +233,6 @@ const MetricBox = ({ label, sub, value, icon, color, description }: any) => (
 );
 
 const TabButton = ({ active, onClick, icon, label, sub }: any) => {
-  // Fix: Casting motion.div to any to resolve React 19 type incompatibilities
   const MotionDiv = motion.div as any;
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-4 px-6 py-5 text-left border-b border-neutral-900 transition-all group relative overflow-hidden ${active ? 'bg-[#FF007F]/10 text-white' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/[0.02]'}`}>

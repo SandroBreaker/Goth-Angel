@@ -17,7 +17,6 @@ export const trackAccess = async (currentView: string) => {
       session_id: getSessionId()
     };
 
-    // Alterado para a nova tabela definida pelo usuário
     const { error } = await supabase
       .from('access_logs_goth')
       .insert([data]);
@@ -28,7 +27,6 @@ export const trackAccess = async (currentView: string) => {
   }
 };
 
-// Função simples para manter um ID de sessão durante o tempo que a aba estiver aberta
 const getSessionId = () => {
   let sessionId = sessionStorage.getItem('gas_session_id');
   if (!sessionId) {
