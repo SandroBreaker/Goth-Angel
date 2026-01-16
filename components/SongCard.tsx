@@ -1,8 +1,7 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Song } from '../types.ts';
-import { FileText, Calendar, Play, Pause, Lock, Zap } from 'lucide-react';
+import { FileText, Calendar, Play, Pause, Lock, Zap, Loader2 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext.tsx';
 import React from 'react';
 
@@ -20,7 +19,7 @@ const ensureString = (val: any): string => {
 
 export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
   const { playSong, currentSong, isPlaying } = usePlayer();
-  const [showLyricsTooltip, setShowLyricsTooltip] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const MotionDiv = motion.div as any;
 
   const isActive = currentSong?.id === song.id;
@@ -39,137 +38,99 @@ export const SongCard = React.memo(({ song, onClick }: SongCardProps) => {
 
   return (
     <MotionDiv
-      whileHover={hasDirectAudio ? { scale: 1.02, y: -4 } : { y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      className={`relative group cursor-pointer overflow-hidden border transition-all duration-500 aspect-square will-change-transform ${
+      whileHover={hasDirectAudio ? { y: -5 } : {}}
+      whileTap={{ scale: 0.96 }}
+      className={`relative group cursor-pointer overflow-hidden border transition-all duration-500 aspect-square rounded-sm ${
         !hasDirectAudio 
-          ? 'bg-neutral-950 border-neutral-900 grayscale brightness-50 opacity-60' 
+          ? 'bg-neutral-950 border-neutral-900 opacity-60' 
           : isActive 
-            ? 'bg-neutral-950 border-[#FF007F] shadow-[0_0_30px_rgba(255,0,127,0.25)]' 
-            : 'bg-neutral-950 border-neutral-800 hover:border-[#FF007F]/60 shadow-xl'
+            ? 'bg-neutral-950 border-[#FF007F] shadow-[0_0_20px_rgba(255,0,127,0.3)]' 
+            : 'bg-neutral-950 border-white/5 hover:border-[#FF007F]/40'
       }`}
       onClick={() => onClick(song)}
     >
-      <AnimatePresence>
-        {isCurrentlyPlaying && (
-          <MotionDiv
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 border-2 border-[#FF007F] z-30 pointer-events-none"
-            style={{ boxShadow: 'inset 0 0 20px rgba(255, 0, 127, 0.4)' }}
-          >
-            <MotionDiv
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 bg-[#FF007F]/5"
-            />
-          </MotionDiv>
-        )}
-      </AnimatePresence>
-
       <div className="absolute inset-0 overflow-hidden bg-neutral-900">
+        <AnimatePresence>
+          {!imageLoaded && (
+            <MotionDiv
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#080808]"
+            >
+              <div className="relative">
+                <Loader2 className="w-5 h-5 text-neutral-800 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                  <div className="w-8 h-8 rounded-full border border-[#FF007F] animate-ping" />
+                </div>
+              </div>
+              <MotionDiv 
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent pointer-events-none"
+              />
+            </MotionDiv>
+          )}
+        </AnimatePresence>
+        
         <img
           src={song.image_url || `https://picsum.photos/seed/${song.id}/400/400`}
           alt={safeTitle}
-          className={`w-full h-full object-cover transition-all duration-700 ease-out transform will-change-transform ${
+          onLoad={() => setImageLoaded(true)}
+          className={`w-full h-full object-cover transition-all duration-700 ease-out ${
+            !imageLoaded ? 'opacity-0 scale-105' : 'opacity-100 scale-100'
+          } ${
             !hasDirectAudio
-              ? 'grayscale group-hover:scale-105 brightness-[0.2]'
+              ? 'grayscale brightness-25'
               : isCurrentlyPlaying 
                 ? 'grayscale-0 scale-110 brightness-75' 
-                : 'grayscale-[80%] group-hover:grayscale-0 group-hover:scale-110 brightness-50 group-hover:brightness-75'
+                : 'grayscale-[90%] group-hover:grayscale-0 group-hover:scale-105 brightness-50'
           }`}
           loading="lazy"
         />
-        <div className={`absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 ${!hasDirectAudio ? 'opacity-90' : 'opacity-60'}`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
       </div>
 
-      <div className={`absolute bottom-0 left-0 w-full p-5 z-10 transition-all duration-500 ${isCurrentlyPlaying || (!hasDirectAudio) ? 'opacity-100' : 'group-hover:opacity-0 group-hover:translate-y-4'}`}>
-        <h3 className={`font-serif-classic text-[13px] tracking-widest font-bold uppercase truncate mb-1 drop-shadow-md ${!hasDirectAudio ? 'text-neutral-500' : 'text-white'}`}>
+      <div className="absolute inset-x-0 bottom-0 p-3 md:p-5 z-10">
+        <h3 className={`font-serif-classic text-[11px] md:text-[13px] tracking-widest font-bold uppercase truncate mb-1 ${!hasDirectAudio ? 'text-neutral-500' : 'text-white'}`}>
           {safeTitle}
         </h3>
-        <p className={`font-mono text-[9px] tracking-[0.2em] font-bold ${!hasDirectAudio ? 'text-neutral-700' : 'text-[#FF007F]/80'}`}>
-          {hasDirectAudio ? `LOG_#${safeId.slice(0, 4)}` : 'SIGNAL_LOST'}
+        <p className={`font-mono text-[8px] md:text-[9px] tracking-[0.2em] font-bold ${!hasDirectAudio ? 'text-neutral-700' : 'text-[#FF007F]/60'}`}>
+          {hasDirectAudio ? `CORE_LOG_${safeId.slice(0, 4)}` : 'SIGNAL_LOST'}
         </p>
       </div>
 
-      {hasDirectAudio && (
-        <div className="absolute top-5 left-5 z-20 transition-transform duration-500 group-hover:scale-110">
-          <Zap size={14} className={`${isCurrentlyPlaying ? 'text-[#FF007F] animate-pulse' : 'text-[#7000FF]'} drop-shadow-[0_0_8px_currentColor]`} fill="currentColor" />
-        </div>
-      )}
-
-      <div 
-        className={`absolute top-5 right-5 z-40 transition-all duration-500 ${!hasDirectAudio ? 'opacity-100 scale-100' : isCurrentlyPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100'}`}
-        onClick={handlePlayClick}
-      >
-        {!hasDirectAudio ? (
-          <div className="p-3 bg-black/80 text-neutral-800 rounded-full border border-neutral-900 cursor-not-allowed">
-            <Lock size={16} />
-          </div>
-        ) : (
-          <button className={`p-4 rounded-full border-2 transition-all duration-300 shadow-2xl ${
-            isCurrentlyPlaying 
-              ? 'bg-[#FF007F] border-[#FF007F] text-white' 
-              : 'bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-black'
-          }`}>
-            {isCurrentlyPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
+      <div className="absolute top-3 right-3 z-30 flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+        {hasDirectAudio ? (
+          <button 
+            onClick={handlePlayClick}
+            className={`p-3 md:p-4 rounded-full backdrop-blur-md border border-white/20 transition-all ${
+              isCurrentlyPlaying ? 'bg-[#FF007F] text-white' : 'bg-black/50 text-white'
+            }`}
+          >
+            {isCurrentlyPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
           </button>
+        ) : (
+          <div className="p-3 bg-black/80 text-neutral-800 rounded-full border border-neutral-900">
+            <Lock size={14} />
+          </div>
         )}
       </div>
 
       {hasDirectAudio && (
-        <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center p-8 transition-all duration-500 backdrop-blur-[2px] ${isCurrentlyPlaying ? 'opacity-100 bg-black/40' : 'opacity-0 group-hover:opacity-100 group-hover:bg-black/40 translate-y-4 group-hover:translate-y-0'}`}>
-          <div className="flex items-center gap-3 mb-4">
-            <Calendar size={14} className="text-[#FF007F]" />
-            <span className="font-mono text-[12px] font-bold text-white tracking-[0.3em]">
-              {song.release_date?.split('-')[0] || 'ARCHIVED'}
-            </span>
-          </div>
-          
-          <h3 className="font-serif-classic text-xl text-center font-bold tracking-tight text-white mb-8 px-2 leading-tight line-clamp-2 drop-shadow-2xl">
-            {safeTitle}
-          </h3>
-          
-          <div 
-            className="relative"
-            onMouseEnter={() => setShowLyricsTooltip(true)}
-            onMouseLeave={() => setShowLyricsTooltip(false)}
-          >
-            <div className="flex items-center gap-3 px-6 py-3 border-2 border-[#FF007F] bg-[#FF007F]/10 hover:bg-[#FF007F] hover:text-white text-[#FF007F] transition-all duration-300 shadow-lg">
-              <FileText size={18} />
-              <span className="font-mono text-[12px] font-bold uppercase tracking-[0.2em]">View Fragment</span>
-            </div>
-            
-            <AnimatePresence>
-              {showLyricsTooltip && (
-                <MotionDiv
-                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 z-[100] pointer-events-none"
-                >
-                  <div className="bg-black border border-[#FF007F]/50 px-5 py-2 shadow-[0_0_20px_rgba(255,0,127,0.3)] whitespace-nowrap">
-                    <p className="font-mono text-[10px] text-[#FF007F] font-bold uppercase tracking-[0.3em] italic">Accessing Lyrics...</p>
-                  </div>
-                </MotionDiv>
-              )}
-            </AnimatePresence>
-          </div>
+        <div className="absolute top-3 left-3 z-30">
+          <Zap size={10} className={`${isCurrentlyPlaying ? 'text-[#FF007F] animate-pulse' : 'text-[#7000FF]'} drop-shadow-md`} fill="currentColor" />
         </div>
       )}
 
-      {!hasDirectAudio && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-black/60 backdrop-blur-[1px]">
-           <div className="flex flex-col items-center gap-4">
-             <div className="flex items-center gap-3 px-6 py-3 border border-neutral-800 bg-neutral-900/50 text-neutral-500 transition-all duration-300">
-               <FileText size={18} />
-               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em]">Read Lyrics Only</span>
-             </div>
-             <p className="font-mono text-[8px] text-neutral-700 uppercase tracking-[0.4em]">Media file missing from vault</p>
-           </div>
-        </div>
-      )}
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-neutral-900">
+        <MotionDiv 
+          animate={isCurrentlyPlaying ? { x: ['-100%', '100%'] } : {}}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="w-full h-full bg-[#FF007F] opacity-0 group-hover:opacity-100"
+          style={{ opacity: isCurrentlyPlaying ? 1 : undefined }}
+        />
+      </div>
     </MotionDiv>
   );
 }, (prevProps, nextProps) => {

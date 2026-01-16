@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipBack, SkipForward, Maximize2, X, Zap, Youtube, Shuffle, Lock } from 'lucide-react';
@@ -38,18 +37,18 @@ const ProgressSlider: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex items-center gap-3 md:gap-5">
-      <span className="text-[9px] md:text-[11px] font-mono text-neutral-400 w-8 md:w-12 text-right tabular-nums font-bold">{formatTime(progress)}</span>
+    <div className="w-full flex items-center gap-3 md:gap-5 px-1">
+      <span className="text-[8px] md:text-[10px] font-mono text-neutral-500 w-7 md:w-10 text-right tabular-nums">{formatTime(progress)}</span>
       <div 
-        className={`flex-grow h-1.5 bg-neutral-800 relative overflow-hidden group ${hasDirectAudio ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+        className={`flex-grow h-1.5 md:h-2 bg-neutral-900 rounded-full relative overflow-hidden group ${hasDirectAudio ? 'cursor-pointer' : 'cursor-not-allowed'}`}
         onClick={handleProgressClick}
       >
         <div 
-          className="absolute inset-0 h-full bg-[#FF007F] shadow-[0_0_20px_rgba(255,0,127,0.8)] transition-all duration-300 ease-out"
+          className="absolute inset-0 h-full bg-[#FF007F] shadow-[0_0_15px_rgba(255,0,127,0.6)] transition-all duration-300 ease-out"
           style={{ width: `${percent}%` }}
         />
       </div>
-      <span className="text-[9px] md:text-[11px] font-mono text-neutral-400 w-8 md:w-12 tabular-nums font-bold">{formatTime(duration || 0)}</span>
+      <span className="text-[8px] md:text-[10px] font-mono text-neutral-500 w-7 md:w-10 tabular-nums">{formatTime(duration || 0)}</span>
     </div>
   );
 };
@@ -80,127 +79,102 @@ export const GlobalPlayer: React.FC<GlobalPlayerProps> = ({ onExpand, onClose })
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 200, opacity: 0 }}
         transition={{ type: "spring", damping: 30, stiffness: 200 }}
-        className="fixed bottom-0 left-0 w-full z-[120] p-3 md:p-8 pointer-events-none"
+        className="fixed bottom-0 left-0 w-full z-[120] p-3 md:p-6 lg:p-8 pointer-events-none pb-[calc(1rem+env(safe-area-inset-bottom))]"
       >
-        <div className="max-w-7xl mx-auto bg-[#080808]/98 backdrop-blur-3xl border border-neutral-800 p-4 md:p-8 rounded-none flex flex-col items-center gap-4 md:gap-6 shadow-[0_-40px_80px_rgba(0,0,0,0.8)] pointer-events-auto relative overflow-hidden">
+        <div className="max-w-6xl mx-auto bg-[#080808]/95 backdrop-blur-3xl border border-white/10 p-4 md:p-6 rounded-xl flex flex-col items-center gap-4 md:gap-5 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] pointer-events-auto relative overflow-hidden">
           
-          <div className="absolute top-0 left-0 w-1 md:w-1 h-full bg-[#FF007F]/40" />
-
-          {/* Top Row: Track Info & Controls */}
-          <div className="w-full flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          <div className="absolute top-0 left-0 w-1 h-full bg-[#FF007F]/40" />
+          
+          {/* Main Controls Row */}
+          <div className="w-full flex items-center gap-4 md:gap-8">
             
-            {/* Left: Info */}
-            <div className="flex items-center gap-4 md:gap-6 w-full md:w-1/4 overflow-hidden group/info">
-              <div className="relative shrink-0 cursor-pointer" onClick={onExpand}>
+            {/* Track Info */}
+            <div className="flex items-center gap-3 md:gap-5 flex-1 min-w-0 group/info cursor-pointer" onClick={onExpand}>
+              <div className="relative shrink-0">
                 <img 
                   src={currentSong.image_url} 
                   alt={safeTitle} 
-                  className={`w-12 h-12 md:w-16 md:h-16 border-2 border-neutral-800 object-cover transition-all duration-700 ${isPlaying ? 'brightness-110 shadow-[0_0_20px_rgba(255,0,127,0.2)]' : 'brightness-40 grayscale'}`} 
+                  className={`w-12 h-12 md:w-16 md:h-16 rounded-md border border-neutral-800 object-cover transition-all duration-500 ${isPlaying ? 'brightness-110' : 'brightness-50 grayscale'}`} 
                 />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/info:opacity-100 transition-opacity flex items-center justify-center">
-                  <Maximize2 size={16} className="text-white" />
-                </div>
                 {isPlaying && (
-                  <div className="absolute -bottom-1 -right-1 bg-black border border-neutral-800 p-0.5 flex gap-0.5 items-end h-4 z-20">
-                      <MotionDiv animate={{ height: [3, 9, 4] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-0.5 bg-[#FF007F]" />
-                      <MotionDiv animate={{ height: [8, 3, 11] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-0.5 bg-[#FF007F]" />
-                      <MotionDiv animate={{ height: [5, 8, 3] }} transition={{ repeat: Infinity, duration: 0.7 }} className="w-0.5 bg-[#FF007F]" />
+                  <div className="absolute -bottom-1 -right-1 bg-black border border-neutral-800 p-0.5 flex gap-0.5 items-end h-3 z-20">
+                      <MotionDiv animate={{ height: [2, 6, 3] }} transition={{ repeat: Infinity, duration: 0.6 }} className="w-0.5 bg-[#FF007F]" />
+                      <MotionDiv animate={{ height: [6, 2, 8] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-0.5 bg-[#FF007F]" />
                   </div>
                 )}
               </div>
-              <div className="min-w-0 flex-grow">
-                <div className="flex items-center gap-2 md:gap-3 mb-1">
-                  <p 
-                    className="text-[12px] md:text-[14px] font-bold text-white tracking-widest uppercase truncate cursor-pointer hover:text-[#FF007F] transition-colors"
-                    onClick={onExpand}
-                  >
-                    {safeTitle}
+              <div className="min-w-0">
+                <p className="text-[12px] md:text-[15px] font-bold text-white tracking-wide uppercase truncate">
+                  {safeTitle}
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[8px] md:text-[10px] font-mono text-neutral-500 uppercase tracking-widest truncate font-medium">
+                    {safeAlbum}
                   </p>
-                  {isDirect ? (
-                    <Zap size={10} className="text-[#7000FF] shrink-0" fill="currentColor" />
-                  ) : (
-                    <Youtube size={14} className="text-neutral-700 shrink-0" />
-                  )}
+                  {isDirect && <Zap size={8} className="text-[#FF007F]" fill="currentColor" />}
                 </div>
-                <p className="text-[9px] md:text-[11px] font-mono text-neutral-400 uppercase tracking-widest truncate font-bold opacity-60">{safeAlbum}</p>
               </div>
             </div>
 
-            {/* Center: Controls */}
-            <div className="flex-grow w-full md:w-2/4 flex flex-col items-center gap-4">
-              <div className="flex items-center gap-6 md:gap-10 text-neutral-400">
+            {/* Playback Controls */}
+            <div className="flex items-center gap-2 md:gap-8">
+              <button 
+                onClick={prevTrack}
+                className="hidden md:flex p-2 text-neutral-500 hover:text-white transition-colors disabled:opacity-10"
+                disabled={queue.length <= 1 || !isDirect}
+              >
+                <SkipBack size={20} fill="currentColor" />
+              </button>
+              
+              {!isDirect ? (
+                <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-neutral-800 flex items-center justify-center text-neutral-700">
+                  <Lock size={16} />
+                </div>
+              ) : (
                 <button 
-                  onClick={prevTrack}
-                  className="hover:text-white transition-all duration-300 cursor-pointer disabled:opacity-20 p-2 hover:scale-110 active:scale-90"
-                  disabled={queue.length <= 1 || !isDirect}
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white flex items-center justify-center text-black hover:bg-[#FF007F] hover:text-white transition-all shadow-lg active:scale-90"
+                  onClick={togglePlay}
                 >
-                  <SkipBack size={22} fill="currentColor" />
+                  {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
                 </button>
-                
-                {!isDirect ? (
-                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-neutral-800 flex items-center justify-center text-neutral-600 cursor-not-allowed">
-                    <Lock size={20} />
-                  </div>
-                ) : (
-                  <button 
-                    className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white flex items-center justify-center text-black hover:bg-[#FF007F] hover:text-white hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-[0_0_30px_rgba(255,255,255,0.1)] group"
-                    onClick={togglePlay}
-                  >
-                    {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
-                  </button>
-                )}
+              )}
 
-                <button 
-                  onClick={nextTrack}
-                  className="hover:text-white transition-all duration-300 cursor-pointer disabled:opacity-20 p-2 hover:scale-110 active:scale-90"
-                  disabled={queue.length <= 1 || !isDirect}
-                >
-                  <SkipForward size={22} fill="currentColor" />
-                </button>
-              </div>
+              <button 
+                onClick={nextTrack}
+                className="p-2 text-neutral-500 hover:text-white transition-colors disabled:opacity-10"
+                disabled={queue.length <= 1 || !isDirect}
+              >
+                <SkipForward size={20} fill="currentColor" />
+              </button>
             </div>
 
-            {/* Right: Options (Desktop Only) */}
-            <div className="hidden md:flex items-center justify-end gap-6 w-1/4 text-neutral-400">
-              <button 
-                onClick={toggleShuffle}
-                disabled={!isDirect}
-                className={`transition-all duration-300 p-2 hover:scale-110 ${isShuffle ? 'text-[#FF007F] drop-shadow-[0_0_8px_#FF007F]' : 'text-neutral-500 hover:text-white disabled:opacity-20'}`}
-                title="Shuffle Protocol"
-              >
-                <Shuffle size={18} />
+            {/* desktop Options */}
+            <div className="hidden lg:flex items-center gap-4 flex-1 justify-end">
+              <button onClick={toggleShuffle} className={`p-2 transition-colors ${isShuffle ? 'text-[#FF007F]' : 'text-neutral-600 hover:text-white'}`}>
+                <Shuffle size={16} />
               </button>
-              
-              <button 
-                onClick={onExpand}
-                className="p-2 text-neutral-500 hover:text-white transition-all duration-300 hover:scale-110"
-                title="Expand Archive Fragment"
-              >
-                <Maximize2 size={18} />
+              <button onClick={onExpand} className="p-2 text-neutral-600 hover:text-white">
+                <Maximize2 size={16} />
               </button>
-
-              <div className="w-px h-8 bg-neutral-800 mx-2" />
-              
-              <button 
-                onClick={onClose}
-                className="p-2 text-neutral-500 hover:text-red-500 transition-all duration-300 hover:scale-110 group/close"
-                title="Terminate Session"
-              >
-                <X size={20} className="group-hover/close:rotate-90 transition-transform duration-500" />
+              <div className="w-px h-6 bg-neutral-800" />
+              <button onClick={onClose} className="p-2 text-neutral-600 hover:text-red-500">
+                <X size={18} />
               </button>
             </div>
           </div>
 
-          {/* Bottom Row: Metadata Grid & Progress */}
-          <div className="w-full space-y-4 pt-2 border-t border-neutral-900">
-            <MetadataGrid song={currentSong} />
+          {/* Metadata & Progress */}
+          <div className="w-full space-y-3">
+            <div className="hidden md:block opacity-60">
+              <MetadataGrid song={currentSong} />
+            </div>
             <ProgressSlider />
           </div>
 
-          {/* Mobile Overlay Controls */}
+          {/* Mobile Top-Right Close/Expand */}
           <div className="md:hidden absolute top-2 right-2 flex gap-1">
-             <button onClick={onExpand} className="p-2 text-neutral-500 hover:text-white"><Maximize2 size={16} /></button>
-             <button onClick={onClose} className="p-2 text-neutral-500 hover:text-red-500"><X size={16} /></button>
+             <button onClick={onExpand} className="p-2 text-neutral-600"><Maximize2 size={14} /></button>
+             <button onClick={onClose} className="p-2 text-neutral-600"><X size={14} /></button>
           </div>
         </div>
       </MotionDiv>

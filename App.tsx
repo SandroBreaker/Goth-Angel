@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense, lazy, useCallback, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
 import { ArchiveView } from './components/ArchiveView.tsx';
@@ -155,38 +154,58 @@ const AppContent: React.FC = () => {
 
       <Footer />
 
-      {/* Floating Support Button - Goth/Peep Theme - REFINED SIZE (Reduced) */}
+      {/* Floating Support Button - REFINED SIZE & PULSE ANIMATION */}
       <AnimatePresence>
         {currentView !== 'terminal' && currentView !== 'lyrics' && (
           <MotionDiv
             initial={{ opacity: 0, scale: 0.8, x: 50 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
+            animate={{ 
+              opacity: 1, 
+              scale: [1, 1.02, 1],
+              x: 0 
+            }}
+            transition={{
+              scale: {
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              },
+              opacity: { duration: 0.5 },
+              x: { duration: 0.5 }
+            }}
             exit={{ opacity: 0, scale: 0.8, x: 50 }}
-            className={`fixed z-[140] right-5 md:right-8 transition-all duration-500 ${currentSong ? 'bottom-40 md:bottom-48' : 'bottom-8 md:bottom-10'}`}
+            className={`fixed z-[140] right-5 md:right-8 transition-all duration-500 ${currentSong ? 'bottom-32 md:bottom-40' : 'bottom-6 md:bottom-10'}`}
           >
             <button 
               onClick={() => setIsSupportModalOpen(true)}
-              className="group relative flex items-center gap-3.5 px-5 py-3.5 bg-black border-2 border-[#FF007F] shadow-[0_0_15px_rgba(255,0,127,0.2)] hover:shadow-[0_0_40px_rgba(255,0,127,0.4)] hover:scale-105 transition-all duration-500 rounded-sm"
+              className="group relative flex items-center gap-2.5 px-4 py-2.5 bg-black border border-[#FF007F] shadow-[0_0_10px_rgba(255,0,127,0.15)] hover:shadow-[0_0_30px_rgba(255,0,127,0.5)] hover:scale-105 transition-all duration-500 rounded-sm"
             >
-              {/* Inner Glow Pulse */}
+              {/* Breathing Glow Pulse Effect */}
               <MotionDiv 
-                animate={{ opacity: [0.1, 0.25, 0.1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="absolute inset-0 bg-gradient-to-r from-[#FF007F]/10 to-transparent pointer-events-none"
+                animate={{ 
+                  opacity: [0.1, 0.4, 0.1],
+                  boxShadow: [
+                    "0 0 5px rgba(255,0,127,0.2)",
+                    "0 0 20px rgba(255,0,127,0.4)",
+                    "0 0 5px rgba(255,0,127,0.2)"
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 bg-[#FF007F]/5 pointer-events-none"
               />
               
-              <div className="relative z-10">
-                <Heart size={16} className="text-[#FF007F] fill-[#FF007F]/20 group-hover:fill-[#FF007F] transition-all duration-500 transform group-hover:scale-110" />
+              <div className="relative z-10 shrink-0">
+                <Heart size={14} className="text-[#FF007F] fill-[#FF007F]/20 group-hover:fill-[#FF007F] transition-all duration-500 transform group-hover:scale-110" />
               </div>
               
-              <div className="flex flex-col items-start relative z-10 border-l border-[#FF007F]/30 pl-3.5">
-                <span className="font-gothic text-lg md:text-xl text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,0,127,0.4)] group-hover:text-[#FF007F] transition-colors">Support the Archive</span>
-                <span className="font-serif-classic text-[8px] text-neutral-400 uppercase tracking-[0.2em] font-bold group-hover:text-white transition-colors">Maintain the Legacy</span>
+              <div className="flex flex-col items-start relative z-10 border-l border-[#FF007F]/30 pl-3">
+                <span className="font-gothic text-base md:text-lg text-white tracking-widest drop-shadow-[0_0_8px_rgba(255,0,127,0.4)] group-hover:text-[#FF007F] transition-colors leading-tight">Support the Archive</span>
+                <span className="font-serif-classic text-[7px] text-neutral-400 uppercase tracking-[0.2em] font-bold group-hover:text-white transition-colors">Maintain the Legacy</span>
               </div>
 
-              {/* Decorative Corner */}
-              <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t-2 border-r-2 border-[#FF007F] opacity-50" />
-              <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b-2 border-l-2 border-[#FF007F] opacity-50" />
+              {/* Decorative Corner Accents */}
+              <div className="absolute top-0 right-0 w-1 h-1 border-t border-r border-[#FF007F] opacity-40 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute bottom-0 left-0 w-1 h-1 border-b border-l border-[#FF007F] opacity-40 group-hover:opacity-100 transition-opacity" />
             </button>
           </MotionDiv>
         )}
